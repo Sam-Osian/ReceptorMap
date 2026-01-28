@@ -13,8 +13,10 @@ import numpy as np
 
 DATA_DIR = Path("data")
 REPORT_DIR = Path("reports")
+METRICS_DIR = REPORT_DIR / "metrics"
 OUTPUT_DIR = DATA_DIR / "joined"
 REPORT_DIR.mkdir(exist_ok=True)
+METRICS_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 logger = logging.getLogger("join_data")
@@ -411,18 +413,22 @@ def main() -> None:
 
     ambiguous_sample = (
         ambiguous_ligands[["Ligand Name", "SMILES", "CAS", "ligand_match_method", "ligand_match_ids"]]
+        .drop_duplicates()
         .head(20)
         .to_dict(orient="records")
     )
     unmatched_sample = (
-        unmatched_ligands[["Ligand Name", "SMILES", "CAS"]].head(20).to_dict(orient="records")
+        unmatched_ligands[["Ligand Name", "SMILES", "CAS"]]
+        .drop_duplicates()
+        .head(20)
+        .to_dict(orient="records")
     )
 
     if not ambiguous_ligands.empty:
         logger.warning("Ambiguous ligand matches detected: %s", len(ambiguous_ligands))
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_txt = REPORT_DIR / f"join_metrics_{timestamp}.txt"
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+    report_txt = METRICS_DIR / f"join_metrics_{timestamp}.txt"
     output_csv = OUTPUT_DIR / "joined_pdsp_gtopdb.csv"
     targets_csv = OUTPUT_DIR / "targets_normalised.csv"
     ligands_csv = OUTPUT_DIR / "ligands_normalised.csv"
