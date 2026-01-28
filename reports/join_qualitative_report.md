@@ -38,7 +38,7 @@ Because PDSP ligand identifiers are sparse, matches are attempted in descending 
 2. **CAS match** (PDSP `CAS` → GtoPdb `CAS` via the ligand mapping file)
 3. **Name/synonym match** (PDSP `Ligand Name` → GtoPdb `Name`, `INN`, and `Synonyms`)
 
-If multiple GtoPdb ligands match a single PDSP record, the match is labelled **ambiguous** and no ligand ID is assigned. Ambiguities are reported in the diagnostics output for manual review.
+If multiple GtoPdb ligands match a single PDSP record, the match is labelled **ambiguous** and no ligand ID is assigned. The pipeline de‑duplicates repeated IDs before deciding whether a match is truly ambiguous. Ambiguities are reported in the diagnostics output for manual review.
 
 ### Functional annotations (GtoPdb interactions)
 After target and ligand normalisation, PDSP records are left‑joined to an aggregated GtoPdb interactions table keyed on:
@@ -51,17 +51,31 @@ Interaction records are aggregated to preserve provenance while avoiding row exp
 - Unique sets of `Action`, `Type`, `Selectivity`, and `PubMed ID` are collapsed into pipe‑delimited strings.
 - A `gtp_interaction_count` is included to show how many interaction records were collapsed.
 
+### Binding summaries (PDSP)
+The join pipeline additionally produces an aggregated binding table, grouped by `(gtp_ligand_id, target_uniprot)`, with:
+
+- `ki_count`, `ki_median`, `ki_min`, `ki_max`
+- `pKi_median`, `pKi_min`, `pKi_max`
+
+`pKi` is computed as `9 - log10(Ki)` under the assumption that Ki values are in nM. This assumption is documented in the diagnostics report for transparency.
+
 ## Outputs
 
-- **Joined dataset**: a CSV produced by the script with PDSP binding rows enriched by:
+- **Joined dataset**: a wide CSV produced by the script with PDSP binding rows enriched by:
   - UniProt‑normalised targets
   - GtoPdb ligand metadata
   - Aggregated functional annotations (where a match exists)
+
+- **Normalised targets**: a CSV of GtoPdb targets with UniProt IDs.
+- **Normalised ligands**: a CSV of GtoPdb ligands with structures and cross‑references.
+- **Binding summaries**: a CSV aggregated by `(gtp_ligand_id, target_uniprot)` with Ki and pKi summaries.
+- **Functional interactions**: a CSV of aggregated GtoPdb interaction evidence by `(gtp_ligand_id, target_uniprot)`.
 
 - **Metrics report**: a timestamped `.txt` file containing counts for:
   - target matches
   - ligand matches (matched / ambiguous / unmatched)
   - eligible and successful functional joins
+  - binding summary row count
   - example ambiguous and unmatched ligand records
 
 ## Caveats and practical implications

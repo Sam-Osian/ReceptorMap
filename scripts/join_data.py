@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Join PDSP Ki data with GtoPdb targets/ligands/interactions and emit a CSV plus diagnostics."""
+"""Join PDSP Ki data with GtoPdb targets/ligands/interactions and emit datasets plus diagnostics."""
 from __future__ import annotations
 
 import logging
@@ -8,11 +8,14 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
 import pandas as pd
+import numpy as np
 
 
 DATA_DIR = Path("data")
 REPORT_DIR = Path("reports")
+OUTPUT_DIR = DATA_DIR / "joined"
 REPORT_DIR.mkdir(exist_ok=True)
+OUTPUT_DIR.mkdir(exist_ok=True)
 
 logger = logging.getLogger("join_data")
 logging.basicConfig(
@@ -58,19 +61,19 @@ def normalise_symbol(value: object) -> Optional[str]:
 
 
 def build_lookup_map(values: pd.Series, ligand_ids: pd.Series) -> Dict[str, List[str]]:
-    mapping: Dict[str, List[str]] = {}
+    mapping: Dict[str, set[str]] = {}
     for value, ligand_id in zip(values, ligand_ids):
         if value is None or (isinstance(value, float) and pd.isna(value)):
             continue
         norm = normalise_text(value)
         if not norm:
             continue
-        mapping.setdefault(norm, []).append(str(ligand_id))
-    return mapping
+        mapping.setdefault(norm, set()).add(str(ligand_id))
+    return {key: sorted(values) for key, values in mapping.items()}
 
 
 def build_name_map(ligands: pd.DataFrame) -> Dict[str, List[str]]:
-    name_map: Dict[str, List[str]] = {}
+    name_map: Dict[str, set[str]] = {}
     for _, row in ligands.iterrows():
         ligand_id = row.get("Ligand ID")
         if pd.isna(ligand_id):
@@ -79,22 +82,27 @@ def build_name_map(ligands: pd.DataFrame) -> Dict[str, List[str]]:
             value = row.get(field)
             norm = normalise_text(value)
             if norm:
-                name_map.setdefault(norm, []).append(str(ligand_id))
+                name_map.setdefault(norm, set()).add(str(ligand_id))
         synonyms = row.get("Synonyms")
         if isinstance(synonyms, str):
             for part in synonyms.split("|"):
                 norm = normalise_text(part)
                 if norm:
-                    name_map.setdefault(norm, []).append(str(ligand_id))
-    return name_map
+                    name_map.setdefault(norm, set()).add(str(ligand_id))
+    return {key: sorted(values) for key, values in name_map.items()}
 
 
 def summarise_matches(match_ids: pd.Series) -> Dict[str, int]:
+    def normalise_ids(value: object) -> List[str]:
+        if not isinstance(value, list):
+            return []
+        return sorted({str(item) for item in value if str(item)})
+
     def has_match(value: object) -> bool:
-        return isinstance(value, list) and len(value) > 0
+        return len(normalise_ids(value)) > 0
 
     def is_ambiguous(value: object) -> bool:
-        return isinstance(value, list) and len(value) > 1
+        return len(normalise_ids(value)) > 1
 
     return {
         "matched": int(match_ids.apply(has_match).sum()),
@@ -109,6 +117,23 @@ def join_unique(series: pd.Series) -> str:
     return "|".join(sorted(set(values)))
 
 
+def dedupe_ids(values: object) -> List[str]:
+    if not isinstance(values, list):
+        return []
+    return sorted({str(item) for item in values if str(item)})
+
+
+def select_cols(df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
+    available = [column for column in columns if column in df.columns]
+    return df[available].copy()
+
+
+def write_csv_overwrite(df: pd.DataFrame, path: Path) -> None:
+    if path.exists():
+        logger.warning("Overwriting existing file: %s", path)
+    df.to_csv(path, index=False)
+
+
 def choose_ligand_match(row: pd.Series) -> pd.Series:
     for field, method in (
         ("match_smiles_ids", "SMILES"),
@@ -116,14 +141,15 @@ def choose_ligand_match(row: pd.Series) -> pd.Series:
         ("match_name_ids", "NAME"),
     ):
         value = row.get(field)
-        if isinstance(value, list) and value:
-            if len(value) == 1:
+        ids = dedupe_ids(value)
+        if ids:
+            if len(ids) == 1:
                 return pd.Series(
                     {
                         "ligand_match_method": method,
                         "ligand_match_status": "matched",
-                        "gtp_ligand_id": value[0],
-                        "ligand_match_ids": "|".join(value),
+                        "gtp_ligand_id": ids[0],
+                        "ligand_match_ids": "|".join(ids),
                     }
                 )
             return pd.Series(
@@ -131,7 +157,7 @@ def choose_ligand_match(row: pd.Series) -> pd.Series:
                     "ligand_match_method": method,
                     "ligand_match_status": "ambiguous",
                     "gtp_ligand_id": None,
-                    "ligand_match_ids": "|".join(value),
+                    "ligand_match_ids": "|".join(ids),
                 }
             )
     return pd.Series(
@@ -276,6 +302,96 @@ def main() -> None:
         right_on=["Ligand ID", "Target UniProt ID"],
     )
     joined = joined.drop(columns=["Ligand ID", "Target UniProt ID"], errors="ignore")
+    if "Ligand ID_x" in joined.columns:
+        joined = joined.rename(columns={"Ligand ID_x": "pdsp_ligand_id"})
+    if "Ligand ID_y" in joined.columns:
+        joined = joined.drop(columns=["Ligand ID_y"], errors="ignore")
+
+    joined["ki_val_numeric"] = pd.to_numeric(joined["ki Val"], errors="coerce")
+    pki = pd.Series(np.nan, index=joined.index, dtype="float64")
+    valid_ki = joined["ki_val_numeric"] > 0
+    if valid_ki.any():
+        pki.loc[valid_ki] = 9 - np.log10(joined.loc[valid_ki, "ki_val_numeric"].astype(float))
+    joined["pKi_assuming_nM"] = pki
+
+    binding_base = joined[joined["gtp_ligand_id"].notna() & joined["target_uniprot"].notna()].copy()
+    binding_summary = (
+        binding_base.groupby(["gtp_ligand_id", "target_uniprot"], as_index=False)
+        .agg(
+            gtp_ligand_name=("gtp_ligand_name", join_unique),
+            gtp_target_name=("gtp_target_name", join_unique),
+            pdsp_ligand_names=("Ligand Name", join_unique),
+            pdsp_unigene_symbols=("Unigene", join_unique),
+            ligand_match_method=("ligand_match_method", join_unique),
+            ki_count=("ki_val_numeric", "count"),
+            ki_median=("ki_val_numeric", "median"),
+            ki_min=("ki_val_numeric", "min"),
+            ki_max=("ki_val_numeric", "max"),
+            pKi_median=("pKi_assuming_nM", "median"),
+            pKi_min=("pKi_assuming_nM", "min"),
+            pKi_max=("pKi_assuming_nM", "max"),
+        )
+    )
+
+    targets_out = select_cols(
+        targets,
+        [
+            "Type",
+            "Family id",
+            "Family name",
+            "Target id",
+            "Target name",
+            "HGNC symbol",
+            "Human SwissProt",
+        ],
+    ).rename(
+        columns={
+            "Target id": "gtp_target_id",
+            "Target name": "gtp_target_name",
+            "HGNC symbol": "hgnc_symbol",
+            "Human SwissProt": "target_uniprot",
+            "Family id": "gtp_family_id",
+            "Family name": "gtp_family_name",
+        }
+    )
+    if "target_uniprot" in targets_out.columns:
+        targets_out = targets_out.dropna(subset=["target_uniprot"])
+
+    ligands_out = select_cols(
+        ligands_combined,
+        [
+            "Ligand ID",
+            "Name",
+            "SMILES",
+            "InChIKey",
+            "Type",
+            "Approved",
+            "Withdrawn",
+            "INN",
+            "Synonyms",
+            "CAS",
+            "DrugBank ID",
+            "Drug Central ID",
+        ],
+    ).rename(
+        columns={
+            "Ligand ID": "gtp_ligand_id",
+            "Name": "gtp_ligand_name",
+            "SMILES": "gtp_ligand_smiles",
+            "InChIKey": "gtp_ligand_inchikey",
+            "Type": "gtp_ligand_type",
+            "Approved": "gtp_ligand_approved",
+            "Withdrawn": "gtp_ligand_withdrawn",
+        }
+    )
+    if "gtp_ligand_id" in ligands_out.columns:
+        ligands_out = ligands_out.dropna(subset=["gtp_ligand_id"])
+
+    functional_out = interactions_agg.rename(
+        columns={"Ligand ID": "gtp_ligand_id", "Target UniProt ID": "target_uniprot"}
+    )
+    functional_out["gtp_ligand_id"] = functional_out["gtp_ligand_id"].astype("string")
+    functional_out["target_uniprot"] = functional_out["target_uniprot"].astype("string")
 
     # Diagnostics
     total_rows = len(joined)
@@ -287,7 +403,7 @@ def main() -> None:
     cas_summary = summarise_matches(joined["match_cas_ids"])
     name_summary = summarise_matches(joined["match_name_ids"])
 
-    functional_joined = joined["gtp_action_set"].astype(str).str.len().gt(0).sum()
+    functional_joined = joined["gtp_interaction_count"].fillna(0).astype(int).gt(0).sum()
     eligible_for_functional = joined[["gtp_ligand_id", "target_uniprot"]].notna().all(axis=1).sum()
 
     ambiguous_ligands = joined[joined["ligand_match_status"] == "ambiguous"]
@@ -307,7 +423,11 @@ def main() -> None:
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     report_txt = REPORT_DIR / f"join_metrics_{timestamp}.txt"
-    output_csv = REPORT_DIR / f"joined_pdsp_gtopdb_{timestamp}.csv"
+    output_csv = OUTPUT_DIR / "joined_pdsp_gtopdb.csv"
+    targets_csv = OUTPUT_DIR / "targets_normalised.csv"
+    ligands_csv = OUTPUT_DIR / "ligands_normalised.csv"
+    binding_csv = OUTPUT_DIR / "binding_measurements.csv"
+    functional_csv = OUTPUT_DIR / "functional_interactions.csv"
 
     with report_txt.open("w", encoding="utf-8") as handle:
         handle.write("Join Metrics Report\n")
@@ -336,6 +456,9 @@ def main() -> None:
         handle.write("Functional annotations\n")
         handle.write(f"Eligible for functional join: {eligible_for_functional}\n")
         handle.write(f"Rows with functional data: {functional_joined}\n\n")
+        handle.write("Binding summaries\n")
+        handle.write("pKi computed as 9 - log10(Ki) assuming Ki values are in nM.\n\n")
+        handle.write(f"Binding summary rows: {len(binding_summary)}\n\n")
 
         handle.write("Sample ambiguous ligand matches (first 20)\n")
         if not ambiguous_sample:
@@ -353,10 +476,18 @@ def main() -> None:
                 handle.write(f"- {row}\n")
             handle.write("\n")
 
-    joined.to_csv(output_csv, index=False)
+    write_csv_overwrite(joined, output_csv)
+    write_csv_overwrite(targets_out.drop_duplicates(), targets_csv)
+    write_csv_overwrite(ligands_out.drop_duplicates(), ligands_csv)
+    write_csv_overwrite(binding_summary, binding_csv)
+    write_csv_overwrite(functional_out.drop_duplicates(), functional_csv)
 
     logger.info("Wrote metrics report: %s", report_txt)
     logger.info("Wrote joined CSV: %s", output_csv)
+    logger.info("Wrote targets CSV: %s", targets_csv)
+    logger.info("Wrote ligands CSV: %s", ligands_csv)
+    logger.info("Wrote binding CSV: %s", binding_csv)
+    logger.info("Wrote functional CSV: %s", functional_csv)
 
     print("Join complete")
     print(f"Targets matched to UniProt: {target_matched}/{total_rows}")
@@ -364,6 +495,10 @@ def main() -> None:
     print(f"Rows with functional data: {functional_joined}/{total_rows}")
     print(f"Report (txt): {report_txt}")
     print(f"Joined CSV: {output_csv}")
+    print(f"Targets CSV: {targets_csv}")
+    print(f"Ligands CSV: {ligands_csv}")
+    print(f"Binding CSV: {binding_csv}")
+    print(f"Functional CSV: {functional_csv}")
 
 
 if __name__ == "__main__":
