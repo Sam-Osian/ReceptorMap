@@ -1,0 +1,82 @@
+Join Metrics Report
+Generated: 2026-01-28T16:08:24.197940
+
+Targets
+Total PDSP records: 98768
+Matched to UniProt: 60841
+Unmatched: 37927
+
+Ligands
+Matched: 29234
+Ambiguous: 2349
+Unmatched: 67185
+
+Match method coverage (includes ambiguous matches):
+InChIKey matched: 18466 (ambiguous: 2195)
+Canonical SMILES matched: 18319 (ambiguous: 2253)
+SMILES matched: 190 (ambiguous: 65)
+CAS matched: 19018 (ambiguous: 191)
+Name matched: 27052 (ambiguous: 468)
+
+Structure canonicalisation (RDKit)
+GtoPdb SMILES present: 11257
+PDSP SMILES present: 39609
+GtoPdb SMILES parse failures: 7
+PDSP SMILES parse failures: 2
+GtoPdb InChIKey raw present: 11257
+GtoPdb InChIKey canonical: 11250
+PDSP InChIKey canonical: 39607
+
+Functional annotations
+Eligible for functional join: 21377
+Rows with functional data: 10132
+
+Binding summaries
+pKi computed as 9 - log10(Ki) assuming Ki values are in nM.
+
+Binding summary rows: 8716
+
+Sample ambiguous ligand matches (first 20)
+- {'Ligand Name': '8-OH-DPAT', 'SMILES': 'CCCN(CCC)C1CCC2=C(C1)C(=CC=C2)O', 'CAS': '78950-78-4', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '31|7'}
+- {'Ligand Name': 'DOB', 'SMILES': 'CC(CC1=CC(=C(C=C1OC)Br)OC)N', 'CAS': '32156-26-6', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '155|163'}
+- {'Ligand Name': 'HISTAMINE', 'SMILES': 'C1=C(NC=N1)CCN', 'CAS': '51-45-6', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '1204|1247'}
+- {'Ligand Name': 'KETANSERIN', 'SMILES': 'C1CN(CCC1C(=O)C2=CC=C(C=C2)F)CCN3C(=O)C4=CC=CC=C4NC3=O', 'CAS': '74050-98-9', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '197|88'}
+- {'Ligand Name': 'PRAZOSIN', 'SMILES': 'COC1=C(C=C2C(=C1)C(=NC(=N2)N3CCN(CC3)C(=O)C4=CC=CO4)N)OC', 'CAS': '19216-56-9', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '503|5385'}
+- {'Ligand Name': 'SCH 23390', 'SMILES': 'CN1CCC2=CC(=C(C=C2C(C1)C3=CC=CC=C3)O)Cl', 'CAS': '87075-17-0', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '943|946'}
+- {'Ligand Name': 'SPIPERONE', 'SMILES': 'C1CN(CCC12C(=O)NCN2C3=CC=CC=C3)CCCC(=O)C4=CC=C(C=C4)F', 'CAS': '749-02-0', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '3300|99'}
+- {'Ligand Name': 'CITALOPRAM', 'SMILES': 'CN(C)CCCC1(C2=C(CO1)C=C(C=C2)C#N)C3=CC=C(C=C3)F', 'CAS': '59729-33-8', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '4621|7547'}
+- {'Ligand Name': 'CLONIDINE', 'SMILES': 'C1CN=C(N1)NC2=C(C=CC=C2Cl)Cl', 'CAS': '4205-90-7', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '13162|516'}
+- {'Ligand Name': 'DOB,BENZYLOXY-', 'SMILES': 'CC(CC1=CC(=C(C=C1OC)Br)OC)N.Br', 'CAS': '62064', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '155|163'}
+- {'Ligand Name': 'Gamma-Aminobutyric acid', 'SMILES': 'C(CC(=O)O)CN', 'CAS': '56-12-2', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '1067|5410'}
+- {'Ligand Name': 'GLYCINE', 'SMILES': 'C(C(=O)O)N', 'CAS': '56-40-6', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '4084|4635|727'}
+- {'Ligand Name': 'MEPYRAMINE', 'SMILES': 'CN(C)CCN(CC1=CC=C(C=C1)OC)C2=CC=CC=N2', 'CAS': '91-84-9', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '1227|3957'}
+- {'Ligand Name': 'TETRAETHYLAMMONIUM', 'SMILES': 'CC[N+](CC)(CC)CC', 'CAS': '5413', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '2343|4575'}
+- {'Ligand Name': 'PYRILAMINE', 'SMILES': 'CN(C)CCN(CC1=CC=C(C=C1)OC)C2=CC=CC=N2', 'CAS': '91-84-9', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '1227|3957'}
+- {'Ligand Name': 'SCH 23390,R(+)', 'SMILES': 'CN1CCC2=CC(=C(C=C2C(C1)C3=CC=CC=C3)O)Cl', 'CAS': '5018', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '943|946'}
+- {'Ligand Name': 'GR 125487', 'SMILES': nan, 'CAS': nan, 'ligand_match_method': 'NAME', 'ligand_match_ids': '247|248'}
+- {'Ligand Name': 'DPAT', 'SMILES': 'CCCN(CCC)C1CCC2=C(C1)C(=CC=C2)O', 'CAS': '1220', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '31|7'}
+- {'Ligand Name': 'MAZINDOL', 'SMILES': 'C1CN2C(=N1)C3=CC=CC=C3C2(C4=CC=C(C=C4)Cl)O', 'CAS': '22232-71-9', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '4591|4797'}
+- {'Ligand Name': 'WAY 100,635', 'SMILES': 'COC1=CC=CC=C1N2CCN(CC2)CCN(C3=CC=CC=N3)C(=O)C4CCCCC4.Cl.Cl.Cl', 'CAS': '146714-97-8', 'ligand_match_method': 'INCHIKEY', 'ligand_match_ids': '3251|80'}
+
+Sample unmatched ligand records (first 20)
+- {'Ligand Name': '5-NH2T', 'SMILES': nan, 'CAS': nan}
+- {'Ligand Name': '6-HT', 'SMILES': nan, 'CAS': nan}
+- {'Ligand Name': '8-OH-AT', 'SMILES': nan, 'CAS': nan}
+- {'Ligand Name': 'ALTANSERIN', 'SMILES': 'C1CN(CCC1C(=O)C2=CC=C(C=C2)F)CCN3C(=O)C4=CC=CC=C4NC3=S', 'CAS': '76330-71-7'}
+- {'Ligand Name': 'BOL 146', 'SMILES': nan, 'CAS': nan}
+- {'Ligand Name': '5-CT,DP', 'SMILES': nan, 'CAS': nan}
+- {'Ligand Name': '4-HT', 'SMILES': 'C1=CC2=C(C(=C1)O)C(=CN2)CCN', 'CAS': nan}
+- {'Ligand Name': '5,6-DHT', 'SMILES': 'C1=C2C(=CC(=C1O)O)NC=C2CCN', 'CAS': '5090-36-8'}
+- {'Ligand Name': '5,7-DHT', 'SMILES': nan, 'CAS': '39929-27-6'}
+- {'Ligand Name': '5-HT,1-Me', 'SMILES': nan, 'CAS': nan}
+- {'Ligand Name': '5-HT,b-Me', 'SMILES': nan, 'CAS': nan}
+- {'Ligand Name': '5-HT,omega-N-Me', 'SMILES': nan, 'CAS': nan}
+- {'Ligand Name': '1-PP', 'SMILES': 'C1CN(CCN1)C2=NC=CC=N2', 'CAS': '88747'}
+- {'Ligand Name': '2,4,5-TMA', 'SMILES': nan, 'CAS': nan}
+- {'Ligand Name': '2,4-DMA', 'SMILES': 'CC1=CC(=C(C=C1)NC(=O)C)C', 'CAS': '23690-13-3'}
+- {'Ligand Name': 'DMA', 'SMILES': nan, 'CAS': '2801-68-5'}
+- {'Ligand Name': '2-CPP', 'SMILES': nan, 'CAS': nan}
+- {'Ligand Name': '2-NP', 'SMILES': 'CC(C)[N+](=O)[O-]', 'CAS': '79-46-9'}
+- {'Ligand Name': '3-AMTBI', 'SMILES': 'C1CC2=C3C(=CC=C2)NC=C3C1CN', 'CAS': '194894'}
+- {'Ligand Name': '3-CPP', 'SMILES': nan, 'CAS': nan}
+

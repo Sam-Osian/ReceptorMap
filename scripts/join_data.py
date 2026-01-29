@@ -5,10 +5,18 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Tuple
 
 import pandas as pd
 import numpy as np
+try:
+    from rdkit import Chem as _Chem
+    from rdkit.Chem import inchi as _inchi
+    from rdkit.Chem.SaltRemover import SaltRemover as _SaltRemover
+except ImportError:  # pragma: no cover - optional dependency
+    _Chem = None
+    _inchi = None
+    _SaltRemover = None
 
 
 DATA_DIR = Path("data")
@@ -24,6 +32,16 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
 )
+
+Chem = _Chem
+inchi = _inchi
+SaltRemover = _SaltRemover
+
+HAS_RDKIT = Chem is not None and inchi is not None and SaltRemover is not None
+if HAS_RDKIT and SaltRemover is not None:
+    SALT_REMOVER = SaltRemover()
+else:
+    SALT_REMOVER = None
 
 
 def read_gtp_csv(path: Path) -> pd.DataFrame:
@@ -60,6 +78,29 @@ def normalise_symbol(value: object) -> Optional[str]:
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return None
     return str(value).strip().upper()
+
+
+def canonicalise_smiles(value: object) -> Tuple[Optional[str], Optional[str], bool]:
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return None, None, False
+    if not HAS_RDKIT or Chem is None or inchi is None:
+        return None, None, False
+    assert Chem is not None and inchi is not None
+    smiles = str(value).strip()
+    if not smiles:
+        return None, None, False
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        return None, None, False
+    stripped = False
+    if SALT_REMOVER is not None:
+        stripped_mol = SALT_REMOVER.StripMol(mol, dontRemoveEverything=True)
+        if stripped_mol is not None:
+            stripped = stripped_mol.GetNumAtoms() < mol.GetNumAtoms()
+            mol = stripped_mol
+    canon = Chem.MolToSmiles(mol, isomericSmiles=True)
+    key = inchi.MolToInchiKey(mol)
+    return canon, key, stripped
 
 
 def build_lookup_map(values: pd.Series, ligand_ids: pd.Series) -> Dict[str, List[str]]:
@@ -138,6 +179,8 @@ def write_csv_overwrite(df: pd.DataFrame, path: Path) -> None:
 
 def choose_ligand_match(row: pd.Series) -> pd.Series:
     for field, method in (
+        ("match_inchikey_ids", "INCHIKEY"),
+        ("match_canon_smiles_ids", "CANON_SMILES"),
         ("match_smiles_ids", "SMILES"),
         ("match_cas_ids", "CAS"),
         ("match_name_ids", "NAME"),
@@ -189,6 +232,17 @@ def main() -> None:
     targets = read_gtp_csv(targets_path)
     ligands = read_gtp_csv(ligands_path)
     ligand_map = read_gtp_csv(ligand_map_path)
+
+    if not HAS_RDKIT:
+        logger.warning("RDKit not available. Canonical SMILES and InChIKey matching will be skipped.")
+    else:
+        assert Chem is not None and inchi is not None
+        test_mol = Chem.MolFromSmiles("CCO")
+        test_key = inchi.MolToInchiKey(test_mol) if test_mol is not None else None
+        if not test_key:
+            logger.warning(
+                "RDKit InChIKey generation appears unavailable. InChIKey matching will rely on raw GtoPdb values."
+            )
 
     require_columns(
         ki,
@@ -245,6 +299,22 @@ def main() -> None:
     # Ligand join (PDSP -> GtoPdb ligands)
     ligands_combined = ligands.merge(ligand_map, on="Ligand ID", how="left", suffixes=("", "_map"))
 
+    if HAS_RDKIT:
+        ligands_combined[["gtp_canon_smiles", "gtp_inchikey_canon", "gtp_salt_stripped"]] = ligands_combined[
+            "SMILES"
+        ].apply(lambda value: pd.Series(canonicalise_smiles(value)))
+    else:
+        ligands_combined["gtp_canon_smiles"] = None
+        ligands_combined["gtp_inchikey_canon"] = None
+        ligands_combined["gtp_salt_stripped"] = False
+
+    ligands_combined["gtp_inchikey_raw"] = ligands_combined["InChIKey"].map(normalise_symbol)
+    ligands_combined["gtp_inchikey_for_match"] = ligands_combined["gtp_inchikey_canon"].fillna(
+        ligands_combined["gtp_inchikey_raw"]
+    )
+
+    gtp_inchikey_map = build_lookup_map(ligands_combined["gtp_inchikey_for_match"], ligands_combined["Ligand ID"])
+    gtp_canon_smiles_map = build_lookup_map(ligands_combined["gtp_canon_smiles"], ligands_combined["Ligand ID"])
     gtp_smiles_map = build_lookup_map(ligands_combined["SMILES"], ligands_combined["Ligand ID"])
     gtp_cas_map = build_lookup_map(ligands_combined["CAS"], ligands_combined["Ligand ID"])
     gtp_name_map = build_name_map(ligands_combined)
@@ -252,7 +322,19 @@ def main() -> None:
     ki_targets["SMILES_norm"] = ki_targets["SMILES"].map(normalise_text)
     ki_targets["CAS_norm"] = ki_targets["CAS"].map(normalise_text)
     ki_targets["Ligand_name_norm"] = ki_targets["Ligand Name"].map(normalise_text)
+    if HAS_RDKIT:
+        ki_targets[["pdsp_canon_smiles", "pdsp_inchikey_canon", "pdsp_salt_stripped"]] = ki_targets[
+            "SMILES"
+        ].apply(lambda value: pd.Series(canonicalise_smiles(value)))
+    else:
+        ki_targets["pdsp_canon_smiles"] = None
+        ki_targets["pdsp_inchikey_canon"] = None
+        ki_targets["pdsp_salt_stripped"] = False
 
+    ki_targets["pdsp_inchikey_norm"] = ki_targets["pdsp_inchikey_canon"].map(normalise_text)
+    ki_targets["pdsp_canon_smiles_norm"] = ki_targets["pdsp_canon_smiles"].map(normalise_text)
+    ki_targets["match_inchikey_ids"] = ki_targets["pdsp_inchikey_norm"].map(gtp_inchikey_map)
+    ki_targets["match_canon_smiles_ids"] = ki_targets["pdsp_canon_smiles_norm"].map(gtp_canon_smiles_map)
     ki_targets["match_smiles_ids"] = ki_targets["SMILES_norm"].map(gtp_smiles_map)
     ki_targets["match_cas_ids"] = ki_targets["CAS_norm"].map(gtp_cas_map)
     ki_targets["match_name_ids"] = ki_targets["Ligand_name_norm"].map(gtp_name_map)
@@ -261,13 +343,31 @@ def main() -> None:
     ki_targets = pd.concat([ki_targets, match_info], axis=1)
 
     # Attach GtoPdb ligand metadata
-    ligands_meta = ligands[["Ligand ID", "Name", "SMILES", "InChIKey", "Type", "Approved", "Withdrawn"]].copy()
+    ligands_meta = ligands_combined[
+        [
+            "Ligand ID",
+            "Name",
+            "SMILES",
+            "InChIKey",
+            "gtp_canon_smiles",
+            "gtp_inchikey_raw",
+            "gtp_inchikey_canon",
+            "gtp_salt_stripped",
+            "Type",
+            "Approved",
+            "Withdrawn",
+        ]
+    ].copy()
     ligands_meta = ligands_meta.rename(
         columns={
             "Ligand ID": "gtp_ligand_id",
             "Name": "gtp_ligand_name",
             "SMILES": "gtp_ligand_smiles",
-            "InChIKey": "gtp_ligand_inchikey",
+            "InChIKey": "gtp_ligand_inchikey_raw",
+            "gtp_canon_smiles": "gtp_ligand_canon_smiles",
+            "gtp_inchikey_raw": "gtp_ligand_inchikey_norm",
+            "gtp_inchikey_canon": "gtp_ligand_inchikey_canon",
+            "gtp_salt_stripped": "gtp_ligand_salt_stripped",
             "Type": "gtp_ligand_type",
             "Approved": "gtp_ligand_approved",
             "Withdrawn": "gtp_ligand_withdrawn",
@@ -335,6 +435,25 @@ def main() -> None:
         )
     )
 
+    gtp_smiles_present = ligands_combined["SMILES"].notna() & (
+        ligands_combined["SMILES"].astype(str).str.strip() != ""
+    )
+    pdsp_smiles_present = ki_targets["SMILES"].notna() & (
+        ki_targets["SMILES"].astype(str).str.strip() != ""
+    )
+    if HAS_RDKIT:
+        gtp_smiles_parse_failures = (gtp_smiles_present & ligands_combined["gtp_canon_smiles"].isna()).sum()
+        pdsp_smiles_parse_failures = (pdsp_smiles_present & ki_targets["pdsp_canon_smiles"].isna()).sum()
+        gtp_inchikey_raw_count = ligands_combined["gtp_inchikey_raw"].notna().sum()
+        gtp_inchikey_canon_count = ligands_combined["gtp_inchikey_canon"].notna().sum()
+        pdsp_inchikey_canon_count = ki_targets["pdsp_inchikey_canon"].notna().sum()
+    else:
+        gtp_smiles_parse_failures = None
+        pdsp_smiles_parse_failures = None
+        gtp_inchikey_raw_count = None
+        gtp_inchikey_canon_count = None
+        pdsp_inchikey_canon_count = None
+
     targets_out = select_cols(
         targets,
         [
@@ -366,6 +485,10 @@ def main() -> None:
             "Name",
             "SMILES",
             "InChIKey",
+            "gtp_canon_smiles",
+            "gtp_inchikey_raw",
+            "gtp_inchikey_canon",
+            "gtp_salt_stripped",
             "Type",
             "Approved",
             "Withdrawn",
@@ -380,7 +503,11 @@ def main() -> None:
             "Ligand ID": "gtp_ligand_id",
             "Name": "gtp_ligand_name",
             "SMILES": "gtp_ligand_smiles",
-            "InChIKey": "gtp_ligand_inchikey",
+            "InChIKey": "gtp_ligand_inchikey_raw",
+            "gtp_canon_smiles": "gtp_ligand_canon_smiles",
+            "gtp_inchikey_raw": "gtp_ligand_inchikey_norm",
+            "gtp_inchikey_canon": "gtp_ligand_inchikey_canon",
+            "gtp_salt_stripped": "gtp_ligand_salt_stripped",
             "Type": "gtp_ligand_type",
             "Approved": "gtp_ligand_approved",
             "Withdrawn": "gtp_ligand_withdrawn",
@@ -401,6 +528,8 @@ def main() -> None:
     target_unmatched = total_rows - target_matched
 
     ligand_match_counts = joined["ligand_match_status"].value_counts(dropna=False).to_dict()
+    inchikey_summary = summarise_matches(joined["match_inchikey_ids"])
+    canon_smiles_summary = summarise_matches(joined["match_canon_smiles_ids"])
     smiles_summary = summarise_matches(joined["match_smiles_ids"])
     cas_summary = summarise_matches(joined["match_cas_ids"])
     name_summary = summarise_matches(joined["match_name_ids"])
@@ -450,6 +579,13 @@ def main() -> None:
         handle.write(f"Unmatched: {ligand_match_counts.get('unmatched', 0)}\n")
         handle.write("\nMatch method coverage (includes ambiguous matches):\n")
         handle.write(
+            f"InChIKey matched: {inchikey_summary['matched']} (ambiguous: {inchikey_summary['ambiguous']})\n"
+        )
+        handle.write(
+            "Canonical SMILES matched: "
+            f"{canon_smiles_summary['matched']} (ambiguous: {canon_smiles_summary['ambiguous']})\n"
+        )
+        handle.write(
             f"SMILES matched: {smiles_summary['matched']} (ambiguous: {smiles_summary['ambiguous']})\n"
         )
         handle.write(
@@ -458,6 +594,18 @@ def main() -> None:
         handle.write(
             f"Name matched: {name_summary['matched']} (ambiguous: {name_summary['ambiguous']})\n\n"
         )
+
+        handle.write("Structure canonicalisation (RDKit)\n")
+        handle.write(f"GtoPdb SMILES present: {int(gtp_smiles_present.sum())}\n")
+        handle.write(f"PDSP SMILES present: {int(pdsp_smiles_present.sum())}\n")
+        if HAS_RDKIT:
+            handle.write(f"GtoPdb SMILES parse failures: {gtp_smiles_parse_failures}\n")
+            handle.write(f"PDSP SMILES parse failures: {pdsp_smiles_parse_failures}\n")
+            handle.write(f"GtoPdb InChIKey raw present: {gtp_inchikey_raw_count}\n")
+            handle.write(f"GtoPdb InChIKey canonical: {gtp_inchikey_canon_count}\n")
+            handle.write(f"PDSP InChIKey canonical: {pdsp_inchikey_canon_count}\n\n")
+        else:
+            handle.write("RDKit not available; canonicalisation skipped.\n\n")
 
         handle.write("Functional annotations\n")
         handle.write(f"Eligible for functional join: {eligible_for_functional}\n")

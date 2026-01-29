@@ -13,7 +13,7 @@ This repo uses PDSP and GtoPdb data to achieve this. Currently, it uses static d
 
 ## Core concepts (listing it here for convenience)
 
-- Target: a protein that a drug can bind to (for example, SERT or a receptor). In datasets, targets are identified by gene symbols (HGNC) and UniProt accessions (them same target can have different names across different datasets).
+- Target: a protein that a drug can bind to (for example, SERT or a receptor). In datasets, targets are identified by gene symbols (HGNC) and UniProt accessions (the same target can have different names across different datasets).
 - Ligand: a compound that binds a target. A drug is a ligand, but not all ligands are approved drugs.
 - Binding affinity (Ki): a laboratory measurement of how tightly a ligand binds a target. Lower Ki means stronger binding.
 - pKi: a transformed version of Ki used for comparability. It is computed as pKi = 9 - log10(Ki) if Ki is in nanomolar (nM). Higher pKi means stronger binding.
@@ -51,11 +51,20 @@ This repo uses PDSP and GtoPdb data to achieve this. Currently, it uses static d
 This provides a route to UniProt for most PDSP targets and enables joins to GtoPdb interactions via Target UniProt ID.
 
 ### Ligands (PDSP to GtoPdb)
-PDSP ligand identifiers are sparse, so matching uses a priority order:
+PDSP ligand identifiers are sparse, so matching uses a priority order. RDKit is used to canonicalise structures before matching, with two explicit decisions:
 
-1. Exact SMILES match (PDSP SMILES to GtoPdb SMILES)
-2. CAS match (PDSP CAS to GtoPdb CAS via ligand mapping)
-3. Name or synonym match (PDSP Ligand Name to GtoPdb Name, INN, Synonyms)
+- Salt stripping is enabled to improve matches between free bases and salt forms.
+- Stereochemistry is preserved (strict matching only, no stereo ignored fallback).
+
+RDKit is a required dependency for canonical SMILES and InChIKey generation; if it is unavailable the pipeline falls back to string based matching only and logs a warning.
+
+The priority order is:
+
+1. InChIKey match (from canonicalised, salt stripped structures)
+2. Canonical SMILES match (salt stripped, stereochemistry preserved)
+3. Raw SMILES match (string equality)
+4. CAS match (PDSP CAS to GtoPdb CAS via ligand mapping)
+5. Name or synonym match (PDSP Ligand Name to GtoPdb Name, INN, Synonyms)
 
 If multiple GtoPdb ligands match a single PDSP record, the match is labelled ambiguous and no ligand ID is assigned. Repeated IDs are de duplicated before deciding whether a match is truly ambiguous. Ambiguities are reported for manual review.
 
@@ -93,5 +102,6 @@ pKi is computed as 9 - log10(Ki) under the assumption that Ki values are in nM. 
 - Ligand mapping is the limiting factor because many PDSP entries lack structures or CAS identifiers.
 - Name based matching is useful but risky and should be interpreted carefully.
 - Functional direction is attached only where a ligand and target join successfully.
+- Canonicalisation decisions (salt stripping and stereochemistry preserved) are chosen to balance match rate and correctness.
 
 See the diagnostics report for specific figures for the above.
