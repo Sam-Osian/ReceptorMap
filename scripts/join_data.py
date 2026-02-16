@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+import os
+import sqlite3
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
@@ -215,12 +217,125 @@ def choose_ligand_match(row: pd.Series) -> pd.Series:
     )
 
 
+def choose_chembl_ligand_match(row: pd.Series) -> pd.Series:
+    for field, method in (
+        ("match_chembl_ids", "CHEMBL_ID"),
+        ("match_inchikey_ids", "INCHIKEY"),
+    ):
+        value = row.get(field)
+        ids = dedupe_ids(value)
+        if ids:
+            if len(ids) == 1:
+                return pd.Series(
+                    {
+                        "chembl_match_method": method,
+                        "chembl_match_status": "matched",
+                        "gtp_ligand_id": ids[0],
+                        "chembl_match_ids": "|".join(ids),
+                    }
+                )
+            return pd.Series(
+                {
+                    "chembl_match_method": method,
+                    "chembl_match_status": "ambiguous",
+                    "gtp_ligand_id": None,
+                    "chembl_match_ids": "|".join(ids),
+                }
+            )
+    return pd.Series(
+        {
+            "chembl_match_method": None,
+            "chembl_match_status": "unmatched",
+            "gtp_ligand_id": None,
+            "chembl_match_ids": "",
+        }
+    )
+
+
+def read_chembl_functional(db_path: Path) -> pd.DataFrame:
+    chembl_types = [
+        "Emax",
+        "Efficacy",
+        "% Activity",
+        "% Inhibition",
+        "% Activation",
+        "% Response",
+        "EC50",
+        "IC50",
+    ]
+    placeholders = ",".join(["?"] * len(chembl_types))
+    sql = f"""
+    SELECT
+      act.activity_id,
+      md.chembl_id AS molecule_chembl_id,
+      cs.standard_inchi_key AS molecule_inchikey,
+      td.chembl_id AS target_chembl_id,
+      csq.accession AS target_uniprot,
+      a.assay_type,
+      a.confidence_score,
+      act.standard_type,
+      act.standard_value,
+      act.standard_units,
+      act.standard_relation,
+      act.pchembl_value,
+      act.doc_id
+    FROM activities act
+    JOIN assays a ON act.assay_id = a.assay_id
+    JOIN target_dictionary td ON a.tid = td.tid
+    LEFT JOIN target_components tc ON td.tid = tc.tid
+    LEFT JOIN component_sequences csq ON tc.component_id = csq.component_id
+    JOIN molecule_dictionary md ON act.molregno = md.molregno
+    LEFT JOIN compound_structures cs ON md.molregno = cs.molregno
+    WHERE a.assay_type = 'F'
+      AND act.standard_value IS NOT NULL
+      AND act.standard_type IN ({placeholders})
+    """
+    conn = sqlite3.connect(db_path)
+    try:
+        df = pd.read_sql_query(sql, conn, params=tuple(chembl_types))
+    finally:
+        conn.close()
+    df.columns = [col.strip() for col in df.columns]
+    return df
+
+
+def build_type_median_map(sub: pd.DataFrame) -> str:
+    medians = sub.groupby("standard_type")["standard_value"].median()
+    parts = []
+    for key, value in medians.items():
+        if pd.isna(value):
+            continue
+        parts.append(f"{key}={value:.4g}")
+    return "|".join(parts)
+
+
+def build_type_unit_map(sub: pd.DataFrame) -> str:
+    def pick_unit(values: pd.Series) -> str:
+        choices = [str(item).strip() for item in values.dropna().tolist() if str(item).strip()]
+        if not choices:
+            return ""
+        return pd.Series(choices).mode().iloc[0]
+
+    units = sub.groupby("standard_type")["standard_units"].apply(pick_unit)
+    parts = []
+    for key, value in units.items():
+        if value:
+            parts.append(f"{key}={value}")
+    return "|".join(parts)
+
+
 def main() -> None:
     ki_path = DATA_DIR / "KiDatabase.csv"
     interactions_path = DATA_DIR / "interactions.csv"
     targets_path = DATA_DIR / "targets_and_families.csv"
     ligands_path = DATA_DIR / "ligands.csv"
     ligand_map_path = DATA_DIR / "ligand_id_mapping.csv"
+    chembl_db_path = Path(
+        os.environ.get(
+            "CHEMBL_DB_PATH",
+            DATA_DIR / "chembl/chembl_36_sqlite/chembl_36/chembl_36_sqlite/chembl_36.db",
+        )
+    )
 
     for path in [ki_path, interactions_path, targets_path, ligands_path, ligand_map_path]:
         if not path.exists():
@@ -318,6 +433,9 @@ def main() -> None:
     gtp_smiles_map = build_lookup_map(ligands_combined["SMILES"], ligands_combined["Ligand ID"])
     gtp_cas_map = build_lookup_map(ligands_combined["CAS"], ligands_combined["Ligand ID"])
     gtp_name_map = build_name_map(ligands_combined)
+    gtp_chembl_map: Dict[str, List[str]] = {}
+    if "ChEMBl ID" in ligands_combined.columns:
+        gtp_chembl_map = build_lookup_map(ligands_combined["ChEMBl ID"], ligands_combined["Ligand ID"])
 
     ki_targets["SMILES_norm"] = ki_targets["SMILES"].map(normalise_text)
     ki_targets["CAS_norm"] = ki_targets["CAS"].map(normalise_text)
@@ -522,6 +640,69 @@ def main() -> None:
     functional_out["gtp_ligand_id"] = functional_out["gtp_ligand_id"].astype("string")
     functional_out["target_uniprot"] = functional_out["target_uniprot"].astype("string")
 
+    chembl_summary = None
+    chembl_by_type = None
+    chembl_match_counts: Dict[str, int] = {}
+    chembl_total = 0
+    chembl_matched = 0
+    if chembl_db_path.exists():
+        chembl_raw = read_chembl_functional(chembl_db_path)
+        chembl_total = len(chembl_raw)
+        chembl_raw["chembl_id_norm"] = chembl_raw["molecule_chembl_id"].map(normalise_text)
+        chembl_raw["inchikey_norm"] = chembl_raw["molecule_inchikey"].map(normalise_text)
+        chembl_raw["match_chembl_ids"] = chembl_raw["chembl_id_norm"].map(gtp_chembl_map)
+        chembl_raw["match_inchikey_ids"] = chembl_raw["inchikey_norm"].map(gtp_inchikey_map)
+        chembl_match_info = chembl_raw.apply(choose_chembl_ligand_match, axis=1)
+        chembl_raw = pd.concat([chembl_raw, chembl_match_info], axis=1)
+        chembl_match_counts_raw = chembl_raw["chembl_match_status"].value_counts(dropna=False).to_dict()
+        chembl_match_counts = {str(key): int(value) for key, value in chembl_match_counts_raw.items()}
+
+        chembl_raw["gtp_ligand_id"] = chembl_raw["gtp_ligand_id"].astype("string")
+        chembl_raw["target_uniprot"] = chembl_raw["target_uniprot"].astype("string")
+        chembl_matched_df = chembl_raw[
+            chembl_raw["chembl_match_status"].eq("matched")
+            & chembl_raw["gtp_ligand_id"].notna()
+            & chembl_raw["target_uniprot"].notna()
+        ].copy()
+        chembl_matched = len(chembl_matched_df)
+
+        chembl_by_type = (
+            chembl_matched_df.groupby(["gtp_ligand_id", "target_uniprot", "standard_type"], as_index=False)
+            .agg(
+                chembl_activity_count=("activity_id", "count"),
+                chembl_standard_value_median=("standard_value", "median"),
+                chembl_standard_units_set=("standard_units", join_unique),
+                chembl_confidence_median=("confidence_score", "median"),
+                chembl_pchembl_median=("pchembl_value", "median"),
+                chembl_doc_id_set=("doc_id", join_unique),
+            )
+        )
+
+        chembl_summary = (
+            chembl_matched_df.groupby(["gtp_ligand_id", "target_uniprot"])
+            .apply(
+                lambda sub: pd.Series(
+                    {
+                        "chembl_activity_count": int(len(sub)),
+                        "chembl_standard_type_set": join_unique(sub["standard_type"]),
+                        "chembl_standard_units_set": join_unique(sub["standard_units"]),
+                        "chembl_type_median_set": build_type_median_map(sub),
+                        "chembl_type_unit_set": build_type_unit_map(sub),
+                        "chembl_confidence_median": sub["confidence_score"].median(),
+                        "chembl_pchembl_median": sub["pchembl_value"].median(),
+                        "chembl_doc_id_set": join_unique(sub["doc_id"]),
+                    }
+                )
+            )
+            .reset_index()
+        )
+
+        functional_out = functional_out.merge(
+            chembl_summary, on=["gtp_ligand_id", "target_uniprot"], how="left"
+        )
+    else:
+        logger.warning("ChEMBL DB not found at %s. Skipping ChEMBL functional integration.", chembl_db_path)
+
     # Diagnostics
     total_rows = len(joined)
     target_matched = joined["target_uniprot"].notna().sum()
@@ -563,6 +744,7 @@ def main() -> None:
     ligands_csv = OUTPUT_DIR / "ligands_normalised.csv"
     binding_csv = OUTPUT_DIR / "binding_measurements.csv"
     functional_csv = OUTPUT_DIR / "functional_interactions.csv"
+    chembl_summary_csv = OUTPUT_DIR / "chembl_functional_summary.csv"
 
     with report_txt.open("w", encoding="utf-8") as handle:
         handle.write("Join Metrics Report\n")
@@ -610,6 +792,22 @@ def main() -> None:
         handle.write("Functional annotations\n")
         handle.write(f"Eligible for functional join: {eligible_for_functional}\n")
         handle.write(f"Rows with functional data: {functional_joined}\n\n")
+        handle.write("ChEMBL functional annotations\n")
+        if chembl_db_path.exists():
+            handle.write(f"ChEMBL DB: {chembl_db_path}\n")
+            handle.write(f"ChEMBL functional rows: {chembl_total}\n")
+            handle.write(f"ChEMBL matched to GtoPdb ligands + UniProt: {chembl_matched}\n")
+            handle.write(
+                f"ChEMBL ligand matches: {chembl_match_counts.get('matched', 0)}\n"
+            )
+            handle.write(
+                f"ChEMBL ligand ambiguous: {chembl_match_counts.get('ambiguous', 0)}\n"
+            )
+            handle.write(
+                f"ChEMBL ligand unmatched: {chembl_match_counts.get('unmatched', 0)}\n\n"
+            )
+        else:
+            handle.write("ChEMBL DB not found; skipping integration.\n\n")
         handle.write("Binding summaries\n")
         handle.write("pKi computed as 9 - log10(Ki) assuming Ki values are in nM.\n\n")
         handle.write(f"Binding summary rows: {len(binding_summary)}\n\n")
@@ -635,6 +833,8 @@ def main() -> None:
     write_csv_overwrite(ligands_out.drop_duplicates(), ligands_csv)
     write_csv_overwrite(binding_summary, binding_csv)
     write_csv_overwrite(functional_out.drop_duplicates(), functional_csv)
+    if chembl_by_type is not None and not chembl_by_type.empty:
+        write_csv_overwrite(chembl_by_type, chembl_summary_csv)
 
     logger.info("Wrote metrics report: %s", report_txt)
     logger.info("Wrote joined CSV: %s", output_csv)
@@ -642,6 +842,8 @@ def main() -> None:
     logger.info("Wrote ligands CSV: %s", ligands_csv)
     logger.info("Wrote binding CSV: %s", binding_csv)
     logger.info("Wrote functional CSV: %s", functional_csv)
+    if chembl_by_type is not None and not chembl_by_type.empty:
+        logger.info("Wrote ChEMBL functional summary CSV: %s", chembl_summary_csv)
 
     print("Join complete")
     print(f"Targets matched to UniProt: {target_matched}/{total_rows}")
@@ -653,6 +855,8 @@ def main() -> None:
     print(f"Ligands CSV: {ligands_csv}")
     print(f"Binding CSV: {binding_csv}")
     print(f"Functional CSV: {functional_csv}")
+    if chembl_by_type is not None and not chembl_by_type.empty:
+        print(f"ChEMBL functional summary CSV: {chembl_summary_csv}")
 
 
 if __name__ == "__main__":

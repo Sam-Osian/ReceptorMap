@@ -1,0 +1,463 @@
+drug,drug_class,target,activity,activity_recoded,ki_lower_nm,ki_upper_nm,modelled_ki_nm,ki_is_range,log10_ki_nm,pKi
+Citalopram,SSRI,SERT,Inhibitor,Antagonist,,1.6,1.6,False,0.204119982655925,8.79588001734408
+Citalopram,SSRI,5-HT2C,Antagonist,Antagonist,,617,617,False,2.79028516403324,6.20971483596676
+Citalopram,SSRI,NET,Inhibitor,Antagonist,,6190,6190,False,3.79169064902012,5.20830935097988
+Citalopram,SSRI,α1,Antagonist,Antagonist,,1211,1211,False,3.08314414314305,5.91685585685695
+Citalopram,SSRI,M1,Antagonist,Antagonist,,1430,1430,False,3.15533603746506,5.84466396253494
+Citalopram,SSRI,H1,Antagonist,Antagonist,,283,283,False,2.45178643552429,6.54821356447571
+Escitalopram,SSRI,DAT,Inhibitor,Antagonist,,27400,27400,False,4.43775056282039,4.56224943717961
+Escitalopram,SSRI,D2,Antagonist,Antagonist,,1000,1000,False,3,6
+Escitalopram,SSRI,SERT,Inhibitor,Antagonist,0.8,1.1,0.938083151964686,True,-0.0277586639249156,9.02775866392492
+Escitalopram,SSRI,5-HT1A,Antagonist,Antagonist,1000,,1000,False,3,6
+Escitalopram,SSRI,5-HT2A,Antagonist,Antagonist,1000,,1000,False,3,6
+Escitalopram,SSRI,5-HT2C,Antagonist,Antagonist,,2500,2500,False,3.39794000867204,5.60205999132796
+Escitalopram,SSRI,NET,Inhibitor,Antagonist,,7800,7800,False,3.89209460269048,5.10790539730952
+Escitalopram,SSRI,α1,Antagonist,Antagonist,,3900,3900,False,3.5910646070265,5.4089353929735
+Escitalopram,SSRI,α2,Antagonist,Antagonist,,1000,1000,False,3,6
+Escitalopram,SSRI,mACh,Antagonist,Antagonist,,1240,1240,False,3.09342168516224,5.90657831483777
+Escitalopram,SSRI,H1,Antagonist,Antagonist,,2000,2000,False,3.30102999566398,5.69897000433602
+Escitalopram,SSRI,hERG,Blocker,Antagonist,,2600,2600,False,3.41497334797082,5.58502665202918
+Fluoxetine,SSRI,DAT,Inhibitor,Antagonist,,4180,4180,False,3.62117628177504,5.37882371822496
+Fluoxetine,SSRI,SERT,Inhibitor,Antagonist,,1,1,False,0,9
+Fluoxetine,SSRI,5-HT1A,Antagonist,Antagonist,,32400,32400,False,4.51054501020661,4.48945498979339
+Fluoxetine,SSRI,5-HT2A,Antagonist,Antagonist,,147,147,False,2.16731733474818,6.83268266525182
+Fluoxetine,SSRI,5-HT2C,Antagonist,Antagonist,,112,112,False,2.04921802267018,6.95078197732982
+Fluoxetine,SSRI,NET,Inhibitor,Antagonist,,660,660,False,2.81954393554187,6.18045606445813
+Fluoxetine,SSRI,α1,Antagonist,Antagonist,,3800,3800,False,3.57978359661681,5.42021640338319
+Fluoxetine,SSRI,M1,Antagonist,Antagonist,702,1030,850.329347958778,True,2.92958716841749,6.07041283158251
+Fluoxetine,SSRI,M2,Antagonist,Antagonist,,2700,2700,False,3.43136376415899,5.56863623584101
+Fluoxetine,SSRI,M3,Antagonist,Antagonist,,1000,1000,False,3,6
+Fluoxetine,SSRI,M4,Antagonist,Antagonist,,2900,2900,False,3.46239799789896,5.53760200210104
+Fluoxetine,SSRI,M5,Antagonist,Antagonist,,2700,2700,False,3.43136376415899,5.56863623584101
+Fluvoxamine,SSRI,SERT,Inhibitor,Antagonist,,2.5,2.5,False,0.397940008672038,8.60205999132796
+Fluvoxamine,SSRI,5-HT2C,Antagonist,Antagonist,,5786,5786,False,3.76237842931196,5.23762157068804
+Fluvoxamine,SSRI,NET,Inhibitor,Antagonist,,1427,1427,False,3.15442397311465,5.84557602688535
+Fluvoxamine,SSRI,α1,Antagonist,Antagonist,,36,36,False,1.55630250076729,7.44369749923271
+Fluvoxamine,SSRI,σ1,Ligand,Ligand,,36,36,False,1.55630250076729,7.44369749923271
+Paroxetine,SSRI,DAT,Inhibitor,Antagonist,,490,490,False,2.69019608002851,6.30980391997149
+Paroxetine,SSRI,D2,Antagonist,Antagonist,,7700,7700,False,3.88649072517248,5.11350927482752
+Paroxetine,SSRI,SERT,Inhibitor,Antagonist,0.07,0.2,0.118321595661992,True,-0.926935982160881,9.92693598216088
+Paroxetine,SSRI,5-HT1A,Antagonist,Antagonist,,21200,21200,False,4.32633586092875,4.67366413907125
+Paroxetine,SSRI,5-HT2A,Antagonist,Antagonist,,6300,6300,False,3.79934054945358,5.20065945054642
+Paroxetine,SSRI,5-HT2C,Antagonist,Antagonist,,9000,9000,False,3.95424250943932,5.04575749056068
+Paroxetine,SSRI,NET,Inhibitor,Antagonist,40,85,58.309518948453,True,1.76573945852113,7.23426054147887
+Paroxetine,SSRI,α1,Antagonist,Antagonist,1000,2700,1643.1676725155,True,3.21568188207949,5.78431811792051
+Paroxetine,SSRI,α2,Antagonist,Antagonist,,3900,3900,False,3.5910646070265,5.4089353929735
+Paroxetine,SSRI,M1,Antagonist,Antagonist,,72,72,False,1.85733249643127,7.14266750356873
+Paroxetine,SSRI,H1,Antagonist,Antagonist,13700,23700,18019.1564730428,True,4.25573445658326,4.74426554341675
+Sertraline,SSRI,DAT,Inhibitor,Antagonist,22,315,83.2466215530696,True,1.9203666173059,7.0796333826941
+Sertraline,SSRI,D2,Antagonist,Antagonist,,10700,10700,False,4.02938377768521,4.97061622231479
+Sertraline,SSRI,SERT,Inhibitor,Antagonist,0.15,3.3,0.703562363973514,True,-0.152697400533216,9.15269740053322
+Sertraline,SSRI,5-HT1A,Antagonist,Antagonist,35000,,35000,False,4.54406804435028,4.45593195564972
+Sertraline,SSRI,5-HT2A,Antagonist,Antagonist,,2207,2207,False,3.34380233316166,5.65619766683835
+Sertraline,SSRI,5-HT2C,Antagonist,Antagonist,,2298,2298,False,3.36135002435227,5.63864997564773
+Sertraline,SSRI,NET,Inhibitor,Antagonist,420,925,623.297681689897,True,2.79469551156847,6.20530448843153
+Sertraline,SSRI,α1A,Antagonist,Antagonist,,1900,1900,False,3.27875360095283,5.72124639904717
+Sertraline,SSRI,α1B,Antagonist,Antagonist,,3500,3500,False,3.54406804435028,5.45593195564972
+Sertraline,SSRI,α1D,Antagonist,Antagonist,,2500,2500,False,3.39794000867204,5.60205999132796
+Sertraline,SSRI,α2,Antagonist,Antagonist,477,4100,1398.4634424968,True,3.14565111787993,5.85434888212008
+Sertraline,SSRI,mACh,Antagonist,Antagonist,427,2100,946.942448092808,True,2.97632358487947,6.02367641512053
+Sertraline,SSRI,H1,Antagonist,Antagonist,,24000,24000,False,4.38021124171161,4.61978875828839
+Sertraline,SSRI,σ1,Ligand,Ligand,32,57,42.7083130081252,True,1.6305124169962,7.3694875830038
+Sertraline,SSRI,σ2,Ligand,Ligand,,5297,5297,False,3.7240299729356,5.2759700270644
+Amitriptyline,Tricyclic,DAT,Inhibitor,Antagonist,,3250,3250,False,3.51188336097887,5.48811663902113
+Amitriptyline,Tricyclic,D1,Antagonist,Antagonist,,89,89,False,1.94939000664491,7.05060999335509
+Amitriptyline,Tricyclic,D2,Antagonist,Antagonist,196,1460,534.939248887199,True,2.72830446357046,6.27169553642954
+Amitriptyline,Tricyclic,D3,Antagonist,Antagonist,,206,206,False,2.31386722036915,6.68613277963085
+Amitriptyline,Tricyclic,SERT,Inhibitor,Antagonist,2.8,36,10.0399203184089,True,1.00173026605475,7.99826973394525
+Amitriptyline,Tricyclic,5-HT1A,Antagonist,Antagonist,450,1800,900,True,2.95424250943932,6.04575749056068
+Amitriptyline,Tricyclic,5-HT2A,Antagonist,Antagonist,18,23,20.3469899493758,True,1.30850017056045,7.69149982943955
+Amitriptyline,Tricyclic,5-HT2B,Antagonist,Antagonist,,174,174,False,2.2405492482826,6.7594507517174
+Amitriptyline,Tricyclic,5-HT2C,Antagonist,Antagonist,4,8,5.65685424949238,True,0.752574989159953,8.24742501084005
+Amitriptyline,Tricyclic,5-HT3,Antagonist,Antagonist,,430,430,False,2.63346845557959,6.36653154442041
+Amitriptyline,Tricyclic,5-HT6,Antagonist,Antagonist,65,141,95.734006497169,True,1.98106623464912,7.01893376535088
+Amitriptyline,Tricyclic,5-HT7,Antagonist,Antagonist,92.8,123,106.838195417182,True,2.02872654382913,6.97127345617087
+Amitriptyline,Tricyclic,NET,Inhibitor,Antagonist,19,102,44.0227214061103,True,1.64367688635737,7.35632311364263
+Amitriptyline,Tricyclic,α1A,Antagonist,Antagonist,6.5,25,12.747548783982,True,1.10542668265745,7.89457331734255
+Amitriptyline,Tricyclic,α1B,Antagonist,Antagonist,600,1700,1009.95049383621,True,3.00430008588096,5.99569991411904
+Amitriptyline,Tricyclic,α1D,Antagonist,Antagonist,,560,560,False,2.7481880270062,6.2518119729938
+Amitriptyline,Tricyclic,α2,Antagonist,Antagonist,114,690,280.463901420486,True,2.44787697103686,6.55212302896314
+Amitriptyline,Tricyclic,α2A,Antagonist,Antagonist,,88,88,False,1.94448267215017,7.05551732784983
+Amitriptyline,Tricyclic,α2B,Antagonist,Antagonist,1000,,1000,False,3,6
+Amitriptyline,Tricyclic,α2C,Antagonist,Antagonist,,120,120,False,2.07918124604762,6.92081875395238
+Amitriptyline,Tricyclic,β,Antagonist,Antagonist,10000,,10000,False,4,5
+Amitriptyline,Tricyclic,M1,Antagonist,Antagonist,11,14.7,12.7161314872095,True,1.1043550099532,7.8956449900468
+Amitriptyline,Tricyclic,M2,Antagonist,Antagonist,,11.8,11.8,False,1.07188200730613,7.92811799269388
+Amitriptyline,Tricyclic,M3,Antagonist,Antagonist,12.8,39,22.3427840700303,True,1.34913728833718,7.65086271166282
+Amitriptyline,Tricyclic,M4,Antagonist,Antagonist,,7.2,7.2,False,0.857332496431269,8.14266750356873
+Amitriptyline,Tricyclic,M5,Antagonist,Antagonist,15.7,24,19.4113368936815,True,1.28805544706042,7.71194455293958
+Amitriptyline,Tricyclic,H1,Antagonist,Antagonist,0.5,1.1,0.741619848709566,True,-0.129818655252878,9.12981865525288
+Amitriptyline,Tricyclic,H2,Antagonist,Antagonist,,66,66,False,1.81954393554187,7.18045606445813
+Amitriptyline,Tricyclic,H3,Antagonist,Antagonist,,75900,75900,False,4.88024177589548,4.11975822410452
+Amitriptyline,Tricyclic,H4,Antagonist,Antagonist,34,26300,945.621488757526,True,2.97571733276601,6.02428266723399
+Amitriptyline,Tricyclic,σ1,Ligand,Ligand,287,300,293.428015022424,True,2.46750157572683,6.53249842427317
+Amitriptyline,Tricyclic,hERG,Blocker,Antagonist,,3260,3260,False,3.51321760006794,5.48678239993206
+Amitriptyline,Tricyclic,TrkA,Unknown,,,3000,3000,False,3.47712125471966,5.52287874528034
+Amitriptyline,Tricyclic,TrkB,Unknown,,,14000,14000,False,4.14612803567824,4.85387196432176
+Amoxapine,Tricyclic,DAT,Inhibitor,Antagonist,,4310,4310,False,3.63447727016073,5.36552272983927
+Amoxapine,Tricyclic,D2,Antagonist,Antagonist,3.6,160,24,True,1.38021124171161,7.61978875828839
+Amoxapine,Tricyclic,D3,Antagonist,Antagonist,,11,11,False,1.04139268515823,7.95860731484178
+Amoxapine,Tricyclic,D4,Antagonist,Antagonist,2,40,8.94427190999916,True,0.951544993495972,8.04845500650403
+Amoxapine,Tricyclic,SERT,Inhibitor,Antagonist,,58,58,False,1.76342799356294,7.23657200643706
+Amoxapine,Tricyclic,5-HT2A,Antagonist,Antagonist,,0.5,0.5,False,-0.301029995663981,9.30102999566398
+Amoxapine,Tricyclic,5-HT2C,Antagonist,Antagonist,,2,2,False,0.301029995663981,8.69897000433602
+Amoxapine,Tricyclic,5-HT6,Antagonist,Antagonist,6,50,17.3205080756888,True,1.23856062735983,7.76143937264017
+Amoxapine,Tricyclic,5-HT7,Antagonist,Antagonist,,41,41,False,1.61278385671974,7.38721614328026
+Amoxapine,Tricyclic,NET,Inhibitor,Antagonist,,16,16,False,1.20411998265592,7.79588001734408
+Amoxapine,Tricyclic,α1,Antagonist,Antagonist,,50,50,False,1.69897000433602,7.30102999566398
+Amoxapine,Tricyclic,α2,Antagonist,Antagonist,,2600,2600,False,3.41497334797082,5.58502665202918
+Amoxapine,Tricyclic,mACh,Antagonist,Antagonist,,1000,1000,False,3,6
+Amoxapine,Tricyclic,H1,Antagonist,Antagonist,7.9,25,14.0534693225552,True,1.14778354998124,7.85221645001876
+Amoxapine,Tricyclic,H3,Antagonist,Antagonist,100000,,100000,False,5,4
+Amoxapine,Tricyclic,H4,Antagonist,Antagonist,,6310,6310,False,3.80002935924413,5.19997064075587
+Clomipramine,Tricyclic,DAT,Inhibitor,Antagonist,2190,,2190,False,3.34044411484012,5.65955588515988
+Clomipramine,Tricyclic,D1,Antagonist,Antagonist,,219,219,False,2.34044411484012,6.65955588515988
+Clomipramine,Tricyclic,D2,Antagonist,Antagonist,77.6,190,121.424873893284,True,2.08430766110551,6.91569233889449
+Clomipramine,Tricyclic,D3,Antagonist,Antagonist,30,50.1,38.7685439499603,True,1.58847949029345,7.41152050970655
+Clomipramine,Tricyclic,SERT,Inhibitor,Antagonist,0.14,0.28,0.197989898732233,True,-0.703356966489771,9.70335696648977
+Clomipramine,Tricyclic,5-HT1A,Antagonist,Antagonist,7000,,7000,False,3.84509804001426,5.15490195998574
+Clomipramine,Tricyclic,5-HT1D,Antagonist,Antagonist,10000,,10000,False,4,5
+Clomipramine,Tricyclic,5-HT2A,Antagonist,Antagonist,27,35.5,30.9596511608254,True,1.49079605860704,7.50920394139296
+Clomipramine,Tricyclic,5-HT2C,Antagonist,Antagonist,,64.6,64.6,False,1.81023251799508,7.18976748200492
+Clomipramine,Tricyclic,5-HT3,Antagonist,Antagonist,460,985,673.127031101857,True,2.82809703108959,6.17190296891041
+Clomipramine,Tricyclic,5-HT6,Antagonist,Antagonist,,53.8,53.8,False,1.73078227566639,7.26921772433361
+Clomipramine,Tricyclic,5-HT7,Antagonist,Antagonist,,127,127,False,2.10380372095596,6.89619627904404
+Clomipramine,Tricyclic,NET,Inhibitor,Antagonist,38,53.7,45.1730007858677,True,1.65487894115818,7.34512105884182
+Clomipramine,Tricyclic,α1,Antagonist,Antagonist,3.2,38,11.0272390016722,True,1.04246678746836,7.95753321253164
+Clomipramine,Tricyclic,α2,Antagonist,Antagonist,525,3200,1296.14813968157,True,3.11265464086293,5.88734535913707
+Clomipramine,Tricyclic,β,Antagonist,Antagonist,,22000,22000,False,4.34242268082221,4.65757731917779
+Clomipramine,Tricyclic,mACh,Antagonist,Antagonist,,37,37,False,1.568201724067,7.43179827593301
+Clomipramine,Tricyclic,H1,Antagonist,Antagonist,13,31,20.0748598998847,True,1.30265252307055,7.69734747692945
+Clomipramine,Tricyclic,H2,Antagonist,Antagonist,,209,209,False,2.32014628611105,6.67985371388895
+Clomipramine,Tricyclic,H3,Antagonist,Antagonist,,9770,9770,False,3.98989456371877,5.01010543628123
+Clomipramine,Tricyclic,H4,Antagonist,Antagonist,,5750,5750,False,3.75966784468963,5.24033215531037
+Clomipramine,Tricyclic,σ1,Ligand,Ligand,,546,546,False,2.73719264270474,6.26280735729526
+Dosulepin,Tricyclic,DAT,Inhibitor,Antagonist,,5310,5310,False,3.72509452108147,5.27490547891853
+Dosulepin,Tricyclic,SERT,Inhibitor,Antagonist,8.6,78,25.8998069490875,True,1.41329652696702,7.58670347303298
+Dosulepin,Tricyclic,5-HT1A,Antagonist,Antagonist,,4004,4004,False,3.60249406880728,5.39750593119272
+Dosulepin,Tricyclic,5-HT2A,Antagonist,Antagonist,,152,152,False,2.18184358794477,6.81815641205523
+Dosulepin,Tricyclic,NET,Inhibitor,Antagonist,46,70,56.7450438364444,True,1.75392793584792,7.24607206415208
+Dosulepin,Tricyclic,α1,Antagonist,Antagonist,,419,419,False,2.6222140229663,6.37778597703371
+Dosulepin,Tricyclic,α2,Antagonist,Antagonist,,2400,2400,False,3.38021124171161,5.61978875828839
+Dosulepin,Tricyclic,M1,Antagonist,Antagonist,,18,18,False,1.25527250510331,7.74472749489669
+Dosulepin,Tricyclic,M2,Antagonist,Antagonist,,109,109,False,2.03742649794062,6.96257350205938
+Dosulepin,Tricyclic,M3,Antagonist,Antagonist,,38,38,False,1.57978359661681,7.42021640338319
+Dosulepin,Tricyclic,M4,Antagonist,Antagonist,,61,61,False,1.78532983501077,7.21467016498923
+Dosulepin,Tricyclic,M5,Antagonist,Antagonist,,92,92,False,1.96378782734556,7.03621217265444
+Dosulepin,Tricyclic,mACh,Antagonist,Antagonist,25,26,25.4950975679639,True,1.40645667832143,7.59354332167857
+Dosulepin,Tricyclic,H1,Antagonist,Antagonist,3.6,4,3.79473319220206,True,0.579181246047625,8.42081875395238
+Doxepin,Tricyclic,DAT,Inhibitor,Antagonist,10000,,10000,False,4,5
+Doxepin,Tricyclic,D2,Antagonist,Antagonist,,360,360,False,2.55630250076729,6.44369749923271
+Doxepin,Tricyclic,SERT,Inhibitor,Antagonist,68,95,80.3741251896405,True,1.90511625899754,7.09488374100246
+Doxepin,Tricyclic,5-HT1A,Antagonist,Antagonist,,276,276,False,2.44090908206522,6.55909091793478
+Doxepin,Tricyclic,5-HT2A,Antagonist,Antagonist,11,27,17.2336879396141,True,1.23637822465861,7.76362177534139
+Doxepin,Tricyclic,5-HT2C,Antagonist,Antagonist,,200,200,False,2.30102999566398,6.69897000433602
+Doxepin,Tricyclic,5-HT6,Antagonist,Antagonist,,136,136,False,2.13353890837022,6.86646109162978
+Doxepin,Tricyclic,NET,Inhibitor,Antagonist,30,58,41.7133072292284,True,1.6202746241413,7.3797253758587
+Doxepin,Tricyclic,α1,Antagonist,Antagonist,,24,24,False,1.38021124171161,7.61978875828839
+Doxepin,Tricyclic,α1B,Antagonist,Antagonist,,12,12,False,1.07918124604762,7.92081875395238
+Doxepin,Tricyclic,α2A,Antagonist,Antagonist,1100,1270,1181.94754536739,True,3.07259820305709,5.92740179694291
+Doxepin,Tricyclic,α2B,Antagonist,Antagonist,,28,28,False,1.44715803134222,7.55284196865778
+Doxepin,Tricyclic,α2C,Antagonist,Antagonist,,96,96,False,1.98227123303957,7.01772876696043
+Doxepin,Tricyclic,M1,Antagonist,Antagonist,18,38,26.153393661244,True,1.41752805086006,7.58247194913994
+Doxepin,Tricyclic,M2,Antagonist,Antagonist,160,230,191.833260932509,True,2.28292390933676,6.71707609066324
+Doxepin,Tricyclic,M3,Antagonist,Antagonist,25,52,36.0555127546399,True,1.55697167615342,7.44302832384658
+Doxepin,Tricyclic,M4,Antagonist,Antagonist,20,82,40.4969134626332,True,1.60742192402385,7.39257807597615
+Doxepin,Tricyclic,M5,Antagonist,Antagonist,5.6,75,20.4939015319192,True,1.31162464519895,7.68837535480105
+Doxepin,Tricyclic,mACh,Antagonist,Antagonist,23,80,42.8952211790544,True,1.63240891150477,7.36759108849523
+Doxepin,Tricyclic,H1,Antagonist,Antagonist,0.09,1.23,0.332716095192283,True,-0.477926189560639,9.47792618956064
+Doxepin,Tricyclic,H2,Antagonist,Antagonist,,174,174,False,2.2405492482826,6.7594507517174
+Doxepin,Tricyclic,H3,Antagonist,Antagonist,,39800,39800,False,4.59988307207369,4.40011692792631
+Doxepin,Tricyclic,H4,Antagonist,Antagonist,,15100,15100,False,4.17897694729317,4.82102305270683
+Imipramine,Tricyclic,DAT,Inhibitor,Antagonist,,8500,8500,False,3.92941892571429,5.07058107428571
+Imipramine,Tricyclic,D1,Antagonist,Antagonist,10000,,10000,False,4,5
+Imipramine,Tricyclic,D2,Antagonist,Antagonist,620,726,670.909830006984,True,2.82666415509917,6.17333584490083
+Imipramine,Tricyclic,D3,Antagonist,Antagonist,,387,387,False,2.58771096501891,6.41228903498109
+Imipramine,Tricyclic,SERT,Inhibitor,Antagonist,1.3,1.4,1.3490737563232,True,0.130035693992537,8.86996430600746
+Imipramine,Tricyclic,5-HT1A,Antagonist,Antagonist,5800,,5800,False,3.76342799356294,5.23657200643706
+Imipramine,Tricyclic,5-HT2A,Antagonist,Antagonist,80,150,109.544511501033,True,2.03959062302381,6.96040937697619
+Imipramine,Tricyclic,5-HT2C,Antagonist,Antagonist,,120,120,False,2.07918124604762,6.92081875395238
+Imipramine,Tricyclic,5-HT3,Antagonist,Antagonist,970,3651,1881.87937976906,True,3.27459178360799,5.72540821639201
+Imipramine,Tricyclic,5-HT6,Antagonist,Antagonist,190,209,199.273681152329,True,2.29944994353194,6.70055005646806
+Imipramine,Tricyclic,5-HT7,Antagonist,Antagonist,1000,,1000,False,3,6
+Imipramine,Tricyclic,NET,Inhibitor,Antagonist,20,37,27.2029410174709,True,1.43461585986549,7.56538414013451
+Imipramine,Tricyclic,α1,Antagonist,Antagonist,,32,32,False,1.50514997831991,7.49485002168009
+Imipramine,Tricyclic,α2,Antagonist,Antagonist,,3100,3100,False,3.49136169383427,5.50863830616573
+Imipramine,Tricyclic,β,Antagonist,Antagonist,10000,,10000,False,4,5
+Imipramine,Tricyclic,M1,Antagonist,Antagonist,,42,42,False,1.6232492903979,7.3767507096021
+Imipramine,Tricyclic,M2,Antagonist,Antagonist,,88,88,False,1.94448267215017,7.05551732784983
+Imipramine,Tricyclic,M3,Antagonist,Antagonist,,60,60,False,1.77815125038364,7.22184874961636
+Imipramine,Tricyclic,M4,Antagonist,Antagonist,,112,112,False,2.04921802267018,6.95078197732982
+Imipramine,Tricyclic,M5,Antagonist,Antagonist,,83,83,False,1.91907809237607,7.08092190762393
+Imipramine,Tricyclic,mACh,Antagonist,Antagonist,,46,46,False,1.66275783168157,7.33724216831843
+Imipramine,Tricyclic,H1,Antagonist,Antagonist,7.6,37,16.7690190530037,True,1.22450765817389,7.77549234182611
+Imipramine,Tricyclic,H2,Antagonist,Antagonist,,550,550,False,2.74036268949424,6.25963731050576
+Imipramine,Tricyclic,H3,Antagonist,Antagonist,100000,,100000,False,5,4
+Imipramine,Tricyclic,H4,Antagonist,Antagonist,,24000,24000,False,4.38021124171161,4.61978875828839
+Imipramine,Tricyclic,σ1,Ligand,Ligand,332,520,415.499699157532,True,2.61857071366942,6.38142928633058
+Imipramine,Tricyclic,σ2,Ligand,Ligand,327,2100,828.673639015988,True,2.9183835236971,6.0816164763029
+Imipramine,Tricyclic,hERG,Blocker,Antagonist,,3400,3400,False,3.53147891704226,5.46852108295775
+Lofepramine,Tricyclic,DAT,Inhibitor,Antagonist,10000,,10000,False,4,5
+Lofepramine,Tricyclic,D1,Antagonist,Antagonist,,500,500,False,2.69897000433602,6.30102999566398
+Lofepramine,Tricyclic,D2,Antagonist,Antagonist,,2000,2000,False,3.30102999566398,5.69897000433602
+Lofepramine,Tricyclic,SERT,Inhibitor,Antagonist,,70,70,False,1.84509804001426,7.15490195998574
+Lofepramine,Tricyclic,5-HT1A,Antagonist,Antagonist,,4600,4600,False,3.66275783168157,5.33724216831843
+Lofepramine,Tricyclic,5-HT2A,Antagonist,Antagonist,,200,200,False,2.30102999566398,6.69897000433602
+Lofepramine,Tricyclic,NET,Inhibitor,Antagonist,,5.4,5.4,False,0.732393759822969,8.26760624017703
+Lofepramine,Tricyclic,α1,Antagonist,Antagonist,,100,100,False,2,7
+Lofepramine,Tricyclic,α2,Antagonist,Antagonist,,2700,2700,False,3.43136376415899,5.56863623584101
+Lofepramine,Tricyclic,β,Antagonist,Antagonist,10000,,10000,False,4,5
+Lofepramine,Tricyclic,M1,Antagonist,Antagonist,,67,67,False,1.82607480270083,7.17392519729917
+Lofepramine,Tricyclic,M2,Antagonist,Antagonist,,330,330,False,2.51851393987789,6.48148606012211
+Lofepramine,Tricyclic,M3,Antagonist,Antagonist,,130,130,False,2.11394335230684,6.88605664769316
+Lofepramine,Tricyclic,M4,Antagonist,Antagonist,,340,340,False,2.53147891704226,6.46852108295775
+Lofepramine,Tricyclic,M5,Antagonist,Antagonist,,460,460,False,2.66275783168157,6.33724216831843
+Lofepramine,Tricyclic,mACh,Antagonist,Antagonist,,67,67,False,1.82607480270083,7.17392519729917
+Lofepramine,Tricyclic,H1,Antagonist,Antagonist,245,360,296.98484809835,True,2.47273429256591,6.52726570743409
+Lofepramine,Tricyclic,H2,Antagonist,Antagonist,,4270,4270,False,3.63042787502502,5.36957212497498
+Lofepramine,Tricyclic,H3,Antagonist,Antagonist,,79400,79400,False,4.8998205024271,4.1001794975729
+Lofepramine,Tricyclic,H4,Antagonist,Antagonist,,36300,36300,False,4.55990662503611,4.44009337496389
+Lofepramine,Tricyclic,σ1,Ligand,Ligand,,2520,2520,False,3.40140054078154,5.59859945921846
+Maprotiline,Tricyclic,DAT,Inhibitor,Antagonist,,1000,1000,False,3,6
+Maprotiline,Tricyclic,D1,Antagonist,Antagonist,,402,402,False,2.60422605308447,6.39577394691553
+Maprotiline,Tricyclic,D2,Antagonist,Antagonist,350,665,482.441706323158,True,2.68344484482669,6.31655515517331
+Maprotiline,Tricyclic,D3,Antagonist,Antagonist,,504,504,False,2.70243053644553,6.29756946355448
+Maprotiline,Tricyclic,SERT,Inhibitor,Antagonist,,5800,5800,False,3.76342799356294,5.23657200643706
+Maprotiline,Tricyclic,5-HT2A,Antagonist,Antagonist,,51,51,False,1.70757017609794,7.29242982390206
+Maprotiline,Tricyclic,5-HT2C,Antagonist,Antagonist,,122,122,False,2.08635983067475,6.91364016932525
+Maprotiline,Tricyclic,5-HT7,Antagonist,Antagonist,,50,50,False,1.69897000433602,7.30102999566398
+Maprotiline,Tricyclic,NET,Inhibitor,Antagonist,11,12,11.4891252930761,True,1.06028696560293,7.93971303439708
+Maprotiline,Tricyclic,α1,Antagonist,Antagonist,,90,90,False,1.95424250943933,7.04575749056068
+Maprotiline,Tricyclic,α2,Antagonist,Antagonist,,9400,9400,False,3.9731278535997,5.0268721464003
+Maprotiline,Tricyclic,mACh,Antagonist,Antagonist,,570,570,False,2.75587485567249,6.24412514432751
+Maprotiline,Tricyclic,H1,Antagonist,Antagonist,0.79,2,1.25698050899765,True,0.0993285434772113,8.90067145652279
+Maprotiline,Tricyclic,H2,Antagonist,Antagonist,,776,776,False,2.88986172125819,6.11013827874181
+Maprotiline,Tricyclic,H3,Antagonist,Antagonist,,66100,66100,False,4.82020145948564,4.17979854051436
+Maprotiline,Tricyclic,H4,Antagonist,Antagonist,,85100,85100,False,4.92992956008459,4.07007043991541
+Mianserin,Tricyclic,DAT,Inhibitor,Antagonist,,9400,9400,False,3.9731278535997,5.0268721464003
+Mianserin,Tricyclic,D1,Antagonist,Antagonist,426,1420,777.766031657336,True,2.89084897174289,6.10915102825711
+Mianserin,Tricyclic,D2,Antagonist,Antagonist,2100,2700,2381.17617995813,True,3.37679152944645,5.62320847055355
+Mianserin,Tricyclic,D3,Antagonist,Antagonist,,2840,2840,False,3.45331834004704,5.54668165995296
+Mianserin,Tricyclic,SERT,Inhibitor,Antagonist,,4000,4000,False,3.60205999132796,5.39794000867204
+Mianserin,Tricyclic,5-HT1A,Antagonist,Antagonist,400,2600,1019.80390271856,True,3.00851666964939,5.99148333035061
+Mianserin,Tricyclic,5-HT1D,Antagonist,Antagonist,220,400,296.647939483827,True,2.47224133607509,6.52775866392492
+Mianserin,Tricyclic,5-HT1F,Antagonist,Antagonist,,13,13,False,1.11394335230684,7.88605664769316
+Mianserin,Tricyclic,5-HT2A,Antagonist,Antagonist,1.6,55,9.38083151964686,True,0.972241336075085,8.02775866392492
+Mianserin,Tricyclic,5-HT2B,Antagonist,Antagonist,1.6,20,5.65685424949238,True,0.752574989159953,8.24742501084005
+Mianserin,Tricyclic,5-HT2C,Antagonist,Antagonist,0.63,6.5,2.02361063448481,True,0.306126953048219,8.69387304695178
+Mianserin,Tricyclic,5-HT3,Antagonist,Antagonist,5.8,300,41.7133072292284,True,1.6202746241413,7.3797253758587
+Mianserin,Tricyclic,5-HT6,Antagonist,Antagonist,55,81,66.745786383861,True,1.82442385418645,7.17557614581355
+Mianserin,Tricyclic,5-HT7,Antagonist,Antagonist,48,56,51.8459255872629,True,1.71471463219089,7.28528536780911
+Mianserin,Tricyclic,NET,Inhibitor,Antagonist,,71,71,False,1.85125834871908,7.14874165128092
+Mianserin,Tricyclic,α1,Antagonist,Antagonist,,34,34,False,1.53147891704226,7.46852108295775
+Mianserin,Tricyclic,α2,Antagonist,Antagonist,,73,73,False,1.86332286012046,7.13667713987954
+Mianserin,Tricyclic,α2A,Antagonist,Antagonist,,4.8,4.8,False,0.681241237375587,8.31875876262441
+Mianserin,Tricyclic,α2B,Antagonist,Antagonist,,27,27,False,1.43136376415899,7.56863623584101
+Mianserin,Tricyclic,α2C,Antagonist,Antagonist,,3.8,3.8,False,0.57978359661681,8.42021640338319
+Mianserin,Tricyclic,mACh,Antagonist,Antagonist,,820,820,False,2.91381385238372,6.08618614761628
+Mianserin,Tricyclic,H1,Antagonist,Antagonist,0.3,1.7,0.714142842854285,True,-0.146214911951032,9.14621491195103
+Mianserin,Tricyclic,H2,Antagonist,Antagonist,,437,437,False,2.64048143697042,6.35951856302958
+Mianserin,Tricyclic,H3,Antagonist,Antagonist,,95500,95500,False,4.98000337158375,4.01999662841625
+Mianserin,Tricyclic,H4,Antagonist,Antagonist,100000,,100000,False,5,4
+Mianserin,Tricyclic,MOR,,,,21000,21000,False,4.32221929473392,4.67778070526608
+Mianserin,Tricyclic,DOR,,,,30200,30200,False,4.48000694295715,4.51999305704285
+Nortriptyline,Tricyclic,DAT,Inhibitor,Antagonist,,1140,1140,False,3.05690485133647,5.94309514866353
+Nortriptyline,Tricyclic,D2,Antagonist,Antagonist,,2570,2570,False,3.40993312333129,5.59006687666871
+Nortriptyline,Tricyclic,SERT,Inhibitor,Antagonist,15,18,16.431676725155,True,1.21568188207949,7.78431811792051
+Nortriptyline,Tricyclic,5-HT1A,Antagonist,Antagonist,,294,294,False,2.46834733041216,6.53165266958784
+Nortriptyline,Tricyclic,5-HT2A,Antagonist,Antagonist,5,41,14.3178210632764,True,1.15587693052788,7.84412306947212
+Nortriptyline,Tricyclic,5-HT2C,Antagonist,Antagonist,,8.5,8.5,False,0.929418925714293,8.07058107428571
+Nortriptyline,Tricyclic,5-HT3,Antagonist,Antagonist,,1400,1400,False,3.14612803567824,5.85387196432176
+Nortriptyline,Tricyclic,5-HT6,Antagonist,Antagonist,,148,148,False,2.17026171539496,6.82973828460504
+Nortriptyline,Tricyclic,NET,Inhibitor,Antagonist,1.8,4.4,2.81424945589406,True,0.449362590794747,8.55063740920525
+Nortriptyline,Tricyclic,α1,Antagonist,Antagonist,,55,55,False,1.74036268949424,7.25963731050576
+Nortriptyline,Tricyclic,α2,Antagonist,Antagonist,,2030,2030,False,3.30749603791321,5.69250396208679
+Nortriptyline,Tricyclic,β,Antagonist,Antagonist,10000,,10000,False,4,5
+Nortriptyline,Tricyclic,M1,Antagonist,Antagonist,,40,40,False,1.60205999132796,7.39794000867204
+Nortriptyline,Tricyclic,M2,Antagonist,Antagonist,,110,110,False,2.04139268515823,6.95860731484178
+Nortriptyline,Tricyclic,M3,Antagonist,Antagonist,,50,50,False,1.69897000433602,7.30102999566398
+Nortriptyline,Tricyclic,M4,Antagonist,Antagonist,,84,84,False,1.92427928606188,7.07572071393812
+Nortriptyline,Tricyclic,M5,Antagonist,Antagonist,,97,97,False,1.98677173426624,7.01322826573376
+Nortriptyline,Tricyclic,mACh,Antagonist,Antagonist,,37,37,False,1.568201724067,7.43179827593301
+Nortriptyline,Tricyclic,H1,Antagonist,Antagonist,3,15,6.70820393249937,True,0.826606256887672,8.17339374311233
+Nortriptyline,Tricyclic,H2,Antagonist,Antagonist,,646,646,False,2.81023251799508,6.18976748200492
+Nortriptyline,Tricyclic,H3,Antagonist,Antagonist,,45700,45700,False,4.65991620006985,4.34008379993015
+Nortriptyline,Tricyclic,H4,Antagonist,Antagonist,,6920,6920,False,3.84010609445676,5.15989390554324
+Nortriptyline,Tricyclic,σ1,Ligand,Ligand,,2000,2000,False,3.30102999566398,5.69897000433602
+Trazodone,Tricyclic,DAT,Inhibitor,Antagonist,7400,,7400,False,3.86923171973098,5.13076828026902
+Trazodone,Tricyclic,D1,Antagonist,Antagonist,,3730,3730,False,3.57170883180869,5.42829116819131
+Trazodone,Tricyclic,D2,Antagonist,Antagonist,3500,,3500,False,3.54406804435028,5.45593195564972
+Trazodone,Tricyclic,D3,Antagonist,Antagonist,,353,353,False,2.54777470538782,6.45222529461218
+Trazodone,Tricyclic,D4,Antagonist,Antagonist,,703,703,False,2.84695532501982,6.15304467498018
+Trazodone,Tricyclic,SERT,Inhibitor,Antagonist,160,10000,1264.91106406735,True,3.10205999132796,5.89794000867204
+Trazodone,Tricyclic,5-HT1A,Antagonist,Antagonist,96,118,106.433077565201,True,2.02707662017285,6.97292337982715
+Trazodone,Tricyclic,5-HT1D,Antagonist,Antagonist,,106,106,False,2.02530586526477,6.97469413473523
+Trazodone,Tricyclic,5-HT1E,Antagonist,Antagonist,10000,,10000,False,4,5
+Trazodone,Tricyclic,5-HT2A,Antagonist,Antagonist,20,45,30,True,1.47712125471966,7.52287874528034
+Trazodone,Tricyclic,5-HT2B,Antagonist,Antagonist,74,189,118.262420066562,True,2.07284676195211,6.92715323804789
+Trazodone,Tricyclic,5-HT2C,Antagonist,Antagonist,224,402,300.079989336177,True,2.47723703570932,6.52276296429068
+Trazodone,Tricyclic,5-HT3,Antagonist,Antagonist,10000,,10000,False,4,5
+Trazodone,Tricyclic,5-HT5A,Antagonist,Antagonist,10000,,10000,False,4,5
+Trazodone,Tricyclic,5-HT6,Antagonist,Antagonist,10000,,10000,False,4,5
+Trazodone,Tricyclic,5-HT7,Antagonist,Antagonist,,1782,1782,False,3.25090769970086,5.74909230029914
+Trazodone,Tricyclic,NET,Inhibitor,Antagonist,8500,,8500,False,3.92941892571429,5.07058107428571
+Trazodone,Tricyclic,α1,Antagonist,Antagonist,12,42,22.4499443206437,True,1.35121526822276,7.64878473177724
+Trazodone,Tricyclic,α1A,Antagonist,Antagonist,,153,153,False,2.1846914308176,6.8153085691824
+Trazodone,Tricyclic,α2,Antagonist,Antagonist,106,490,227.903488345396,True,2.35775097264664,6.64224902735336
+Trazodone,Tricyclic,α2A,Antagonist,Antagonist,,728,728,False,2.86213137931304,6.13786862068696
+Trazodone,Tricyclic,α2C,Antagonist,Antagonist,,155,155,False,2.19033169817029,6.80966830182971
+Trazodone,Tricyclic,β,Antagonist,Antagonist,10000,,10000,False,4,5
+Trazodone,Tricyclic,β1,Antagonist,Antagonist,10000,,10000,False,4,5
+Trazodone,Tricyclic,β2,Antagonist,Antagonist,10000,,10000,False,4,5
+Trazodone,Tricyclic,H1,Antagonist,Antagonist,220,1100,491.934955049954,True,2.69190768299022,6.30809231700978
+Trazodone,Tricyclic,H2,Antagonist,Antagonist,,3290,3290,False,3.51719589794997,5.48280410205003
+Trazodone,Tricyclic,H3,Antagonist,Antagonist,10000,,10000,False,4,5
+Trazodone,Tricyclic,H4,Antagonist,Antagonist,10000,,10000,False,4,5
+Trazodone,Tricyclic,σ1,Ligand,Ligand,10000,,10000,False,4,5
+Trazodone,Tricyclic,σ2,Ligand,Ligand,,536,536,False,2.72916478969277,6.27083521030723
+Trimipramine,Tricyclic,DAT,Inhibitor,Antagonist,3780,,3780,False,3.57749179983723,5.42250820016278
+Trimipramine,Tricyclic,D1,Antagonist,Antagonist,,347,347,False,2.54032947479087,6.45967052520913
+Trimipramine,Tricyclic,D2,Antagonist,Antagonist,143,210,173.29166165745,True,2.23877766609949,6.76122233390051
+Trimipramine,Tricyclic,D4,Antagonist,Antagonist,,275,275,False,2.43933269383026,6.56066730616974
+Trimipramine,Tricyclic,SERT,Inhibitor,Antagonist,149,2110,560.704913479452,True,2.74873436185498,6.25126563814502
+Trimipramine,Tricyclic,5-HT1A,Antagonist,Antagonist,,8000,8000,False,3.90308998699194,5.09691001300806
+Trimipramine,Tricyclic,5-HT1D,Antagonist,Antagonist,10000,,10000,False,4,5
+Trimipramine,Tricyclic,5-HT2A,Antagonist,Antagonist,,32,32,False,1.50514997831991,7.49485002168009
+Trimipramine,Tricyclic,5-HT2C,Antagonist,Antagonist,,537,537,False,2.72997428569956,6.27002571430044
+Trimipramine,Tricyclic,5-HT3,Antagonist,Antagonist,,9120,9120,False,3.95999483832842,5.04000516167158
+Trimipramine,Tricyclic,NET,Inhibitor,Antagonist,2450,4990,3496.49824824781,True,3.54363331499396,5.45636668500604
+Trimipramine,Tricyclic,α1,Antagonist,Antagonist,,24,24,False,1.38021124171161,7.61978875828839
+Trimipramine,Tricyclic,α2,Antagonist,Antagonist,,680,680,False,2.83250891270624,6.16749108729376
+Trimipramine,Tricyclic,mACh,Antagonist,Antagonist,,58,58,False,1.76342799356294,7.23657200643706
+Trimipramine,Tricyclic,H1,Antagonist,Antagonist,0.27,1.48,0.632139225171164,True,-0.199187260223028,9.19918726022303
+Trimipramine,Tricyclic,H2,Antagonist,Antagonist,,41,41,False,1.61278385671974,7.38721614328026
+Trimipramine,Tricyclic,H3,Antagonist,Antagonist,100000,,100000,False,5,4
+Trimipramine,Tricyclic,H4,Antagonist,Antagonist,,43700,43700,False,4.64048143697042,4.35951856302958
+Duloxetine,SNRI,DAT,Inhibitor,Antagonist,,240,240,False,2.38021124171161,6.61978875828839
+Duloxetine,SNRI,SERT,Inhibitor,Antagonist,0.7,0.8,0.748331477354788,True,-0.1259059864969,9.1259059864969
+Duloxetine,SNRI,5-HT2A,Antagonist,Antagonist,,504,504,False,2.70243053644553,6.29756946355448
+Duloxetine,SNRI,5-HT2C,Antagonist,Antagonist,,916,916,False,2.96189547366785,6.03810452633215
+Duloxetine,SNRI,5-HT6,Antagonist,Antagonist,,419,419,False,2.6222140229663,6.37778597703371
+Duloxetine,SNRI,NET,Inhibitor,Antagonist,,7.5,7.5,False,0.8750612633917,8.1249387366083
+Venlafaxine,SNRI,DAT,Inhibitor,Antagonist,,7647,7647,False,3.88349109018893,5.11650890981107
+Venlafaxine,SNRI,SERT,Inhibitor,Antagonist,,82,82,False,1.91381385238372,7.08618614761628
+Venlafaxine,SNRI,5-HT2A,Antagonist,Antagonist,,2230,2230,False,3.34830486304816,5.65169513695184
+Venlafaxine,SNRI,5-HT2C,Antagonist,Antagonist,,2004,2004,False,3.30189771719521,5.69810228280479
+Venlafaxine,SNRI,5-HT6,Antagonist,Antagonist,,2792,2792,False,3.44591541395112,5.55408458604888
+Venlafaxine,SNRI,NET,Inhibitor,Antagonist,,2480,2480,False,3.39445168082622,5.60554831917378
+Venlafaxine,SNRI,α1A,Antagonist,Antagonist,1000,,1000,False,3,6
+Agomelatine,Melatonin receptor agonist,5-HT2B,Antagonist,Antagonist,,660,660,False,2.81954393554187,6.18045606445813
+Agomelatine,Melatonin receptor agonist,5-HT2C,Antagonist,Antagonist,,631,631,False,2.80002935924413,6.19997064075587
+Agomelatine,Melatonin receptor agonist,MT2,Agonist,Agonist,,0.12,0.12,False,-0.920818753952375,9.92081875395238
+Mirtazapine,Alpha2-adrenoreceptor antagonist,DAT,Inhibitor,Antagonist,10000,,10000,False,4,5
+Mirtazapine,Alpha2-adrenoreceptor antagonist,D1,Antagonist,Antagonist,,4167,4167,False,3.61982350045728,5.38017649954272
+Mirtazapine,Alpha2-adrenoreceptor antagonist,D2,Antagonist,Antagonist,5454,,5454,False,3.73671513360561,5.26328486639439
+Mirtazapine,Alpha2-adrenoreceptor antagonist,D3,Antagonist,Antagonist,,5723,5723,False,3.75762374590839,5.24237625409161
+Mirtazapine,Alpha2-adrenoreceptor antagonist,D4,Antagonist,Antagonist,,2518,2518,False,3.40105572577184,5.59894427422816
+Mirtazapine,Alpha2-adrenoreceptor antagonist,SERT,Inhibitor,Antagonist,10000,,10000,False,4,5
+Mirtazapine,Alpha2-adrenoreceptor antagonist,5-HT1A,Antagonist,Antagonist,3330,5010,4084.51955559035,True,3.61114097968678,5.38885902031322
+Mirtazapine,Alpha2-adrenoreceptor antagonist,5-HT1D,Antagonist,Antagonist,794,5010,1994.4773751537,True,3.29982911414717,5.70017088585283
+Mirtazapine,Alpha2-adrenoreceptor antagonist,5-HT1E,Antagonist,Antagonist,,728,728,False,2.86213137931304,6.13786862068696
+Mirtazapine,Alpha2-adrenoreceptor antagonist,5-HT1F,Antagonist,Antagonist,,583,583,False,2.76566855475901,6.23433144524099
+Mirtazapine,Alpha2-adrenoreceptor antagonist,5-HT2A,Antagonist,Antagonist,6.3,69,20.8494604246729,True,1.31909482009542,7.68090517990458
+Mirtazapine,Alpha2-adrenoreceptor antagonist,5-HT2B,Antagonist,Antagonist,,200,200,False,2.30102999566398,6.69897000433602
+Mirtazapine,Alpha2-adrenoreceptor antagonist,5-HT2C,Antagonist,Antagonist,8.9,39,18.6306199574786,True,1.27022730683571,7.72977269316429
+Mirtazapine,Alpha2-adrenoreceptor antagonist,5-HT3,Antagonist,Antagonist,,8.1,8.1,False,0.90848501887865,8.09151498112135
+Mirtazapine,Alpha2-adrenoreceptor antagonist,5-HT4L,Antagonist,Antagonist,10000,,10000,False,4,5
+Mirtazapine,Alpha2-adrenoreceptor antagonist,5-HT5A,Antagonist,Antagonist,,670,670,False,2.82607480270083,6.17392519729917
+Mirtazapine,Alpha2-adrenoreceptor antagonist,5-HT7,Antagonist,Antagonist,,265,265,False,2.42324587393681,6.57675412606319
+Mirtazapine,Alpha2-adrenoreceptor antagonist,NET,Inhibitor,Antagonist,4600,,4600,False,3.66275783168157,5.33724216831843
+Mirtazapine,Alpha2-adrenoreceptor antagonist,α1A,Antagonist,Antagonist,,1815,1815,False,3.25887662937213,5.74112337062787
+Mirtazapine,Alpha2-adrenoreceptor antagonist,α2A,Antagonist,Antagonist,,20,20,False,1.30102999566398,7.69897000433602
+Mirtazapine,Alpha2-adrenoreceptor antagonist,α2B,Antagonist,Antagonist,,88,88,False,1.94448267215017,7.05551732784983
+Mirtazapine,Alpha2-adrenoreceptor antagonist,α2C,Antagonist,Antagonist,,18,18,False,1.25527250510331,7.74472749489669
+Mirtazapine,Alpha2-adrenoreceptor antagonist,β,Antagonist,Antagonist,10000,,10000,False,4,5
+Mirtazapine,Alpha2-adrenoreceptor antagonist,mACh,Antagonist,Antagonist,,670,670,False,2.82607480270083,6.17392519729917
+Mirtazapine,Alpha2-adrenoreceptor antagonist,H1,Antagonist,Antagonist,0.14,1.6,0.473286382647969,True,-0.324875990832919,9.32487599083292
+Mirtazapine,Alpha2-adrenoreceptor antagonist,H2,Antagonist,Antagonist,10000,,10000,False,4,5
+Mirtazapine,Alpha2-adrenoreceptor antagonist,H3,Antagonist,Antagonist,,83200,83200,False,4.92012332629072,4.07987667370928
+Mirtazapine,Alpha2-adrenoreceptor antagonist,H4,Antagonist,Antagonist,100000,,100000,False,5,4
+Mirtazapine,Alpha2-adrenoreceptor antagonist,VGSC,Blocker,Antagonist,,6905,6905,False,3.83916368291465,5.16083631708535
+Mirtazapine,Alpha2-adrenoreceptor antagonist,VDCC,Blocker,Antagonist,10000,,10000,False,4,5
+Nefazodone,SARI,DAT,Inhibitor,Antagonist,,360,360,False,2.55630250076729,6.44369749923271
+Nefazodone,SARI,D2,Antagonist,Antagonist,,910,910,False,2.95904139232109,6.04095860767891
+Nefazodone,SARI,SERT,Inhibitor,Antagonist,200,459,302.985148150862,True,2.48142134060062,6.51857865939938
+Nefazodone,SARI,5-HT1A,Antagonist,Antagonist,,80,80,False,1.90308998699194,7.09691001300806
+Nefazodone,SARI,5-HT2A,Antagonist,Antagonist,,26,26,False,1.41497334797082,7.58502665202918
+Nefazodone,SARI,5-HT2C,Antagonist,Antagonist,,72,72,False,1.85733249643127,7.14266750356873
+Nefazodone,SARI,NET,Inhibitor,Antagonist,360,618,471.677856168805,True,2.67364548792805,6.32635451207195
+Nefazodone,SARI,α1,Antagonist,Antagonist,5.5,48,16.2480768092719,True,1.21080196343492,7.78919803656508
+Nefazodone,SARI,α1A,Antagonist,Antagonist,,48,48,False,1.68124123737559,7.31875876262441
+Nefazodone,SARI,α2,Antagonist,Antagonist,84,640,231.862027939031,True,2.36522963002288,6.63477036997712
+Nefazodone,SARI,β,Antagonist,Antagonist,10000,,10000,False,4,5
+Nefazodone,SARI,mACh,Antagonist,Antagonist,10000,,10000,False,4,5
+Nefazodone,SARI,H1,Antagonist,Antagonist,370,,370,False,2.568201724067,6.43179827593301
+Reboxetine,sNRI,DAT,Inhibitor,Antagonist,10000,,10000,False,4,5
+Reboxetine,sNRI,D2,Antagonist,Antagonist,10000,,10000,False,4,5
+Reboxetine,sNRI,D3,Antagonist,Antagonist,10000,,10000,False,4,5
+Reboxetine,sNRI,SERT,Inhibitor,Antagonist,,273.5,273.5,False,2.43695733066945,6.56304266933055
+Reboxetine,sNRI,5-HT1A,Antagonist,Antagonist,10000,,10000,False,4,5
+Reboxetine,sNRI,5-HT1D,Antagonist,Antagonist,10000,,10000,False,4,5
+Reboxetine,sNRI,5-HT2A,Antagonist,Antagonist,10000,,10000,False,4,5
+Reboxetine,sNRI,5-HT2C,Antagonist,Antagonist,,457,457,False,2.65991620006985,6.34008379993015
+Reboxetine,sNRI,NET,Inhibitor,Antagonist,,13.4,13.4,False,1.12710479836481,7.87289520163519
+Reboxetine,sNRI,α1A,Antagonist,Antagonist,,11900,11900,False,4.07554696139253,4.92445303860747
+Reboxetine,sNRI,α2A,Antagonist,Antagonist,10000,,10000,False,4,5
+Reboxetine,sNRI,mACh,Antagonist,Antagonist,,6700,6700,False,3.82607480270083,5.17392519729917
+Lurasidone,Atypical antipsychotic,DAT,Inhibitor,Antagonist,,1000,1000,False,3,6
+Lurasidone,Atypical antipsychotic,D1,Antagonist,Antagonist,,262,262,False,2.41830129131975,6.58169870868025
+Lurasidone,Atypical antipsychotic,D2,Antagonist,Antagonist,1.2,1.7,1.42828568570857,True,0.154815083712949,8.84518491628705
+Lurasidone,Atypical antipsychotic,D3,Antagonist,Antagonist,,15.7,15.7,False,1.19589965240923,7.80410034759077
+Lurasidone,Atypical antipsychotic,D4,Antagonist,Antagonist,,10,10,False,1,8
+Lurasidone,Atypical antipsychotic,SERT,Inhibitor,Antagonist,,1000,1000,False,3,6
+Lurasidone,Atypical antipsychotic,5-HT1A,Partial agonist,Agonist,,6.7,6.7,False,0.826074802700826,8.17392519729917
+Lurasidone,Atypical antipsychotic,5-HT2A,Antagonist,Antagonist,0.5,2,1,True,0,9
+Lurasidone,Atypical antipsychotic,5-HT2B,Antagonist,Antagonist,,24,24,False,1.38021124171161,7.61978875828839
+Lurasidone,Atypical antipsychotic,5-HT2C,Antagonist,Antagonist,,415,415,False,2.61804809671209,6.38195190328791
+Lurasidone,Atypical antipsychotic,5-HT3,Antagonist,Antagonist,,1000,1000,False,3,6
+Lurasidone,Atypical antipsychotic,5-HT4L,Antagonist,Antagonist,,1000,1000,False,3,6
+Lurasidone,Atypical antipsychotic,5-HT7,Antagonist,Antagonist,,0.5,0.5,False,-0.301029995663981,9.30102999566398
+Lurasidone,Atypical antipsychotic,α1,Antagonist,Antagonist,,47.9,47.9,False,1.68033551341456,7.31966448658544
+Lurasidone,Atypical antipsychotic,α2A,Antagonist,Antagonist,,41,41,False,1.61278385671974,7.38721614328026
+Lurasidone,Atypical antipsychotic,α2C,Antagonist,Antagonist,,10.8,10.8,False,1.03342375548695,7.96657624451305
+Lurasidone,Atypical antipsychotic,β1,Antagonist,Antagonist,,1000,1000,False,3,6
+Lurasidone,Atypical antipsychotic,β2,Antagonist,Antagonist,,1000,1000,False,3,6
+Lurasidone,Atypical antipsychotic,M1,Antagonist,Antagonist,,1000,1000,False,3,6
+Lurasidone,Atypical antipsychotic,H1,Antagonist,Antagonist,,1000,1000,False,3,6
+Olanzapine,Atyical antipsychotic,D1,Antagonist,Antagonist,35,118,64.2650760522385,True,1.8079750258282,7.1920249741718
+Olanzapine,Atyical antipsychotic,D2,Antagonist,Antagonist,3,106,17.832554500127,True,1.25121355999222,7.74878644000778
+Olanzapine,Atyical antipsychotic,D3,Antagonist,Antagonist,7.8,91,26.642071991495,True,1.42556799750579,7.57443200249421
+Olanzapine,Atyical antipsychotic,D4,Antagonist,Antagonist,1.6,50,8.94427190999916,True,0.951544993495972,8.04845500650403
+Olanzapine,Atyical antipsychotic,SERT,Inhibitor,Antagonist,,3676,3676,False,3.56537550271407,5.43462449728593
+Olanzapine,Atyical antipsychotic,5-HT1A,Antagonist,Antagonist,2063,2720,2368.83093529277,True,3.37453406600368,5.62546593399633
+Olanzapine,Atyical antipsychotic,5-HT1D,Antagonist,Antagonist,540,1582,924.272687035596,True,2.96580011949231,6.03419988050769
+Olanzapine,Atyical antipsychotic,5-HT1E,Antagonist,Antagonist,2010,2408,2200.01818174305,True,3.34242627000314,5.65757372999686
+Olanzapine,Atyical antipsychotic,5-HT1F,Antagonist,Antagonist,,310,310,False,2.49136169383427,6.50863830616573
+Olanzapine,Atyical antipsychotic,5-HT2A,Antagonist,Antagonist,1.32,24.2,5.65190233461266,True,0.752194648593141,8.24780535140686
+Olanzapine,Atyical antipsychotic,5-HT2B,Antagonist,Antagonist,11.8,12,11.8995798245148,True,1.07553162667688,7.92446837332312
+Olanzapine,Atyical antipsychotic,5-HT2C,Antagonist,Antagonist,6.4,29,13.6235090927411,True,1.13428898594142,7.86571101405858
+Olanzapine,Atyical antipsychotic,5-HT3,Antagonist,Antagonist,,202,202,False,2.30535136944662,6.69464863055338
+Olanzapine,Atyical antipsychotic,5-HT5A,Antagonist,Antagonist,,1212,1212,False,3.08350261983027,5.91649738016973
+Olanzapine,Atyical antipsychotic,5-HT6,Antagonist,Antagonist,6,42,15.8745078663875,True,1.20070027039077,7.79929972960923
+Olanzapine,Atyical antipsychotic,5-HT7,Antagonist,Antagonist,105,365,195.767719504519,True,2.29174108176321,6.70825891823679
+Olanzapine,Atyical antipsychotic,NET,Inhibitor,Antagonist,,10000,10000,False,4,5
+Olanzapine,Atyical antipsychotic,α1A,Antagonist,Antagonist,109,115,111.95981421921,True,2.04906216914712,6.95093783085288
+Olanzapine,Atyical antipsychotic,α1B,Antagonist,Antagonist,,263,263,False,2.41995574848976,6.58004425151024
+Olanzapine,Atyical antipsychotic,α2A,Antagonist,Antagonist,192,470,300.399733688297,True,2.47769954331963,6.52230045668037
+Olanzapine,Atyical antipsychotic,α2B,Antagonist,Antagonist,82,180,121.4907403879,True,2.08454317874351,6.91545682125649
+Olanzapine,Atyical antipsychotic,α2C,Antagonist,Antagonist,29,210,78.0384520605067,True,1.89230864631644,7.10769135368356
+Olanzapine,Atyical antipsychotic,β1,Antagonist,Antagonist,,10000,10000,False,4,5
+Olanzapine,Atyical antipsychotic,β2,Antagonist,Antagonist,,10000,10000,False,4,5
+Olanzapine,Atyical antipsychotic,M1,Antagonist,Antagonist,2.5,73,13.5092560861063,True,1.13063143439625,7.86936856560375
+Olanzapine,Atyical antipsychotic,M2,Antagonist,Antagonist,48,622,172.788888531641,True,2.2375158110332,6.7624841889668
+Olanzapine,Atyical antipsychotic,M3,Antagonist,Antagonist,13,126,40.4722126896961,True,1.6071569487122,7.3928430512878
+Olanzapine,Atyical antipsychotic,M4,Antagonist,Antagonist,10,350,59.1607978309962,True,1.77203402217514,7.22796597782486
+Olanzapine,Atyical antipsychotic,M5,Antagonist,Antagonist,6,82,22.1810730128188,True,1.34598255138368,7.65401744861632
+Olanzapine,Atyical antipsychotic,H1,Antagonist,Antagonist,0.65,4.9,1.78465682975747,True,0.251554718335685,8.74844528166432
+Olanzapine,Atyical antipsychotic,H2,Antagonist,Antagonist,,44,44,False,1.64345267648619,7.35654732351381
+Olanzapine,Atyical antipsychotic,H3,Antagonist,Antagonist,,3713,3713,False,3.56972494922616,5.43027505077384
+Olanzapine,Atyical antipsychotic,H4,Antagonist,Antagonist,,10000,10000,False,4,5
+Olanzapine,Atyical antipsychotic,σ1,Ligand,Ligand,,5000,5000,False,3.69897000433602,5.30102999566398
+Olanzapine,Atyical antipsychotic,hERG,Blocker,Antagonist,,6013,6013,False,3.7790912038455,5.2209087961545
+Olanzapine,Atyical antipsychotic,VGSC,Blocker,Antagonist,,5000,5000,False,3.69897000433602,5.30102999566398
+Olanzapine,Atyical antipsychotic,VDCC,Blocker,Antagonist,,10000,10000,False,4,5
