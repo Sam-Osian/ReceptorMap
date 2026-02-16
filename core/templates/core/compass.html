@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Receptor Compass</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --panel: #ffffff;
+            --ink: #0f172a;
+            --muted: #475569;
+            --line: #cbd5e1;
+            --ring: #e2e8f0;
+        }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at top left, #eef2ff, var(--bg) 45%);
+            color: var(--ink);
+        }
+        main {
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+        }
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 0.75rem;
+            padding: 1rem;
+        }
+        h1 {
+            margin: 0 0 0.75rem;
+            font-size: 1.35rem;
+        }
+        .controls {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 0.75rem;
+        }
+        select, button {
+            padding: 0.45rem 0.6rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--line);
+            font-size: 0.95rem;
+        }
+        button {
+            background: #0f172a;
+            color: #fff;
+            cursor: pointer;
+        }
+        .grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+        }
+        .table-wrap {
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+        th, td {
+            text-align: left;
+            padding: 0.45rem;
+            border-bottom: 1px solid var(--ring);
+            white-space: nowrap;
+        }
+        .legend {
+            display: flex;
+            gap: 0.85rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+        .dot {
+            width: 0.7rem;
+            height: 0.7rem;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.35rem;
+        }
+        @media (min-width: 980px) {
+            .grid {
+                grid-template-columns: 560px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <section class="panel">
+        <h1>Receptor Axis (Antagonist vs Agonist)</h1>
+        <form method="get" class="controls">
+            <label for="drug">Drug</label>
+            <select id="drug" name="drug">
+                {% for drug in drugs %}
+                    <option value="{{ drug }}" {% if drug == selected_drug %}selected{% endif %}>{{ drug }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Update</button>
+        </form>
+    </section>
+
+    <section class="grid">
+        <section class="panel">
+            <svg viewBox="0 0 480 480" width="100%" aria-label="Agonist antagonist axis plot">
+                <line x1="28" y1="240" x2="452" y2="240" stroke="#475569" stroke-width="2"/>
+                <line x1="240" y1="226" x2="240" y2="254" stroke="#1f2937" stroke-width="2.5"/>
+                <line x1="110" y1="232" x2="110" y2="248" stroke="#94a3b8" stroke-width="1.4"/>
+                <line x1="370" y1="232" x2="370" y2="248" stroke="#94a3b8" stroke-width="1.4"/>
+                <line x1="28" y1="232" x2="28" y2="248" stroke="#94a3b8" stroke-width="1.4"/>
+                <line x1="452" y1="232" x2="452" y2="248" stroke="#94a3b8" stroke-width="1.4"/>
+
+                <text x="28" y="212" text-anchor="start" fill="#1d4ed8" font-size="13">Antagonist</text>
+                <text x="452" y="212" text-anchor="end" fill="#0f766e" font-size="13">Agonist</text>
+                <text x="240" y="212" text-anchor="middle" fill="#475569" font-size="12">pKi increases away from center</text>
+
+                {% for point in points %}
+                    <circle cx="{{ point.x }}" cy="{{ point.y }}" r="5.2" fill="{{ point.color }}" opacity="0.8">
+                        <title>{{ point.target }} | {{ point.direction }} | pKi {{ point.pki_modelled }}</title>
+                    </circle>
+                {% endfor %}
+            </svg>
+            <div class="legend">
+                {% for direction, color in direction_colors.items %}
+                    <span><span class="dot" style="background: {{ color }}"></span>{{ direction }}</span>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Top Modelled pKi Targets for {{ selected_drug }}</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Target</th>
+                        <th>Direction</th>
+                        <th>Modelled pKi</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in strongest_targets %}
+                        <tr>
+                            <td>{{ row.target }}</td>
+                            <td>{{ row.activity_recoded }}</td>
+                            <td>{{ row.pKi_modelled }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </section>
+    </section>
+</main>
+</body>
+</html>
