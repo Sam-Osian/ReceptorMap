@@ -3,166 +3,1162 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Receptor Compass</title>
+    <title>Receptor Axis</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.hugeicons.com/font/hgi-stroke-rounded.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simplebar@6.3.3/dist/simplebar.min.css">
+
     <style>
         :root {
-            --bg: #f8fafc;
-            --panel: #ffffff;
+            --bg: #eef3fb;
+            --surface: #ffffff;
+            --surface-soft: #f7f9fd;
             --ink: #0f172a;
-            --muted: #475569;
-            --line: #cbd5e1;
-            --ring: #e2e8f0;
+            --muted: #52607a;
+            --line: #d6deeb;
+            --line-strong: #b9c6db;
+            --antagonist: #2d4db8;
+            --agonist: #127a67;
+            --accent: #1d2a45;
+            --shadow: 0 14px 28px rgba(17, 30, 56, 0.09);
         }
-        body {
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
             margin: 0;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background: radial-gradient(circle at top left, #eef2ff, var(--bg) 45%);
+            overflow: hidden;
             color: var(--ink);
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+            background: radial-gradient(120rem 50rem at 10% -15%, #dfe9ff, #edf2fb 45%, var(--bg) 100%);
         }
-        main {
-            max-width: 1160px;
+
+        .page-scroll {
+            height: 100vh;
+        }
+
+        .app {
+            max-width: 1340px;
             margin: 0 auto;
-            padding: 1rem;
+            padding: 1.2rem;
             display: grid;
-            gap: 1rem;
+            gap: 0.95rem;
+        }
+
+        .hero {
+            background: linear-gradient(180deg, #ffffff, #f9fbff);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 1rem 1.1rem;
+        }
+
+        .title {
+            margin: 0;
+            font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+            font-size: clamp(1.45rem, 2.4vw, 1.95rem);
+            letter-spacing: -0.015em;
+        }
+
+        .subtitle {
+            margin: 0.42rem 0 0;
+            color: var(--muted);
+            font-size: 0.93rem;
+        }
+
+        .workspace {
+            display: grid;
+            gap: 0.95rem;
             grid-template-columns: 1fr;
+            align-items: start;
         }
-        .panel {
-            background: var(--panel);
+
+        .card {
+            background: var(--surface);
             border: 1px solid var(--line);
-            border-radius: 0.75rem;
-            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 0.95rem;
+            will-change: transform, opacity;
         }
-        h1 {
-            margin: 0 0 0.75rem;
-            font-size: 1.35rem;
-        }
-        .controls {
-            display: flex;
-            gap: 0.75rem;
+
+        .card h2 {
+            margin: 0 0 0.74rem;
+            display: inline-flex;
             align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 0.75rem;
+            gap: 0.45rem;
+            font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+            font-size: 1.08rem;
+            letter-spacing: -0.01em;
         }
-        select, button {
-            padding: 0.45rem 0.6rem;
-            border-radius: 0.5rem;
-            border: 1px solid var(--line);
+
+        .icon {
+            font-size: 1rem;
+            color: #33415e;
+        }
+
+        .control-group {
+            display: grid;
+            gap: 0.36rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .label-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .step-badge {
+            width: 1.2rem;
+            height: 1.2rem;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #243454;
+            background: #e7eefc;
+            border: 1px solid #c4d2ef;
+        }
+
+        label {
+            color: #2d3a56;
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+
+        .search-wrap {
+            position: relative;
+        }
+
+        .search-wrap .icon {
+            position: absolute;
+            left: 0.62rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7b98;
+            font-size: 0.96rem;
+            pointer-events: none;
+        }
+
+        input[type="search"] {
+            width: 100%;
+            border: 1px solid var(--line-strong);
+            border-radius: 8px;
+            background: #fff;
+            color: var(--ink);
+            padding: 0.54rem 0.6rem 0.54rem 2rem;
             font-size: 0.95rem;
+            transition: border-color 120ms ease, box-shadow 120ms ease;
         }
-        button {
-            background: #0f172a;
-            color: #fff;
+
+        input[type="search"]::placeholder {
+            color: #70809f;
+        }
+
+        input[type="search"]:focus {
+            outline: none;
+            border-color: #90a4d8;
+            box-shadow: 0 0 0 3px rgba(45, 77, 184, 0.12);
+        }
+
+        .picker {
+            border: 1px solid var(--line-strong);
+            border-radius: 10px;
+            background: var(--surface-soft);
+            overflow: hidden;
+        }
+
+        .picker-scroll {
+            max-height: 12.6rem;
+        }
+
+        .option-list {
+            list-style: none;
+            margin: 0;
+            padding: 0.35rem;
+            display: grid;
+            gap: 0.2rem;
+        }
+
+        .option-item {
+            margin: 0;
+            padding: 0;
+        }
+
+        .option-btn {
+            width: 100%;
+            border: 1px solid transparent;
+            background: transparent;
+            color: #1c2740;
+            text-align: left;
+            border-radius: 7px;
+            padding: 0.44rem 0.52rem;
+            font-size: 0.94rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.45rem;
             cursor: pointer;
         }
-        .grid {
-            display: grid;
-            gap: 1rem;
-            grid-template-columns: 1fr;
+
+        .option-btn:hover {
+            background: #edf3ff;
         }
+
+        .option-btn.is-selected {
+            background: #e6eeff;
+            border-color: #c2d3fb;
+            color: #14264f;
+            font-weight: 600;
+        }
+
+        .check-icon {
+            opacity: 0;
+            color: #2d4db8;
+            font-size: 0.92rem;
+        }
+
+        .option-btn.is-selected .check-icon {
+            opacity: 1;
+        }
+
+        .panel-footer {
+            margin-top: 0.78rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.55rem;
+        }
+
+        .control-group.is-collapsed .search-wrap,
+        .control-group.is-collapsed .picker {
+            display: none;
+        }
+
+        .collapsed-note {
+            display: none;
+            margin: 0.2rem 0 0;
+            color: var(--muted);
+            font-size: 0.83rem;
+        }
+
+        .control-group.is-collapsed .collapsed-note {
+            display: block;
+        }
+
+        .hint {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.84rem;
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 9px;
+            background: linear-gradient(120deg, #0f1a30, var(--accent));
+            color: #fff;
+            font-size: 0.92rem;
+            font-weight: 700;
+            padding: 0.55rem 0.92rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .btn .icon {
+            color: #fff;
+            font-size: 0.92rem;
+        }
+
+        .btn:hover {
+            filter: brightness(1.03);
+        }
+
+        .stage {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: linear-gradient(180deg, #ffffff, #f8fbff);
+            padding: 0.55rem;
+            position: relative;
+        }
+
+        .axis-point {
+            transition: filter 160ms ease;
+            cursor: default;
+        }
+
+        .axis-point:hover {
+            filter: brightness(1.08);
+        }
+
+        .axis-point.is-hovered {
+            filter: brightness(1.14);
+        }
+
+        .axis-tooltip {
+            position: absolute;
+            left: 0;
+            top: 0;
+            transform: translate(-50%, -130%) scale(0.98);
+            pointer-events: none;
+            opacity: 0;
+            background: rgba(14, 23, 42, 0.96);
+            color: #f8fbff;
+            border: 1px solid rgba(155, 176, 216, 0.45);
+            border-radius: 10px;
+            padding: 0.52rem 0.62rem;
+            min-width: 12rem;
+            box-shadow: 0 14px 28px rgba(8, 15, 29, 0.42);
+            transition: opacity 140ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+            z-index: 4;
+        }
+
+        .axis-tooltip.is-visible {
+            opacity: 1;
+            transform: translate(-50%, -145%) scale(1);
+        }
+
+        .axis-tooltip:after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -7px;
+            width: 10px;
+            height: 10px;
+            transform: translateX(-50%) rotate(45deg);
+            background: rgba(14, 23, 42, 0.96);
+            border-right: 1px solid rgba(155, 176, 216, 0.45);
+            border-bottom: 1px solid rgba(155, 176, 216, 0.45);
+        }
+
+        .axis-tooltip-target {
+            font-size: 0.86rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            margin-bottom: 0.24rem;
+        }
+
+        .axis-tooltip-meta {
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+            flex-wrap: wrap;
+            font-size: 0.76rem;
+            color: #d2dcf2;
+        }
+
+        .axis-tooltip-note {
+            margin-top: 0.28rem;
+            font-size: 0.72rem;
+            color: #aebfe3;
+            display: none;
+        }
+
+        .axis-tooltip-note.is-visible {
+            display: block;
+        }
+
+        .axis-tooltip-chip {
+            border-radius: 999px;
+            border: 1px solid rgba(179, 198, 234, 0.42);
+            padding: 0.1rem 0.4rem;
+            font-weight: 600;
+            color: #ecf2ff;
+            background: rgba(119, 143, 194, 0.16);
+        }
+
+        .empty {
+            margin: 0.7rem 0 0;
+            padding: 0.5rem 0.6rem;
+            border: 1px dashed #becde4;
+            border-radius: 8px;
+            color: #4f607f;
+            background: #f9fbff;
+            font-size: 0.88rem;
+        }
+
+        .legend {
+            margin-top: 0.7rem;
+            display: flex;
+            gap: 0.44rem;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.34rem;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: #30405f;
+            font-size: 0.82rem;
+            padding: 0.2rem 0.54rem;
+        }
+
+        .pill-dot {
+            width: 0.52rem;
+            height: 0.52rem;
+            border-radius: 50%;
+        }
+
         .table-wrap {
-            overflow-x: auto;
+            margin-top: 0.9rem;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            overflow: hidden;
         }
+
+        .table-scroll {
+            max-height: 20rem;
+        }
+
         table {
-            border-collapse: collapse;
             width: 100%;
+            border-collapse: collapse;
             font-size: 0.9rem;
+            background: #fff;
         }
-        th, td {
+
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
             text-align: left;
-            padding: 0.45rem;
-            border-bottom: 1px solid var(--ring);
+            padding: 0.54rem 0.62rem;
+            border-bottom: 1px solid var(--line);
+            background: #f3f7ff;
+            color: #2b3b58;
+            font-weight: 700;
+        }
+
+        tbody td {
+            padding: 0.5rem 0.62rem;
+            border-bottom: 1px solid #edf2fa;
             white-space: nowrap;
         }
-        .legend {
-            display: flex;
-            gap: 0.85rem;
-            flex-wrap: wrap;
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-            color: var(--muted);
-        }
-        .dot {
-            width: 0.7rem;
-            height: 0.7rem;
-            border-radius: 50%;
+
+        .direction-badge {
             display: inline-block;
-            margin-right: 0.35rem;
+            border-radius: 999px;
+            padding: 0.16rem 0.46rem;
+            font-size: 0.76rem;
+            font-weight: 700;
+            border: 1px solid transparent;
         }
-        @media (min-width: 980px) {
-            .grid {
-                grid-template-columns: 560px 1fr;
+
+        .direction-antagonist {
+            color: var(--antagonist);
+            background: rgba(45, 77, 184, 0.11);
+            border-color: rgba(45, 77, 184, 0.24);
+        }
+
+        .direction-agonist {
+            color: var(--agonist);
+            background: rgba(18, 122, 103, 0.12);
+            border-color: rgba(18, 122, 103, 0.3);
+        }
+
+        .simplebar-track.simplebar-vertical {
+            width: 11px;
+        }
+
+        .simplebar-track.simplebar-vertical .simplebar-scrollbar:before {
+            background: linear-gradient(180deg, rgba(62, 88, 156, 0.55), rgba(35, 60, 118, 0.65));
+            border-radius: 8px;
+            right: 2px;
+            left: 2px;
+            opacity: 0.65;
+        }
+
+        .simplebar-track.simplebar-horizontal .simplebar-scrollbar:before {
+            background: rgba(62, 88, 156, 0.45);
+            border-radius: 8px;
+            opacity: 0.65;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+
+        @media (min-width: 1100px) {
+            .workspace {
+                grid-template-columns: 360px 1fr;
             }
         }
     </style>
 </head>
 <body>
-<main>
-    <section class="panel">
-        <h1>Receptor Axis (Antagonist vs Agonist)</h1>
-        <form method="get" class="controls">
-            <label for="drug">Drug</label>
-            <select id="drug" name="drug">
-                {% for drug in drugs %}
-                    <option value="{{ drug }}" {% if drug == selected_drug %}selected{% endif %}>{{ drug }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit">Update</button>
-        </form>
-    </section>
-
-    <section class="grid">
-        <section class="panel">
-            <svg viewBox="0 0 480 480" width="100%" aria-label="Agonist antagonist axis plot">
-                <line x1="28" y1="240" x2="452" y2="240" stroke="#475569" stroke-width="2"/>
-                <line x1="240" y1="226" x2="240" y2="254" stroke="#1f2937" stroke-width="2.5"/>
-                <line x1="110" y1="232" x2="110" y2="248" stroke="#94a3b8" stroke-width="1.4"/>
-                <line x1="370" y1="232" x2="370" y2="248" stroke="#94a3b8" stroke-width="1.4"/>
-                <line x1="28" y1="232" x2="28" y2="248" stroke="#94a3b8" stroke-width="1.4"/>
-                <line x1="452" y1="232" x2="452" y2="248" stroke="#94a3b8" stroke-width="1.4"/>
-
-                <text x="28" y="212" text-anchor="start" fill="#1d4ed8" font-size="13">Antagonist</text>
-                <text x="452" y="212" text-anchor="end" fill="#0f766e" font-size="13">Agonist</text>
-                <text x="240" y="212" text-anchor="middle" fill="#475569" font-size="12">pKi increases away from center</text>
-
-                {% for point in points %}
-                    <circle cx="{{ point.x }}" cy="{{ point.y }}" r="5.2" fill="{{ point.color }}" opacity="0.8">
-                        <title>{{ point.target }} | {{ point.direction }} | pKi {{ point.pki_modelled }}</title>
-                    </circle>
-                {% endfor %}
-            </svg>
-            <div class="legend">
-                {% for direction, color in direction_colors.items %}
-                    <span><span class="dot" style="background: {{ color }}"></span>{{ direction }}</span>
-                {% endfor %}
-            </div>
+<div class="page-scroll" data-simplebar data-simplebar-auto-hide="false">
+    <main class="app">
+        <section class="hero">
+            <h1 class="title">Receptor Axis (Antagonist vs Agonist)</h1>
+            <p class="subtitle">Select a drug and one or more targets, then plot modelled pKi on a single antagonism-agonism axis.</p>
         </section>
 
-        <section class="panel">
-            <h2>Top Modelled pKi Targets for {{ selected_drug }}</h2>
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Target</th>
-                        <th>Direction</th>
-                        <th>Modelled pKi</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for row in strongest_targets %}
-                        <tr>
-                            <td>{{ row.target }}</td>
-                            <td>{{ row.activity_recoded }}</td>
-                            <td>{{ row.pKi_modelled }}</td>
-                        </tr>
+        <section class="workspace">
+            <aside class="card">
+                <h2><i class="hgi-stroke hgi-filter icon" aria-hidden="true"></i>Filters</h2>
+                <form method="get" id="filters-form">
+                    <div class="control-group">
+                        <div class="label-row">
+                            <label for="drug-search" class="label-title"><span class="step-badge">1</span>Drug</label>
+                        </div>
+                        <div class="search-wrap">
+                            <i class="hgi-stroke hgi-searching icon" aria-hidden="true"></i>
+                            <input type="search" id="drug-search" placeholder="Search drugs..." autocomplete="off">
+                        </div>
+                        <div class="picker">
+                            <div class="picker-scroll" data-simplebar data-simplebar-auto-hide="false">
+                                <ul id="drug-list" class="option-list" role="listbox" aria-label="Drug options">
+                                    {% for drug in drugs %}
+                                        <li class="option-item" data-label="{{ drug|lower }}">
+                                            <button
+                                                type="button"
+                                                class="option-btn {% if drug == selected_drug %}is-selected{% endif %}"
+                                                data-value="{{ drug }}"
+                                                data-kind="drug"
+                                            >
+                                                <span>{{ drug }}</span>
+                                                <i class="hgi-stroke hgi-check check-icon" aria-hidden="true"></i>
+                                            </button>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        <input type="hidden" id="drug-input" name="drug" value="{{ selected_drug }}">
+                    </div>
+
+                    <div id="target-group" class="control-group {% if not selected_drug %}is-collapsed{% endif %}">
+                        <div class="label-row">
+                            <label for="target-search" class="label-title"><span class="step-badge">2</span>Targets</label>
+                        </div>
+                        <div class="search-wrap">
+                            <i class="hgi-stroke hgi-searching icon" aria-hidden="true"></i>
+                            <input type="search" id="target-search" placeholder="Search targets..." autocomplete="off">
+                        </div>
+                        <div class="picker">
+                            <div class="picker-scroll" data-simplebar data-simplebar-auto-hide="false">
+                                <ul id="target-list" class="option-list" role="listbox" aria-label="Target options" aria-multiselectable="true">
+                                    {% for target in available_targets %}
+                                        <li class="option-item" data-label="{{ target|lower }}">
+                                            <button
+                                                type="button"
+                                                class="option-btn {% if target in selected_targets %}is-selected{% endif %}"
+                                                data-value="{{ target }}"
+                                                data-kind="target"
+                                            >
+                                                <span>{{ target }}</span>
+                                                <i class="hgi-stroke hgi-check check-icon" aria-hidden="true"></i>
+                                            </button>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        <div id="target-hidden-inputs"></div>
+                        <p class="collapsed-note">Select a drug to enable target selection.</p>
+                    </div>
+
+                    <div class="panel-footer">
+                        <p id="target-count" class="hint">{{ selected_targets|length }} target(s) selected</p>
+                        <button class="btn" type="submit">
+                            <i class="hgi-stroke hgi-upload-01 icon" aria-hidden="true"></i>
+                            Update View
+                        </button>
+                    </div>
+                </form>
+            </aside>
+
+            <section class="card">
+                <h2><i class="hgi-stroke hgi-chart-line-data-01 icon" aria-hidden="true"></i>Axis Plot</h2>
+                <div class="stage">
+                    <svg viewBox="0 0 920 330" width="100%" aria-label="Agonist antagonist axis plot">
+                        <line x1="40" y1="162" x2="880" y2="162" stroke="#2d3b55" stroke-width="2.2"/>
+                        <line x1="460" y1="146" x2="460" y2="178" stroke="#121a2e" stroke-width="2.8"/>
+                        <line x1="250" y1="150" x2="250" y2="174" stroke="#9fb0ca" stroke-width="1.4"/>
+                        <line x1="670" y1="150" x2="670" y2="174" stroke="#9fb0ca" stroke-width="1.4"/>
+                        <line x1="40" y1="150" x2="40" y2="174" stroke="#9fb0ca" stroke-width="1.4"/>
+                        <line x1="880" y1="150" x2="880" y2="174" stroke="#9fb0ca" stroke-width="1.4"/>
+
+                        <text x="40" y="129" text-anchor="start" fill="#2d4db8" font-size="19" font-weight="700">Antagonist</text>
+                        <text x="880" y="129" text-anchor="end" fill="#127a67" font-size="19" font-weight="700">Agonist</text>
+                        <g id="axis-points-layer">
+                            {% for point in points %}
+                                <circle
+                                    class="axis-point"
+                                    cx="{{ point.x }}"
+                                    cy="{{ point.y }}"
+                                    r="6.4"
+                                    fill="{{ point.color }}"
+                                    fill-opacity="0.88"
+                                    stroke="#ffffff"
+                                    stroke-width="1.8"
+                                    data-target="{{ point.target }}"
+                                    data-pki="{{ point.pki_modelled }}"
+                                    data-direction="{{ point.direction }}"
+                                    data-activity="{{ point.activity }}"
+                                >
+                                    <title>{{ point.target }} | {{ point.direction }} | pKi {{ point.pki_modelled }}</title>
+                                </circle>
+                            {% endfor %}
+                        </g>
+                    </svg>
+                    <div id="axis-tooltip" class="axis-tooltip" role="status" aria-live="polite">
+                        <div id="axis-tooltip-target" class="axis-tooltip-target"></div>
+                        <div class="axis-tooltip-meta">
+                            <span id="axis-tooltip-direction" class="axis-tooltip-chip"></span>
+                            <span id="axis-tooltip-pki"></span>
+                        </div>
+                        <div id="axis-tooltip-note" class="axis-tooltip-note"></div>
+                    </div>
+                </div>
+
+                <p id="axis-empty" class="empty" {% if selected_targets %}style="display:none"{% endif %}>Select one or more targets to display points on the axis.</p>
+
+                <div class="legend" id="activity-legend">
+                    {% for item in activity_legend %}
+                        <span class="pill"><span class="pill-dot" style="background: {{ item.color }}"></span>{{ item.label }}</span>
                     {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                </div>
 
+                <h2 id="top-targets-title" style="margin-top: 0.95rem;"><i class="hgi-stroke hgi-data-table icon" aria-hidden="true"></i>Top Modelled pKi Targets for {{ selected_drug }}</h2>
+                <div class="table-wrap">
+                    <div class="table-scroll" data-simplebar data-simplebar-auto-hide="false">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Target</th>
+                                <th>Direction</th>
+                                <th>Modelled pKi</th>
+                            </tr>
+                            </thead>
+                            <tbody id="top-targets-body">
+                            {% for row in strongest_targets %}
+                                <tr>
+                                    <td>{{ row.target }}</td>
+                                    <td>
+                                        <span class="direction-badge" style="color: {{ row.activity_color }}; border-color: {{ row.activity_color }}55; background: {{ row.activity_color }}1a;">
+                                            {{ row.activity }}
+                                        </span>
+                                    </td>
+                                    <td>{{ row.pKi_modelled }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="3">No targets selected.</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
         </section>
-    </section>
-</main>
+    </main>
+</div>
+
+{{ drug_targets_map|json_script:"drug-target-map" }}
+<script src="https://cdn.jsdelivr.net/npm/simplebar@6.3.3/dist/simplebar.min.js"></script>
+<script>
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let axisScrollClearBound = false;
+    const form = document.getElementById("filters-form");
+    const drugTargetsMapNode = document.getElementById("drug-target-map");
+    const drugTargetsMap = drugTargetsMapNode ? JSON.parse(drugTargetsMapNode.textContent) : {};
+    const drugInput = document.getElementById("drug-input");
+    const targetHiddenInputs = document.getElementById("target-hidden-inputs");
+    const targetGroup = document.getElementById("target-group");
+    const targetSearch = document.getElementById("target-search");
+    const targetList = document.getElementById("target-list");
+    const drugList = document.getElementById("drug-list");
+    const stage = document.querySelector(".stage");
+    const tooltip = document.getElementById("axis-tooltip");
+    const tooltipTarget = document.getElementById("axis-tooltip-target");
+    const tooltipDirection = document.getElementById("axis-tooltip-direction");
+    const tooltipPki = document.getElementById("axis-tooltip-pki");
+    const tooltipNote = document.getElementById("axis-tooltip-note");
+    const pointsLayer = document.getElementById("axis-points-layer");
+    const axisEmpty = document.getElementById("axis-empty");
+    const legend = document.getElementById("activity-legend");
+    const topTargetsTitle = document.getElementById("top-targets-title");
+    const topTargetsBody = document.getElementById("top-targets-body");
+
+    function getSelectedValues(listId) {
+        return Array.from(document.querySelectorAll(`#${listId} .option-btn.is-selected`)).map((el) => el.dataset.value);
+    }
+
+    function getSimpleBarInstance(element) {
+        if (!element || !window.SimpleBar || !window.SimpleBar.instances) return null;
+        if (typeof window.SimpleBar.instances.get !== "function") return null;
+        return window.SimpleBar.instances.get(element) || null;
+    }
+
+    function recalcSimpleBar(element) {
+        const instance = getSimpleBarInstance(element);
+        if (instance && typeof instance.recalculate === "function") {
+            instance.recalculate();
+        }
+    }
+
+    function createOptionItem(value, kind) {
+        const li = document.createElement("li");
+        li.className = "option-item";
+        li.dataset.label = String(value).toLowerCase();
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "option-btn";
+        button.dataset.value = value;
+        button.dataset.kind = kind;
+
+        const text = document.createElement("span");
+        text.textContent = value;
+        const icon = document.createElement("i");
+        icon.className = "hgi-stroke hgi-check check-icon";
+        icon.setAttribute("aria-hidden", "true");
+
+        button.appendChild(text);
+        button.appendChild(icon);
+        li.appendChild(button);
+        return li;
+    }
+
+    function applySearchFilter(searchId, listId) {
+        const search = document.getElementById(searchId);
+        const items = Array.from(document.querySelectorAll(`#${listId} .option-item`));
+        if (!search) return;
+        const query = search.value.trim().toLowerCase();
+        items.forEach((item) => {
+            const label = item.dataset.label || "";
+            const selected = item.querySelector(".option-btn")?.classList.contains("is-selected");
+            item.style.display = (!query || label.includes(query) || selected) ? "" : "none";
+        });
+    }
+
+    function rebuildTargetListForDrug(drugValue) {
+        if (!targetList) return;
+        if (targetSearch) targetSearch.value = "";
+        const targets = Array.isArray(drugTargetsMap[drugValue]) ? drugTargetsMap[drugValue] : [];
+        targetList.innerHTML = "";
+        targets.forEach((target) => {
+            targetList.appendChild(createOptionItem(target, "target"));
+        });
+        applySearchFilter("target-search", "target-list");
+        renderTargetHiddenInputs();
+        updateTargetCount();
+        recalcSimpleBar(targetList.closest(".picker-scroll"));
+    }
+
+    function clearTargetSelection() {
+        document.querySelectorAll('#target-list .option-btn.is-selected').forEach((el) => {
+            el.classList.remove("is-selected");
+        });
+        renderTargetHiddenInputs();
+        updateTargetCount();
+    }
+
+    function animateEntry() {
+        if (reduceMotion) return;
+        const nodes = [
+            document.querySelector(".hero"),
+            ...Array.from(document.querySelectorAll(".workspace .card")),
+        ].filter(Boolean);
+        nodes.forEach((node, index) => {
+            node.animate(
+                [
+                    { opacity: 0, transform: "translateY(14px) scale(0.995)" },
+                    { opacity: 1, transform: "translateY(0px) scale(1)" },
+                ],
+                {
+                    duration: 480,
+                    delay: index * 80,
+                    easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+                    fill: "both",
+                }
+            );
+        });
+    }
+
+    function animateAxisPoints() {
+        if (reduceMotion) return;
+        const centerX = 460;
+        const points = Array.from(document.querySelectorAll(".axis-point"));
+        points.forEach((point, index) => {
+            const finalX = Number(point.getAttribute("cx"));
+            point.setAttribute("cx", String(centerX));
+            point.setAttribute("opacity", "0.2");
+            const start = performance.now() + index * 22;
+            const duration = 620;
+
+            function tick(now) {
+                const t = Math.max(0, Math.min(1, (now - start) / duration));
+                const eased = 1 - Math.pow(1 - t, 3);
+                const x = centerX + ((finalX - centerX) * eased);
+                point.setAttribute("cx", x.toFixed(2));
+                point.setAttribute("opacity", (0.2 + (0.8 * eased)).toFixed(2));
+                if (t < 1) requestAnimationFrame(tick);
+            }
+
+            requestAnimationFrame(tick);
+        });
+    }
+
+    function colorWithAlpha(hex, alphaHex) {
+        const safeHex = String(hex || "").trim();
+        if (!safeHex.startsWith("#") || safeHex.length !== 7) return safeHex;
+        return `${safeHex}${alphaHex}`;
+    }
+
+    function renderLegend(items) {
+        if (!legend) return;
+        legend.innerHTML = "";
+        items.forEach((item) => {
+            const span = document.createElement("span");
+            span.className = "pill";
+            const dot = document.createElement("span");
+            dot.className = "pill-dot";
+            dot.style.background = item.color;
+            span.appendChild(dot);
+            span.appendChild(document.createTextNode(item.label));
+            legend.appendChild(span);
+        });
+    }
+
+    function renderTopTargets(rows) {
+        if (!topTargetsBody) return;
+        topTargetsBody.innerHTML = "";
+        if (!rows.length) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = '<td colspan="3">No targets selected.</td>';
+            topTargetsBody.appendChild(tr);
+            return;
+        }
+
+        rows.forEach((row) => {
+            const tr = document.createElement("tr");
+            const tdTarget = document.createElement("td");
+            tdTarget.textContent = row.target;
+
+            const tdDirection = document.createElement("td");
+            const badge = document.createElement("span");
+            badge.className = "direction-badge";
+            badge.style.color = row.activity_color;
+            badge.style.borderColor = colorWithAlpha(row.activity_color, "55");
+            badge.style.background = colorWithAlpha(row.activity_color, "1a");
+            badge.textContent = row.activity;
+            tdDirection.appendChild(badge);
+
+            const tdPki = document.createElement("td");
+            tdPki.textContent = String(row.pKi_modelled);
+
+            tr.appendChild(tdTarget);
+            tr.appendChild(tdDirection);
+            tr.appendChild(tdPki);
+            topTargetsBody.appendChild(tr);
+        });
+    }
+
+    function renderAxisPoints(points) {
+        if (!pointsLayer) return;
+        pointsLayer.innerHTML = "";
+        if (tooltip) tooltip.classList.remove("is-visible");
+        points.forEach((point) => {
+            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            circle.setAttribute("class", "axis-point");
+            circle.setAttribute("cx", String(point.x));
+            circle.setAttribute("cy", String(point.y));
+            circle.setAttribute("r", "6.4");
+            circle.setAttribute("fill", point.color);
+            circle.setAttribute("fill-opacity", "0.88");
+            circle.setAttribute("stroke", "#ffffff");
+            circle.setAttribute("stroke-width", "1.8");
+            circle.dataset.target = point.target;
+            circle.dataset.pki = String(point.pki_modelled);
+            circle.dataset.direction = point.direction;
+            circle.dataset.activity = point.activity;
+
+            const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+            title.textContent = `${point.target} | ${point.direction} | pKi ${point.pki_modelled}`;
+            circle.appendChild(title);
+            pointsLayer.appendChild(circle);
+        });
+        wireAxisHoverTooltip();
+        animateAxisPoints();
+    }
+
+    function wireAxisHoverTooltip() {
+        if (!stage || !tooltip) return;
+        const points = Array.from(document.querySelectorAll(".axis-point"));
+        if (!points.length) return;
+
+        const svg = stage.querySelector("svg");
+        if (!svg) return;
+
+        const clearHover = () => {
+            points.forEach((pt) => pt.classList.remove("is-hovered"));
+            tooltip.classList.remove("is-visible");
+            if (tooltipNote) {
+                tooltipNote.textContent = "";
+                tooltipNote.classList.remove("is-visible");
+            }
+        };
+
+        points.forEach((point) => {
+            const show = () => {
+                points.forEach((pt) => pt.classList.remove("is-hovered"));
+                point.classList.add("is-hovered");
+
+                tooltipTarget.textContent = point.dataset.target || "";
+                tooltipDirection.textContent = point.dataset.activity || "";
+                tooltipPki.textContent = `pKi ${point.dataset.pki || ""}`;
+
+                const original = (point.dataset.activity || "").trim();
+                const recoded = (point.dataset.direction || "").trim();
+                if (tooltipNote) {
+                    if (original && recoded && original !== recoded) {
+                        tooltipNote.textContent = `* recoded to ${recoded} for axis placement`;
+                        tooltipNote.classList.add("is-visible");
+                    } else {
+                        tooltipNote.textContent = "";
+                        tooltipNote.classList.remove("is-visible");
+                    }
+                }
+
+                const pointBox = point.getBoundingClientRect();
+                const stageBox = stage.getBoundingClientRect();
+                let left = pointBox.left + (pointBox.width / 2) - stageBox.left;
+                const top = pointBox.top - stageBox.top;
+                left = Math.max(30, Math.min(left, stageBox.width - 30));
+
+                tooltip.style.left = `${left}px`;
+                tooltip.style.top = `${top}px`;
+                tooltip.classList.add("is-visible");
+            };
+
+            point.addEventListener("mouseenter", show);
+            point.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+            });
+        });
+
+        if (!svg.dataset.hoverBound) {
+            svg.addEventListener("mouseleave", clearHover);
+            svg.dataset.hoverBound = "1";
+        }
+        if (!axisScrollClearBound) {
+            document.addEventListener("scroll", clearHover, { passive: true });
+            axisScrollClearBound = true;
+        }
+    }
+
+    function setTargetsCollapsed(collapsed, immediate = false) {
+        if (!targetGroup) return;
+        const isCollapsed = targetGroup.classList.contains("is-collapsed");
+        if (collapsed === isCollapsed && !immediate) return;
+
+        const animatedNodes = Array.from(
+            targetGroup.querySelectorAll(".search-wrap, .picker")
+        );
+
+        if (collapsed) {
+            const finalizeCollapse = () => {
+                targetGroup.classList.add("is-collapsed");
+                if (targetSearch) targetSearch.disabled = true;
+                clearTargetSelection();
+                if (targetSearch) targetSearch.value = "";
+            };
+
+            if (reduceMotion || immediate) {
+                finalizeCollapse();
+                return;
+            }
+
+            animatedNodes.forEach((node, index) => {
+                node.animate(
+                    [
+                        { opacity: 1, transform: "translateY(0px)" },
+                        { opacity: 0, transform: "translateY(-8px)" },
+                    ],
+                    {
+                        duration: 180,
+                        delay: index * 22,
+                        easing: "cubic-bezier(0.4, 0, 1, 1)",
+                        fill: "forwards",
+                    }
+                );
+            });
+
+            window.setTimeout(finalizeCollapse, 220);
+            return;
+        }
+
+        targetGroup.classList.remove("is-collapsed");
+        if (targetSearch) targetSearch.disabled = false;
+
+        if (reduceMotion || immediate) return;
+        animatedNodes.forEach((node, index) => {
+            node.animate(
+                [
+                    { opacity: 0, transform: "translateY(-10px)" },
+                    { opacity: 1, transform: "translateY(0px)" },
+                ],
+                {
+                    duration: 280,
+                    delay: index * 35,
+                    easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+                    fill: "both",
+                }
+            );
+        });
+    }
+
+    function renderTargetHiddenInputs() {
+        if (!targetHiddenInputs) return;
+        targetHiddenInputs.innerHTML = "";
+        getSelectedValues("target-list").forEach((value) => {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "target";
+            input.value = value;
+            targetHiddenInputs.appendChild(input);
+        });
+    }
+
+    function updateTargetCount() {
+        const targetCount = document.getElementById("target-count");
+        if (!targetCount) return;
+        const count = getSelectedValues("target-list").length;
+        targetCount.textContent = `${count} target(s) selected`;
+    }
+
+    function wireOptionClicks() {
+        document.addEventListener("click", (event) => {
+            const btn = event.target.closest(".option-btn");
+            if (!btn) return;
+            const kind = btn.dataset.kind;
+
+            if (!reduceMotion) {
+                btn.animate(
+                    [
+                        { transform: "scale(1)" },
+                        { transform: "scale(0.985)" },
+                        { transform: "scale(1)" },
+                    ],
+                    { duration: 170, easing: "ease-out" }
+                );
+            }
+
+            if (kind === "drug") {
+                const wasSelected = btn.classList.contains("is-selected");
+                document.querySelectorAll('#drug-list .option-btn.is-selected').forEach((el) => {
+                    el.classList.remove("is-selected");
+                });
+
+                if (wasSelected) {
+                    if (drugInput) drugInput.value = "";
+                    rebuildTargetListForDrug("");
+                    setTargetsCollapsed(true);
+                    return;
+                }
+
+                btn.classList.add("is-selected");
+                const selectedDrug = btn.dataset.value || "";
+                if (drugInput) drugInput.value = selectedDrug;
+                rebuildTargetListForDrug(selectedDrug);
+                setTargetsCollapsed(false);
+                return;
+            }
+
+            if (kind === "target") {
+                btn.classList.toggle("is-selected");
+                renderTargetHiddenInputs();
+                updateTargetCount();
+            }
+        });
+    }
+
+    function wireSearch(searchId, listId) {
+        const search = document.getElementById(searchId);
+        if (!search) return;
+
+        search.addEventListener("input", () => {
+            applySearchFilter(searchId, listId);
+        });
+    }
+
+    async function fetchAndRenderAxisData() {
+        const selectedDrug = drugInput ? drugInput.value : "";
+        const selectedTargets = getSelectedValues("target-list");
+        const params = new URLSearchParams();
+        if (selectedDrug) params.set("drug", selectedDrug);
+        selectedTargets.forEach((target) => params.append("target", target));
+
+        const response = await fetch(`/api/axis-data/?${params.toString()}`, {
+            method: "GET",
+            headers: { "Accept": "application/json" },
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+
+        renderAxisPoints(Array.isArray(data.points) ? data.points : []);
+        renderLegend(Array.isArray(data.activity_legend) ? data.activity_legend : []);
+        renderTopTargets(Array.isArray(data.strongest_targets) ? data.strongest_targets : []);
+
+        if (axisEmpty) {
+            const showEmpty = !(Array.isArray(data.selected_targets) && data.selected_targets.length);
+            axisEmpty.style.display = showEmpty ? "block" : "none";
+        }
+        if (topTargetsTitle) {
+            topTargetsTitle.innerHTML = `<i class=\"hgi-stroke hgi-data-table icon\" aria-hidden=\"true\"></i>Top Modelled pKi Targets for ${data.selected_drug || ""}`;
+        }
+    }
+
+    wireOptionClicks();
+    wireSearch("drug-search", "drug-list");
+    wireSearch("target-search", "target-list");
+    applySearchFilter("drug-search", "drug-list");
+    applySearchFilter("target-search", "target-list");
+    renderTargetHiddenInputs();
+    updateTargetCount();
+    setTargetsCollapsed(!(drugInput && drugInput.value), true);
+    recalcSimpleBar(drugList ? drugList.closest(".picker-scroll") : null);
+    recalcSimpleBar(targetList ? targetList.closest(".picker-scroll") : null);
+    animateEntry();
+    animateAxisPoints();
+    wireAxisHoverTooltip();
+    if (form) {
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            renderTargetHiddenInputs();
+            fetchAndRenderAxisData();
+        });
+    }
+</script>
 </body>
 </html>
