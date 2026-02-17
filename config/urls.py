@@ -17,10 +17,11 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
-from core.views import axis_data, home
+from core.views import about, axis_data, home
 
 urlpatterns = [
     path("", home, name="home"),
+    path("about/", about, name="about"),
     path("api/axis-data/", axis_data, name="axis_data"),
     path("admin/", admin.site.urls),
 ]

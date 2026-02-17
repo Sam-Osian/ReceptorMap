@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 from functools import lru_cache
+import re
 
 import pandas as pd
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.utils.html import escape
 
 
 DATA_PATH = settings.BASE_DIR / "data" / "interim_data" / "antidepressants_binding_affinities.csv"
+ABOUT_MD_PATH = settings.BASE_DIR / "core" / "content" / "about.md"
 
 # Keep only binary functional direction for the 2D axis.
 DIRECTION_SIDE = {
@@ -129,9 +132,162 @@ def home(request: HttpRequest) -> HttpResponse:
         "drugs": drugs,
         "direction_colors": DIRECTION_COLORS,
         "drug_targets_map": drug_targets_map,
+        "current_page": "home",
         **payload,
     }
     return render(request, "core/compass.html", context)
+
+
+def _render_markdown_inline(text: str) -> str:
+    content = escape(text)
+    content = re.sub(r"`([^`]+)`", r"<code>\1</code>", content)
+    content = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", content)
+    content = re.sub(
+        r"\[([^\]]+)\]\((https?://[^)]+)\)",
+        r'<a href="\2" target="_blank" rel="noopener noreferrer">\1</a>',
+        content,
+    )
+    return content
+
+
+def _render_markdown_basic(markdown_text: str) -> str:
+    lines = markdown_text.splitlines()
+    html_parts: list[str] = []
+    paragraph_lines: list[str] = []
+    blockquote_lines: list[str] = []
+    code_lines: list[str] = []
+    in_ul = False
+    in_ol = False
+    in_code = False
+    code_lang = ""
+
+    def flush_paragraph() -> None:
+        nonlocal paragraph_lines
+        if paragraph_lines:
+            paragraph = " ".join(part.strip() for part in paragraph_lines if part.strip())
+            if paragraph:
+                html_parts.append(f"<p>{_render_markdown_inline(paragraph)}</p>")
+            paragraph_lines = []
+
+    def flush_blockquote() -> None:
+        nonlocal blockquote_lines
+        if blockquote_lines:
+            quote = " ".join(part.strip() for part in blockquote_lines if part.strip())
+            if quote:
+                html_parts.append(f"<blockquote><p>{_render_markdown_inline(quote)}</p></blockquote>")
+            blockquote_lines = []
+
+    def flush_code() -> None:
+        nonlocal code_lines, code_lang
+        if code_lines:
+            language_class = f' class="language-{escape(code_lang)}"' if code_lang else ""
+            code_text = escape("\n".join(code_lines))
+            html_parts.append(f"<pre><code{language_class}>{code_text}</code></pre>")
+            code_lines = []
+            code_lang = ""
+
+    def close_lists() -> None:
+        nonlocal in_ul, in_ol
+        if in_ul:
+            html_parts.append("</ul>")
+            in_ul = False
+        if in_ol:
+            html_parts.append("</ol>")
+            in_ol = False
+
+    for raw_line in lines:
+        line = raw_line.rstrip()
+        stripped = line.strip()
+
+        if in_code:
+            if stripped.startswith("```"):
+                flush_code()
+                in_code = False
+            else:
+                code_lines.append(raw_line)
+            continue
+
+        fence_match = re.match(r"^```(\w+)?\s*$", stripped)
+        if fence_match:
+            flush_paragraph()
+            flush_blockquote()
+            close_lists()
+            in_code = True
+            code_lang = fence_match.group(1) or ""
+            continue
+
+        if not stripped:
+            flush_paragraph()
+            flush_blockquote()
+            close_lists()
+            continue
+
+        heading_match = re.match(r"^(#{1,3})\s+(.*)$", stripped)
+        if heading_match:
+            flush_paragraph()
+            flush_blockquote()
+            close_lists()
+            level = len(heading_match.group(1))
+            text = _render_markdown_inline(heading_match.group(2).strip())
+            html_parts.append(f"<h{level}>{text}</h{level}>")
+            continue
+
+        if re.match(r"^(-{3,}|\*{3,}|_{3,})\s*$", stripped):
+            flush_paragraph()
+            flush_blockquote()
+            close_lists()
+            html_parts.append("<hr>")
+            continue
+
+        quote_match = re.match(r"^>\s?(.*)$", stripped)
+        if quote_match:
+            flush_paragraph()
+            close_lists()
+            blockquote_lines.append(quote_match.group(1))
+            continue
+        flush_blockquote()
+
+        ordered_match = re.match(r"^\d+\.\s+(.*)$", stripped)
+        if ordered_match:
+            flush_paragraph()
+            if in_ul:
+                html_parts.append("</ul>")
+                in_ul = False
+            if not in_ol:
+                html_parts.append("<ol>")
+                in_ol = True
+            html_parts.append(f"<li>{_render_markdown_inline(ordered_match.group(1).strip())}</li>")
+            continue
+
+        unordered_match = re.match(r"^[-*]\s+(.*)$", stripped)
+        if unordered_match:
+            flush_paragraph()
+            if in_ol:
+                html_parts.append("</ol>")
+                in_ol = False
+            if not in_ul:
+                html_parts.append("<ul>")
+                in_ul = True
+            html_parts.append(f"<li>{_render_markdown_inline(unordered_match.group(1).strip())}</li>")
+            continue
+
+        paragraph_lines.append(stripped)
+
+    if in_code:
+        flush_code()
+    flush_paragraph()
+    flush_blockquote()
+    close_lists()
+    return "\n".join(html_parts)
+
+
+def about(request: HttpRequest) -> HttpResponse:
+    try:
+        markdown_text = ABOUT_MD_PATH.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        markdown_text = "# About\n\nAbout content file not found."
+    about_html = _render_markdown_basic(markdown_text)
+    return render(request, "core/about.html", {"current_page": "about", "about_html": about_html})
 
 
 def axis_data(request: HttpRequest) -> JsonResponse:

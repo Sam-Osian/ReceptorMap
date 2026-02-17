@@ -1,0 +1,127 @@
+{% extends "core/base.html" %}
+
+{% block title %}ReceptorMap | About{% endblock %}
+
+{% block extra_head %}
+<style>
+    .about-shell {
+        width: 100%;
+        border-radius: 1.05rem;
+        border: 1px solid #d8dfed;
+        background: linear-gradient(180deg, #ffffff, #fbfcff 60%, #f8faff);
+        box-shadow: 0 14px 30px rgba(17, 24, 39, 0.06);
+        padding: clamp(1rem, 2.2vw, 1.8rem);
+    }
+
+    .about-prose {
+        width: 100%;
+        color: #55607b;
+        line-height: 1.56;
+        font-size: 0.98rem;
+    }
+
+    .about-prose h1,
+    .about-prose h2,
+    .about-prose h3 {
+        margin: 1.05rem 0 0.4rem;
+        color: #1f2740;
+        letter-spacing: -0.01em;
+        font-family: "Outfit", "Manrope", sans-serif;
+        line-height: 1.2;
+    }
+
+    .about-prose h1 {
+        margin-top: 0;
+        font-size: clamp(1.8rem, 3vw, 2.35rem);
+        letter-spacing: -0.02em;
+    }
+
+    .about-prose h2 {
+        font-size: clamp(1.12rem, 1.6vw, 1.35rem);
+        padding-top: 0.65rem;
+        border-top: 1px solid #e6ebf5;
+    }
+
+    .about-prose h3 {
+        font-size: 1rem;
+    }
+
+    .about-prose p {
+        margin: 0.32rem 0 0.7rem;
+    }
+
+    .about-prose ul,
+    .about-prose ol {
+        margin: 0.3rem 0 0.82rem;
+        padding-left: 1.1rem;
+    }
+
+    .about-prose li {
+        margin: 0.3rem 0;
+    }
+
+    .about-prose code {
+        border: 1px solid #d6def1;
+        background: #f3f7ff;
+        color: #2e3a5a;
+        border-radius: 0.35rem;
+        padding: 0.05rem 0.28rem;
+        font-size: 0.87em;
+    }
+
+    .about-prose a {
+        color: #3f5fc8;
+        text-decoration: none;
+        border-bottom: 1px solid #b8c7ec;
+    }
+
+    .about-prose a:hover {
+        color: #2d4db8;
+        border-bottom-color: #2d4db8;
+    }
+
+    .about-prose hr {
+        border: 0;
+        border-top: 1px solid #e1e7f3;
+        margin: 1rem 0;
+    }
+
+    .about-prose blockquote {
+        margin: 0.8rem 0;
+        padding: 0.55rem 0.72rem;
+        border-left: 3px solid #8da2dc;
+        background: #f5f8ff;
+        border-radius: 0 0.45rem 0.45rem 0;
+        color: #445070;
+    }
+
+    .about-prose blockquote p {
+        margin: 0;
+    }
+
+    .about-prose pre {
+        margin: 0.72rem 0 1rem;
+        border: 1px solid #d6deef;
+        border-radius: 0.65rem;
+        background: #f7f9ff;
+        padding: 0.65rem 0.75rem;
+        overflow: auto;
+    }
+
+    .about-prose pre code {
+        border: 0;
+        background: transparent;
+        padding: 0;
+        font-size: 0.88rem;
+        color: #2f3b5b;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="about-shell" data-reveal>
+    <article class="about-prose" aria-label="About ReceptorMap">
+        {{ about_html|safe }}
+    </article>
+</section>
+{% endblock %}

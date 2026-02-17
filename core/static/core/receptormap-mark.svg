@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ReceptorMap logo">
+  <defs>
+    <linearGradient id="rm-accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4d6ed8"/>
+      <stop offset="1" stop-color="#2f9d68"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="8" y="8" width="48" height="48" rx="14" fill="#f7f9ff" stroke="#ccd5eb" stroke-width="2"/>
+
+  <line x1="18" y1="32" x2="46" y2="32" stroke="#2a3557" stroke-width="2.4" stroke-linecap="round"/>
+  <line x1="32" y1="24" x2="32" y2="40" stroke="#1f2a48" stroke-width="2.4" stroke-linecap="round"/>
+
+  <circle cx="22" cy="32" r="4.2" fill="#4d6ed8"/>
+  <circle cx="42" cy="32" r="4.2" fill="#2f9d68"/>
+  <circle cx="32" cy="32" r="2.6" fill="#1f2a48"/>
+
+  <path d="M26 22c2.1-2.1 4.2-3.1 6-3.1s3.9 1 6 3.1" fill="none" stroke="url(#rm-accent)" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M26 42c2.1 2.1 4.2 3.1 6 3.1s3.9-1 6-3.1" fill="none" stroke="url(#rm-accent)" stroke-width="2.2" stroke-linecap="round"/>
+</svg>
