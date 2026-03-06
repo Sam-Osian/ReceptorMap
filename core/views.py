@@ -66,30 +66,38 @@ def _compass_xy(direction: str, pki: float) -> tuple[float, float]:
 
 
 def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor: str) -> dict:
-    drug_df = df.loc[df["drug"] == selected_drug].copy()
-    available_receptors = sorted(drug_df["target"].unique().tolist())
-    if selected_receptor not in available_receptors:
+    all_receptors = sorted(df["target"].unique().tolist())
+    all_drugs = sorted(df["drug"].unique().tolist())
+    if selected_receptor not in all_receptors:
         selected_receptor = ""
 
     receptor_df = df.loc[df["target"] == selected_receptor].copy() if selected_receptor else df.iloc[0:0].copy()
-    base_row = receptor_df.loc[receptor_df["drug"] == selected_drug].head(1)
-    if base_row.empty:
-        receptor_df = receptor_df.iloc[0:0].copy()
+    available_drugs = sorted(receptor_df["drug"].unique().tolist()) if selected_receptor else []
+    if selected_drug not in available_drugs:
+        selected_drug = ""
 
     points = []
-    differences = []
+    rows = []
     activity_values: set[str] = set()
+    ranking_active = bool(selected_receptor and selected_drug)
+
+    base_activity_recoded = ""
+    base_pki = 0.0
+    if ranking_active:
+        base_row = receptor_df.loc[receptor_df["drug"] == selected_drug].head(1)
+        if base_row.empty:
+            ranking_active = False
+            selected_drug = ""
+        else:
+            base_activity_recoded = str(base_row.iloc[0]["activity_recoded"]).strip()
+            base_pki = float(base_row.iloc[0]["pKi_modelled"])
 
     if not receptor_df.empty:
-        base_activity_recoded = str(base_row.iloc[0]["activity_recoded"]).strip()
-        base_activity = str(base_row.iloc[0]["activity"]).strip() if pd.notna(base_row.iloc[0]["activity"]) else "Unknown"
-        base_pki = float(base_row.iloc[0]["pKi_modelled"])
-
         for row in receptor_df.itertuples(index=False):
             original_activity = str(row.activity).strip() if pd.notna(row.activity) else "Unknown"
             activity_values.add(original_activity)
             x, y = _compass_xy(row.activity_recoded, row.pKi_modelled)
-            is_reference = row.drug == selected_drug
+            is_reference = bool(selected_drug) and row.drug == selected_drug
             points.append(
                 {
                     "x": x,
@@ -104,13 +112,13 @@ def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor:
                 }
             )
 
-            if not is_reference:
+            if ranking_active and not is_reference:
                 other_pki = float(row.pKi_modelled)
                 delta_pki = abs(other_pki - base_pki)
                 direction_changed = row.activity_recoded != base_activity_recoded
                 direction_penalty = 2.0 if direction_changed else 0.0
                 difference_score = delta_pki + direction_penalty
-                differences.append(
+                rows.append(
                     {
                         "drug": row.drug,
                         "activity": original_activity,
@@ -121,51 +129,58 @@ def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor:
                         "difference_score": round(difference_score, 2),
                     }
                 )
+            elif not ranking_active:
+                rows.append(
+                    {
+                        "drug": row.drug,
+                        "activity": original_activity,
+                        "activity_color": ACTIVITY_COLORS.get(original_activity, ACTIVITY_COLORS["Unknown"]),
+                        "pKi_modelled": round(float(row.pKi_modelled), 2),
+                        "delta_pki": None,
+                        "direction_changed": None,
+                        "difference_score": None,
+                    }
+                )
 
-        differences.sort(key=lambda item: item["difference_score"], reverse=True)
-        selected_reference = {
-            "drug": selected_drug,
-            "activity": base_activity,
-            "pKi_modelled": round(base_pki, 2),
-        }
+    if ranking_active:
+        rows.sort(key=lambda item: item["difference_score"], reverse=True)
     else:
-        selected_reference = {}
+        rows.sort(key=lambda item: item["pKi_modelled"], reverse=True)
 
     activity_legend = [
         {"label": activity, "color": ACTIVITY_COLORS.get(activity, ACTIVITY_COLORS["Unknown"])}
         for activity in sorted(activity_values)
     ]
-    if points:
+    if points and ranking_active:
         activity_legend.insert(0, {"label": "Selected drug", "color": "#0f172a"})
 
     return {
         "selected_drug": selected_drug,
-        "available_receptors": available_receptors,
+        "available_drugs": available_drugs,
+        "all_drugs": all_drugs,
+        "available_receptors": all_receptors,
         "selected_receptor": selected_receptor,
+        "ranking_active": ranking_active,
         "points": points,
-        "comparison_rows": differences,
-        "selected_reference": selected_reference,
+        "comparison_rows": rows,
         "activity_legend": activity_legend,
     }
 
 
 def home(request: HttpRequest) -> HttpResponse:
     df = _load_affinity_data()
-    drugs = sorted(df["drug"].unique().tolist())
-    drug_targets_map = {
-        str(drug): sorted(group["target"].astype(str).unique().tolist())
-        for drug, group in df.groupby("drug")
+    receptor_drugs_map = {
+        str(receptor): sorted(group["drug"].astype(str).unique().tolist())
+        for receptor, group in df.groupby("target")
     }
     selected_drug = request.GET.get("drug", "")
-    if selected_drug not in drugs:
-        selected_drug = ""
     selected_receptor = request.GET.get("receptor") or request.GET.get("target", "")
     payload = _build_view_payload(df, selected_drug, selected_receptor)
 
     context = {
-        "drugs": drugs,
+        "drugs": payload["available_drugs"],
         "direction_colors": DIRECTION_COLORS,
-        "drug_targets_map": drug_targets_map,
+        "receptor_drugs_map": receptor_drugs_map,
         "current_page": "home",
         **payload,
     }

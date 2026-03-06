@@ -10,12 +10,14 @@ class HomeViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Axis Plot")
 
-    def test_home_accepts_drug_filter(self) -> None:
+    def test_home_accepts_drug_and_receptor_filter(self) -> None:
         df = _load_affinity_data()
         sample_drug = str(df["drug"].iloc[0])
-        response = self.client.get(reverse("home"), {"drug": sample_drug})
+        sample_receptor = str(df.loc[df["drug"] == sample_drug, "target"].iloc[0])
+        response = self.client.get(reverse("home"), {"drug": sample_drug, "receptor": sample_receptor})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, f"Drug: {sample_drug}")
+        self.assertContains(response, f"Receptor: {sample_receptor}")
 
     def test_axis_data_endpoint_returns_json(self) -> None:
         df = _load_affinity_data()
