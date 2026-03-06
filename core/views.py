@@ -81,7 +81,6 @@ def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor:
     activity_values: set[str] = set()
     ranking_active = bool(selected_receptor and selected_drug)
 
-    base_activity_recoded = ""
     base_pki = 0.0
     if ranking_active:
         base_row = receptor_df.loc[receptor_df["drug"] == selected_drug].head(1)
@@ -89,7 +88,6 @@ def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor:
             ranking_active = False
             selected_drug = ""
         else:
-            base_activity_recoded = str(base_row.iloc[0]["activity_recoded"]).strip()
             base_pki = float(base_row.iloc[0]["pKi_modelled"])
 
     if not receptor_df.empty:
@@ -115,9 +113,6 @@ def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor:
             if ranking_active and not is_reference:
                 other_pki = float(row.pKi_modelled)
                 delta_pki = abs(other_pki - base_pki)
-                direction_changed = row.activity_recoded != base_activity_recoded
-                direction_penalty = 2.0 if direction_changed else 0.0
-                difference_score = delta_pki + direction_penalty
                 rows.append(
                     {
                         "drug": row.drug,
@@ -125,8 +120,6 @@ def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor:
                         "activity_color": ACTIVITY_COLORS.get(original_activity, ACTIVITY_COLORS["Unknown"]),
                         "pKi_modelled": round(other_pki, 2),
                         "delta_pki": round(delta_pki, 2),
-                        "direction_changed": direction_changed,
-                        "difference_score": round(difference_score, 2),
                     }
                 )
             elif not ranking_active:
@@ -137,15 +130,14 @@ def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor:
                         "activity_color": ACTIVITY_COLORS.get(original_activity, ACTIVITY_COLORS["Unknown"]),
                         "pKi_modelled": round(float(row.pKi_modelled), 2),
                         "delta_pki": None,
-                        "direction_changed": None,
-                        "difference_score": None,
                     }
                 )
 
     if ranking_active:
-        rows.sort(key=lambda item: item["difference_score"], reverse=True)
+        rows.sort(key=lambda item: item["delta_pki"], reverse=True)
     else:
         rows.sort(key=lambda item: item["pKi_modelled"], reverse=True)
+    points.sort(key=lambda point: point["is_reference"])
 
     activity_legend = [
         {"label": activity, "color": ACTIVITY_COLORS.get(activity, ACTIVITY_COLORS["Unknown"])}

@@ -528,6 +528,21 @@
         filter: brightness(1.14);
     }
 
+    .axis-point.is-reference {
+        stroke-width: 2.3;
+        filter: drop-shadow(0 0 5px rgba(15, 23, 42, 0.22)) drop-shadow(0 0 10px rgba(15, 23, 42, 0.18));
+        animation: referencePulse 2400ms ease-in-out infinite;
+    }
+
+    @keyframes referencePulse {
+        0%, 100% {
+            filter: drop-shadow(0 0 4px rgba(15, 23, 42, 0.2)) drop-shadow(0 0 8px rgba(15, 23, 42, 0.15));
+        }
+        50% {
+            filter: drop-shadow(0 0 6px rgba(15, 23, 42, 0.28)) drop-shadow(0 0 12px rgba(15, 23, 42, 0.22));
+        }
+    }
+
     .axis-tooltip {
         position: absolute;
         left: 0;
@@ -829,7 +844,7 @@
                 <g id="axis-points-layer">
                     {% for point in points %}
                         <circle
-                            class="axis-point"
+                            class="axis-point {% if point.is_reference %}is-reference{% endif %}"
                             cx="{{ point.x }}"
                             cy="{{ point.y }}"
                             r="6.4"
@@ -842,6 +857,7 @@
                             data-direction="{{ point.direction }}"
                             data-activity="{{ point.activity }}"
                             data-receptor="{{ point.receptor }}"
+                            data-is-reference="{% if point.is_reference %}1{% else %}0{% endif %}"
                         ></circle>
                     {% endfor %}
                 </g>
@@ -885,8 +901,6 @@
                                 <th>Drug</th>
                                 <th>Activity</th>
                                 <th>pKi</th>
-                                <th>|ΔpKi|</th>
-                                <th>Direction Shift</th>
                             </tr>
                     </thead>
                     <tbody id="top-targets-body">
@@ -899,20 +913,10 @@
                                     </span>
                                 </td>
                                 <td>{{ row.pKi_modelled }}</td>
-                                <td>{% if row.delta_pki is None %}-{% else %}{{ row.delta_pki }}{% endif %}</td>
-                                <td>
-                                    {% if row.direction_changed is None %}
-                                        -
-                                    {% elif row.direction_changed %}
-                                        Yes
-                                    {% else %}
-                                        No
-                                    {% endif %}
-                                </td>
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="5">No comparison drugs available for this receptor.</td>
+                                <td colspan="3">No comparison drugs available for this receptor.</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -1213,7 +1217,7 @@
         topTargetsBody.innerHTML = "";
         if (!rows.length) {
             const tr = document.createElement("tr");
-            tr.innerHTML = '<td colspan="5">No comparison drugs available for this receptor.</td>';
+            tr.innerHTML = '<td colspan="3">No comparison drugs available for this receptor.</td>';
             topTargetsBody.appendChild(tr);
             return;
         }
@@ -1234,16 +1238,10 @@
 
             const tdPki = document.createElement("td");
             tdPki.textContent = String(row.pKi_modelled);
-            const tdDeltaPki = document.createElement("td");
-            tdDeltaPki.textContent = row.delta_pki == null ? "-" : String(row.delta_pki);
-            const tdDirectionShift = document.createElement("td");
-            tdDirectionShift.textContent = row.direction_changed == null ? "-" : (row.direction_changed ? "Yes" : "No");
 
             tr.appendChild(tdDrug);
             tr.appendChild(tdActivity);
             tr.appendChild(tdPki);
-            tr.appendChild(tdDeltaPki);
-            tr.appendChild(tdDirectionShift);
             topTargetsBody.appendChild(tr);
         });
     }
@@ -1254,9 +1252,15 @@
         const nextKeys = new Set();
         pointsLayer.innerHTML = "";
         if (tooltip) tooltip.classList.remove("is-visible");
-        points.forEach((point) => {
+
+        const orderedPoints = Array.isArray(points)
+            ? [...points].sort((a, b) => Number(Boolean(a.is_reference)) - Number(Boolean(b.is_reference)))
+            : [];
+
+        orderedPoints.forEach((point) => {
             const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            circle.setAttribute("class", "axis-point");
+            const isReference = Boolean(point.is_reference);
+            circle.setAttribute("class", isReference ? "axis-point is-reference" : "axis-point");
             circle.setAttribute("cx", String(point.x));
             circle.setAttribute("cy", String(point.y));
             circle.setAttribute("r", "6.4");
@@ -1269,6 +1273,7 @@
             circle.dataset.pki = String(point.pki_modelled);
             circle.dataset.direction = point.direction;
             circle.dataset.activity = point.activity;
+            circle.dataset.isReference = isReference ? "1" : "0";
             const key = pointKeyFromData(point);
             circle.dataset.pointKey = key;
             if (!previousKeys.has(key)) circle.dataset.animateNew = "1";
