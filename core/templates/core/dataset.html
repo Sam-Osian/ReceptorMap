@@ -1,0 +1,149 @@
+{% extends "core/base.html" %}
+
+{% block title %}ReceptorMap | Dataset{% endblock %}
+
+{% block extra_head %}
+<style>
+    .dataset-page {
+        width: 100%;
+        border-radius: 1.05rem;
+        border: 1px solid #d8dfed;
+        background: linear-gradient(180deg, #ffffff, #fbfcff 60%, #f8faff);
+        box-shadow: 0 14px 30px rgba(17, 24, 39, 0.06);
+        padding: clamp(1rem, 2.2vw, 1.4rem);
+        display: grid;
+        gap: 0.85rem;
+    }
+
+    .dataset-page h1 {
+        margin: 0;
+        font-family: "Outfit", "Manrope", sans-serif;
+        color: #1f2740;
+        letter-spacing: -0.01em;
+        font-size: clamp(1.4rem, 2vw, 1.8rem);
+    }
+
+    .dataset-meta {
+        margin: 0;
+        color: #5e6781;
+        font-size: 0.93rem;
+    }
+
+    .dataset-grid {
+        display: grid;
+        gap: 0.55rem;
+    }
+
+    .dataset-card {
+        border: 1px solid #d7e0f3;
+        border-radius: 0.75rem;
+        background: #fff;
+        overflow: hidden;
+    }
+
+    .dataset-card-head {
+        padding: 0.42rem 0.55rem;
+        border-bottom: 1px solid #e4eaf8;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        background: #f3f7ff;
+    }
+
+    .dataset-shell {
+        font-size: 0.74rem;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        font-weight: 800;
+        color: #3b4f7d;
+    }
+
+    .dataset-copy-btn {
+        border: 1px solid #c9d5ef;
+        border-radius: 0.5rem;
+        background: #fff;
+        color: #2b3e66;
+        font-size: 0.74rem;
+        font-weight: 700;
+        padding: 0.12rem 0.4rem;
+        cursor: pointer;
+    }
+
+    .dataset-copy-btn.is-copied {
+        border-color: #9ec6b0;
+        color: #1f6444;
+        background: #effaf4;
+    }
+
+    .dataset-command {
+        margin: 0;
+        padding: 0.56rem 0.62rem;
+        font-size: 0.82rem;
+        line-height: 1.4;
+        color: #212d4b;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="dataset-page">
+    <h1>Dataset Download</h1>
+    <p class="dataset-meta">File: <code>{{ dataset_filename }}</code></p>
+    <p class="dataset-meta">API endpoint: <code>{{ dataset_download_url }}</code></p>
+
+    <div class="dataset-grid">
+        <article class="dataset-card">
+            <div class="dataset-card-head">
+                <span class="dataset-shell">Python</span>
+                <button type="button" class="dataset-copy-btn" data-copy-command-id="dataset-cmd-python">Copy</button>
+            </div>
+            <pre id="dataset-cmd-python" class="dataset-command">python -c "import urllib.request; urllib.request.urlretrieve('{{ dataset_download_url }}', '{{ dataset_filename }}')"</pre>
+        </article>
+
+        <article class="dataset-card">
+            <div class="dataset-card-head">
+                <span class="dataset-shell">bash / zsh</span>
+                <button type="button" class="dataset-copy-btn" data-copy-command-id="dataset-cmd-bash">Copy</button>
+            </div>
+            <pre id="dataset-cmd-bash" class="dataset-command">curl -fsSL '{{ dataset_download_url }}' -o '{{ dataset_filename }}'</pre>
+        </article>
+
+        <article class="dataset-card">
+            <div class="dataset-card-head">
+                <span class="dataset-shell">PowerShell</span>
+                <button type="button" class="dataset-copy-btn" data-copy-command-id="dataset-cmd-powershell">Copy</button>
+            </div>
+            <pre id="dataset-cmd-powershell" class="dataset-command">Invoke-WebRequest -Uri '{{ dataset_download_url }}' -OutFile '{{ dataset_filename }}'</pre>
+        </article>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    (function () {
+        const buttons = Array.from(document.querySelectorAll(".dataset-copy-btn[data-copy-command-id]"));
+        if (!buttons.length || !navigator.clipboard) return;
+        buttons.forEach((button) => {
+            button.addEventListener("click", async () => {
+                const source = document.getElementById(button.dataset.copyCommandId || "");
+                if (!source) return;
+                try {
+                    await navigator.clipboard.writeText(source.textContent || "");
+                    button.classList.add("is-copied");
+                    button.textContent = "Copied";
+                    window.setTimeout(() => {
+                        button.classList.remove("is-copied");
+                        button.textContent = "Copy";
+                    }, 1200);
+                } catch (e) {
+                    /* no-op */
+                }
+            });
+        });
+    }());
+</script>
+{% endblock %}

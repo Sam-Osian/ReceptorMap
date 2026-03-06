@@ -17,11 +17,13 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
-from core.views import about, axis_data, home
+from core.views import about, axis_data, dataset, dataset_download, home
 
 urlpatterns = [
     path("", home, name="home"),
     path("about/", about, name="about"),
+    path("dataset/", dataset, name="dataset"),
     path("api/axis-data/", axis_data, name="axis_data"),
+    path("api/dataset/", dataset_download, name="dataset_download"),
     path("admin/", admin.site.urls),
 ]

@@ -5,9 +5,11 @@ import re
 
 import pandas as pd
 from django.conf import settings
+from django.http import FileResponse
 from django.http import HttpRequest, HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.urls import reverse
 from django.utils.html import escape
 
 
@@ -89,8 +91,7 @@ def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_targets: 
         )
 
     strongest = (
-        drug_df.sort_values("pKi_modelled", ascending=False)
-        .head(10)[["target", "activity", "activity_recoded", "pKi_modelled"]]
+        drug_df.sort_values("pKi_modelled", ascending=False)[["target", "activity", "activity_recoded", "pKi_modelled"]]
         .to_dict("records")
     )
 
@@ -136,6 +137,21 @@ def home(request: HttpRequest) -> HttpResponse:
         **payload,
     }
     return render(request, "core/compass.html", context)
+
+
+def dataset_download(request: HttpRequest) -> FileResponse:
+    response = FileResponse(DATA_PATH.open("rb"), content_type="text/csv")
+    response["Content-Disposition"] = f'attachment; filename="{DATA_PATH.name}"'
+    return response
+
+
+def dataset(request: HttpRequest) -> HttpResponse:
+    context = {
+        "current_page": "dataset",
+        "dataset_download_url": request.build_absolute_uri(reverse("dataset_download")),
+        "dataset_filename": DATA_PATH.name,
+    }
+    return render(request, "core/dataset.html", context)
 
 
 def _render_markdown_inline(text: str) -> str:
