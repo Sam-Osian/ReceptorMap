@@ -54,7 +54,7 @@ def _load_affinity_data() -> pd.DataFrame:
     return df
 
 
-def _compass_xy(direction: str, pki: float, target: str) -> tuple[float, float]:
+def _compass_xy(direction: str, pki: float) -> tuple[float, float]:
     pki_clamped = min(10.0, max(4.0, float(pki)))
     side = DIRECTION_SIDE.get(direction, 0.0)
     # pKi controls left/right placement within each side.
@@ -65,54 +65,86 @@ def _compass_xy(direction: str, pki: float, target: str) -> tuple[float, float]:
     return round(x, 2), round(y, 2)
 
 
-def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_targets: list[str]) -> dict:
+def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor: str) -> dict:
     drug_df = df.loc[df["drug"] == selected_drug].copy()
-    available_targets = sorted(drug_df["target"].unique().tolist())
-    selected_targets = [target for target in selected_targets if target in available_targets]
-    if selected_targets:
-        drug_df = drug_df.loc[drug_df["target"].isin(selected_targets)].copy()
-    else:
-        drug_df = drug_df.iloc[0:0].copy()
+    available_receptors = sorted(drug_df["target"].unique().tolist())
+    if selected_receptor not in available_receptors:
+        selected_receptor = ""
+
+    receptor_df = df.loc[df["target"] == selected_receptor].copy() if selected_receptor else df.iloc[0:0].copy()
+    base_row = receptor_df.loc[receptor_df["drug"] == selected_drug].head(1)
+    if base_row.empty:
+        receptor_df = receptor_df.iloc[0:0].copy()
 
     points = []
-    for row in drug_df.itertuples(index=False):
-        x, y = _compass_xy(row.activity_recoded, row.pKi_modelled, row.target)
-        original_activity = str(row.activity).strip() if pd.notna(row.activity) else "Unknown"
-        points.append(
-            {
-                "x": x,
-                "y": y,
-                "target": row.target,
-                "direction": row.activity_recoded,
-                "activity": original_activity,
-                "pki_modelled": round(float(row.pKi_modelled), 2),
-                "color": ACTIVITY_COLORS.get(original_activity, ACTIVITY_COLORS["Unknown"]),
-            }
-        )
+    differences = []
+    activity_values: set[str] = set()
 
-    strongest = (
-        drug_df.sort_values("pKi_modelled", ascending=False)[["target", "activity", "activity_recoded", "pKi_modelled"]]
-        .to_dict("records")
-    )
+    if not receptor_df.empty:
+        base_activity_recoded = str(base_row.iloc[0]["activity_recoded"]).strip()
+        base_activity = str(base_row.iloc[0]["activity"]).strip() if pd.notna(base_row.iloc[0]["activity"]) else "Unknown"
+        base_pki = float(base_row.iloc[0]["pKi_modelled"])
 
-    for item in strongest:
-        original_activity = str(item["activity"]).strip() if pd.notna(item["activity"]) else "Unknown"
-        item["activity"] = original_activity
-        item["activity_color"] = ACTIVITY_COLORS.get(original_activity, ACTIVITY_COLORS["Unknown"])
-        item["pKi_modelled"] = round(float(item["pKi_modelled"]), 2)
+        for row in receptor_df.itertuples(index=False):
+            original_activity = str(row.activity).strip() if pd.notna(row.activity) else "Unknown"
+            activity_values.add(original_activity)
+            x, y = _compass_xy(row.activity_recoded, row.pKi_modelled)
+            is_reference = row.drug == selected_drug
+            points.append(
+                {
+                    "x": x,
+                    "y": y,
+                    "drug": row.drug,
+                    "receptor": row.target,
+                    "direction": row.activity_recoded,
+                    "activity": original_activity,
+                    "pki_modelled": round(float(row.pKi_modelled), 2),
+                    "is_reference": is_reference,
+                    "color": "#0f172a" if is_reference else ACTIVITY_COLORS.get(original_activity, ACTIVITY_COLORS["Unknown"]),
+                }
+            )
 
-    activity_legend = []
-    for activity in sorted(drug_df["activity"].dropna().astype(str).str.strip().unique().tolist()):
-        activity_legend.append(
-            {"label": activity, "color": ACTIVITY_COLORS.get(activity, ACTIVITY_COLORS["Unknown"])}
-        )
+            if not is_reference:
+                other_pki = float(row.pKi_modelled)
+                delta_pki = abs(other_pki - base_pki)
+                direction_changed = row.activity_recoded != base_activity_recoded
+                direction_penalty = 2.0 if direction_changed else 0.0
+                difference_score = delta_pki + direction_penalty
+                differences.append(
+                    {
+                        "drug": row.drug,
+                        "activity": original_activity,
+                        "activity_color": ACTIVITY_COLORS.get(original_activity, ACTIVITY_COLORS["Unknown"]),
+                        "pKi_modelled": round(other_pki, 2),
+                        "delta_pki": round(delta_pki, 2),
+                        "direction_changed": direction_changed,
+                        "difference_score": round(difference_score, 2),
+                    }
+                )
+
+        differences.sort(key=lambda item: item["difference_score"], reverse=True)
+        selected_reference = {
+            "drug": selected_drug,
+            "activity": base_activity,
+            "pKi_modelled": round(base_pki, 2),
+        }
+    else:
+        selected_reference = {}
+
+    activity_legend = [
+        {"label": activity, "color": ACTIVITY_COLORS.get(activity, ACTIVITY_COLORS["Unknown"])}
+        for activity in sorted(activity_values)
+    ]
+    if points:
+        activity_legend.insert(0, {"label": "Selected drug", "color": "#0f172a"})
 
     return {
         "selected_drug": selected_drug,
-        "available_targets": available_targets,
-        "selected_targets": selected_targets,
+        "available_receptors": available_receptors,
+        "selected_receptor": selected_receptor,
         "points": points,
-        "strongest_targets": strongest,
+        "comparison_rows": differences,
+        "selected_reference": selected_reference,
         "activity_legend": activity_legend,
     }
 
@@ -127,7 +159,8 @@ def home(request: HttpRequest) -> HttpResponse:
     selected_drug = request.GET.get("drug", "")
     if selected_drug not in drugs:
         selected_drug = ""
-    payload = _build_view_payload(df, selected_drug, request.GET.getlist("target"))
+    selected_receptor = request.GET.get("receptor") or request.GET.get("target", "")
+    payload = _build_view_payload(df, selected_drug, selected_receptor)
 
     context = {
         "drugs": drugs,
@@ -313,5 +346,6 @@ def axis_data(request: HttpRequest) -> JsonResponse:
     if selected_drug not in drugs:
         selected_drug = ""
 
-    payload = _build_view_payload(df, selected_drug, request.GET.getlist("target"))
+    selected_receptor = request.GET.get("receptor") or request.GET.get("target", "")
+    payload = _build_view_payload(df, selected_drug, selected_receptor)
     return JsonResponse(payload)

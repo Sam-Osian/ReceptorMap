@@ -723,7 +723,7 @@
 <div class="home-dashboard">
     <section class="page-head" data-reveal>
         <h1 class="page-title">ReceptorMap</h1>
-        <p class="page-subtitle">Explore drug-target receptor interactions by visualising pKi values and pharmacological direction.</p>
+        <p class="page-subtitle">Start with a drug, choose a receptor, then compare which other drugs differ most on that receptor.</p>
     </section>
 
     <section class="workspace" data-reveal>
@@ -773,38 +773,20 @@
 
             <div id="target-group" class="control-group {% if not selected_drug %}is-collapsed{% endif %}">
                 <div class="label-row">
-                    <label for="target-search" class="label-title"><span class="step-badge">2</span>Targets</label>
-                    <div class="target-actions">
-                        <button
-                            id="all-targets-btn"
-                            type="button"
-                            class="all-targets-btn"
-                            {% if not available_targets %}hidden{% endif %}
-                        >
-                            All
-                        </button>
-                        <button
-                            id="clear-targets-btn"
-                            type="button"
-                            class="clear-targets-btn"
-                            {% if not selected_targets %}hidden{% endif %}
-                        >
-                            Clear
-                        </button>
-                    </div>
+                    <label for="target-search" class="label-title"><span class="step-badge">2</span>Receptor</label>
                 </div>
                 <div class="search-wrap">
                     <i class="hgi-stroke hgi-searching icon" aria-hidden="true"></i>
-                    <input type="search" id="target-search" placeholder="Search targets..." autocomplete="off">
+                    <input type="search" id="target-search" placeholder="Search receptors..." autocomplete="off">
                 </div>
                 <div class="picker">
                     <div class="picker-scroll" data-simplebar data-simplebar-auto-hide="false">
-                        <ul id="target-list" class="option-list" role="listbox" aria-label="Target options" aria-multiselectable="true">
-                            {% for target in available_targets %}
+                        <ul id="target-list" class="option-list" role="listbox" aria-label="Receptor options">
+                            {% for target in available_receptors %}
                                 <li class="option-item" data-label="{{ target|lower }}">
                                     <button
                                         type="button"
-                                        class="option-btn {% if target in selected_targets %}is-selected{% endif %}"
+                                        class="option-btn {% if target == selected_receptor %}is-selected{% endif %}"
                                         data-value="{{ target }}"
                                         data-kind="target"
                                     >
@@ -816,8 +798,8 @@
                         </ul>
                     </div>
                 </div>
-                <div id="target-hidden-inputs"></div>
-                <p class="collapsed-note">Select a drug to enable target selection.</p>
+                <input type="hidden" id="receptor-input" name="receptor" value="{{ selected_receptor }}">
+                <p class="collapsed-note">Select a drug to enable receptor selection.</p>
             </div>
 
         </form>
@@ -828,11 +810,11 @@
             <h2><i class="hgi-stroke hgi-chart-line-data-01 icon" aria-hidden="true"></i>Axis Plot</h2>
             <div class="plot-inline-meta">
                 <span id="graph-active-drug" class="plot-inline-chip">Drug: {% if selected_drug %}{{ selected_drug }}{% else %}-{% endif %}</span>
-                <span id="graph-target-count" class="plot-inline-chip">{{ selected_targets|length }} target(s) selected</span>
+                <span id="graph-target-count" class="plot-inline-chip">Receptor: {% if selected_receptor %}{{ selected_receptor }}{% else %}-{% endif %}</span>
             </div>
         </div>
 
-        <div id="axis-stage-wrap" class="stage" {% if not selected_drug or not selected_targets %}hidden{% endif %}>
+        <div id="axis-stage-wrap" class="stage" {% if not selected_drug or not selected_receptor %}hidden{% endif %}>
             <svg viewBox="0 0 920 330" width="100%" aria-label="Agonist antagonist axis plot">
                 <line x1="40" y1="162" x2="880" y2="162" stroke="#25324c" stroke-width="2.2"/>
                 <line x1="460" y1="146" x2="460" y2="178" stroke="#171f35" stroke-width="2.8"/>
@@ -855,10 +837,11 @@
                             fill-opacity="0.88"
                             stroke="#ffffff"
                             stroke-width="1.8"
-                            data-target="{{ point.target }}"
+                            data-drug="{{ point.drug }}"
                             data-pki="{{ point.pki_modelled }}"
                             data-direction="{{ point.direction }}"
                             data-activity="{{ point.activity }}"
+                            data-receptor="{{ point.receptor }}"
                         ></circle>
                     {% endfor %}
                 </g>
@@ -873,8 +856,8 @@
             </div>
         </div>
 
-        <div id="axis-placeholder" class="axis-placeholder" {% if selected_drug and selected_targets %}hidden{% endif %}>
-            Select a drug and at least one target to display the axis plot.
+        <div id="axis-placeholder" class="axis-placeholder" {% if selected_drug and selected_receptor %}hidden{% endif %}>
+            Select a drug and one receptor to compare other drugs on that receptor.
         </div>
 
         <div class="legend" id="activity-legend">
@@ -883,32 +866,36 @@
             {% endfor %}
         </div>
 
-        <h2 id="top-targets-title" style="margin-top: 0.45rem;"><i class="hgi-stroke hgi-data-table icon" aria-hidden="true"></i>pKi Targets for {{ selected_drug }}</h2>
+        <h2 id="top-targets-title" style="margin-top: 0.45rem;"><i class="hgi-stroke hgi-data-table icon" aria-hidden="true"></i>Most Different Drugs on {% if selected_receptor %}{{ selected_receptor }}{% else %}Selected Receptor{% endif %}</h2>
 
         <div class="table-wrap">
             <div class="table-scroll" data-simplebar data-simplebar-auto-hide="false">
                 <table>
                     <thead>
                             <tr>
-                                <th>Target</th>
-                                <th>Direction</th>
+                                <th>Drug</th>
+                                <th>Activity</th>
                                 <th>pKi</th>
+                                <th>|ΔpKi|</th>
+                                <th>Direction Shift</th>
                             </tr>
                     </thead>
                     <tbody id="top-targets-body">
-                        {% for row in strongest_targets %}
+                        {% for row in comparison_rows %}
                             <tr>
-                                <td>{{ row.target }}</td>
+                                <td>{{ row.drug }}</td>
                                 <td>
                                     <span class="direction-badge" style="color: {{ row.activity_color }}; border-color: {{ row.activity_color }}55; background: {{ row.activity_color }}1a;">
                                         {{ row.activity }}
                                     </span>
                                 </td>
                                 <td>{{ row.pKi_modelled }}</td>
+                                <td>{{ row.delta_pki }}</td>
+                                <td>{% if row.direction_changed %}Yes{% else %}No{% endif %}</td>
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="3">No targets selected.</td>
+                                <td colspan="5">No comparison drugs available for this receptor.</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -932,8 +919,8 @@
     const drugTargetsMapNode = document.getElementById("drug-target-map");
     const drugTargetsMap = drugTargetsMapNode ? JSON.parse(drugTargetsMapNode.textContent) : {};
     const drugInput = document.getElementById("drug-input");
+    const receptorInput = document.getElementById("receptor-input");
     const drugSearch = document.getElementById("drug-search");
-    const targetHiddenInputs = document.getElementById("target-hidden-inputs");
     const targetGroup = document.getElementById("target-group");
     const targetSearch = document.getElementById("target-search");
     const targetList = document.getElementById("target-list");
@@ -952,25 +939,24 @@
     const topTargetsBody = document.getElementById("top-targets-body");
     const graphTargetCount = document.getElementById("graph-target-count");
     const graphActiveDrug = document.getElementById("graph-active-drug");
-    const allTargetsBtn = document.getElementById("all-targets-btn");
-    const clearTargetsBtn = document.getElementById("clear-targets-btn");
     const resetWrap = document.querySelector(".reset-wrap");
     const resetFiltersBtn = document.getElementById("reset-filters-btn");
     const resetHoverTip = document.getElementById("reset-hover-tip");
     let resetArmed = false;
     let renderedPointKeys = new Set();
 
-    function getSelectedValues(listId) {
-        return Array.from(document.querySelectorAll(`#${listId} .option-btn.is-selected`)).map((el) => el.dataset.value);
+    function getSelectedReceptor() {
+        return document.querySelector("#target-list .option-btn.is-selected")?.dataset.value || "";
     }
 
-    function pointKeyFromValues(target, pki, direction, activity, x, y) {
-        return [target || "", pki || "", direction || "", activity || "", x || "", y || ""].join("|");
+    function pointKeyFromValues(drug, receptor, pki, direction, activity, x, y) {
+        return [drug || "", receptor || "", pki || "", direction || "", activity || "", x || "", y || ""].join("|");
     }
 
     function pointKeyFromData(point) {
         return pointKeyFromValues(
-            point.target,
+            point.drug,
+            point.receptor,
             String(point.pki_modelled),
             point.direction,
             point.activity,
@@ -981,7 +967,8 @@
 
     function pointKeyFromElement(pointEl) {
         return pointKeyFromValues(
-            pointEl.dataset.target,
+            pointEl.dataset.drug,
+            pointEl.dataset.receptor,
             pointEl.dataset.pki,
             pointEl.dataset.direction,
             pointEl.dataset.activity,
@@ -998,7 +985,7 @@
     function saveHomeState() {
         const state = {
             drug: drugInput ? drugInput.value : "",
-            targets: getSelectedValues("target-list"),
+            receptor: receptorInput ? receptorInput.value : "",
             drugSearch: drugSearch ? drugSearch.value : "",
             targetSearch: targetSearch ? targetSearch.value : "",
         };
@@ -1021,15 +1008,13 @@
         }
 
         const savedDrug = typeof parsed.drug === "string" ? parsed.drug : "";
-        const savedTargets = Array.isArray(parsed.targets) ? parsed.targets : [];
+        const savedReceptor = typeof parsed.receptor === "string" ? parsed.receptor : "";
         const savedDrugSearch = typeof parsed.drugSearch === "string" ? parsed.drugSearch : "";
         const savedTargetSearch = typeof parsed.targetSearch === "string" ? parsed.targetSearch : "";
         const hasDrug = savedDrug && Object.prototype.hasOwnProperty.call(drugTargetsMap, savedDrug);
         const validDrug = hasDrug ? savedDrug : "";
-        const validTargets = savedTargets.filter((target) => {
-            const allowed = Array.isArray(drugTargetsMap[validDrug]) ? drugTargetsMap[validDrug] : [];
-            return allowed.includes(target);
-        });
+        const allowed = Array.isArray(drugTargetsMap[validDrug]) ? drugTargetsMap[validDrug] : [];
+        const validReceptor = allowed.includes(savedReceptor) ? savedReceptor : "";
 
         document.querySelectorAll("#drug-list .option-btn.is-selected").forEach((el) => {
             el.classList.remove("is-selected");
@@ -1040,19 +1025,14 @@
         }
 
         if (drugInput) drugInput.value = validDrug;
-        rebuildTargetListForDrug(validDrug);
+        rebuildTargetListForDrug(validDrug, validReceptor);
         setTargetsCollapsed(!validDrug, true);
-
-        validTargets.forEach((target) => {
-            const btn = document.querySelector(`#target-list .option-btn[data-value="${selectorEscape(target)}"]`);
-            if (btn) btn.classList.add("is-selected");
-        });
+        if (receptorInput) receptorInput.value = validReceptor;
 
         if (drugSearch) drugSearch.value = savedDrugSearch;
         if (targetSearch) targetSearch.value = validDrug ? savedTargetSearch : "";
         applySearchFilter("drug-search", "drug-list");
         applySearchFilter("target-search", "target-list");
-        renderTargetHiddenInputs();
         updateTargetCount();
         updateDrugMetric();
         recalcSimpleBar(drugList ? drugList.closest(".picker-scroll") : null);
@@ -1108,16 +1088,20 @@
         });
     }
 
-    function rebuildTargetListForDrug(drugValue) {
+    function rebuildTargetListForDrug(drugValue, selectedReceptor = "") {
         if (!targetList) return;
         if (targetSearch) targetSearch.value = "";
         const targets = Array.isArray(drugTargetsMap[drugValue]) ? drugTargetsMap[drugValue] : [];
         targetList.innerHTML = "";
         targets.forEach((target) => {
-            targetList.appendChild(createOptionItem(target, "target"));
+            const option = createOptionItem(target, "target");
+            if (target === selectedReceptor) {
+                option.querySelector(".option-btn")?.classList.add("is-selected");
+            }
+            targetList.appendChild(option);
         });
         applySearchFilter("target-search", "target-list");
-        renderTargetHiddenInputs();
+        if (receptorInput) receptorInput.value = selectedReceptor;
         updateTargetCount();
         recalcSimpleBar(targetList.closest(".picker-scroll"));
     }
@@ -1126,7 +1110,7 @@
         document.querySelectorAll("#target-list .option-btn.is-selected").forEach((el) => {
             el.classList.remove("is-selected");
         });
-        renderTargetHiddenInputs();
+        if (receptorInput) receptorInput.value = "";
         updateTargetCount();
     }
 
@@ -1220,31 +1204,37 @@
         topTargetsBody.innerHTML = "";
         if (!rows.length) {
             const tr = document.createElement("tr");
-            tr.innerHTML = '<td colspan="3">No targets selected.</td>';
+            tr.innerHTML = '<td colspan="5">No comparison drugs available for this receptor.</td>';
             topTargetsBody.appendChild(tr);
             return;
         }
 
         rows.forEach((row) => {
             const tr = document.createElement("tr");
-            const tdTarget = document.createElement("td");
-            tdTarget.textContent = row.target;
+            const tdDrug = document.createElement("td");
+            tdDrug.textContent = row.drug;
 
-            const tdDirection = document.createElement("td");
+            const tdActivity = document.createElement("td");
             const badge = document.createElement("span");
             badge.className = "direction-badge";
             badge.style.color = row.activity_color;
             badge.style.borderColor = colorWithAlpha(row.activity_color, "55");
             badge.style.background = colorWithAlpha(row.activity_color, "1a");
             badge.textContent = row.activity;
-            tdDirection.appendChild(badge);
+            tdActivity.appendChild(badge);
 
             const tdPki = document.createElement("td");
             tdPki.textContent = String(row.pKi_modelled);
+            const tdDeltaPki = document.createElement("td");
+            tdDeltaPki.textContent = String(row.delta_pki);
+            const tdDirectionShift = document.createElement("td");
+            tdDirectionShift.textContent = row.direction_changed ? "Yes" : "No";
 
-            tr.appendChild(tdTarget);
-            tr.appendChild(tdDirection);
+            tr.appendChild(tdDrug);
+            tr.appendChild(tdActivity);
             tr.appendChild(tdPki);
+            tr.appendChild(tdDeltaPki);
+            tr.appendChild(tdDirectionShift);
             topTargetsBody.appendChild(tr);
         });
     }
@@ -1265,7 +1255,8 @@
             circle.setAttribute("fill-opacity", "0.88");
             circle.setAttribute("stroke", "#ffffff");
             circle.setAttribute("stroke-width", "1.8");
-            circle.dataset.target = point.target;
+            circle.dataset.drug = point.drug;
+            circle.dataset.receptor = point.receptor;
             circle.dataset.pki = String(point.pki_modelled);
             circle.dataset.direction = point.direction;
             circle.dataset.activity = point.activity;
@@ -1305,20 +1296,16 @@
                 points.forEach((pt) => pt.classList.remove("is-hovered"));
                 point.classList.add("is-hovered");
 
-                tooltipTarget.textContent = point.dataset.target || "";
+                tooltipTarget.textContent = point.dataset.drug || "";
                 tooltipDirection.textContent = point.dataset.activity || "";
                 tooltipPki.textContent = `pKi ${point.dataset.pki || ""}`;
 
                 const original = (point.dataset.activity || "").trim();
                 const recoded = (point.dataset.direction || "").trim();
                 if (tooltipNote) {
-                    if (original && recoded && original !== recoded) {
-                        tooltipNote.textContent = `* recoded to ${recoded} for axis placement`;
-                        tooltipNote.classList.add("is-visible");
-                    } else {
-                        tooltipNote.textContent = "";
-                        tooltipNote.classList.remove("is-visible");
-                    }
+                    const receptor = point.dataset.receptor || "";
+                    tooltipNote.textContent = receptor ? `Receptor: ${receptor}` : "";
+                    tooltipNote.classList.toggle("is-visible", Boolean(receptor));
                 }
 
                 const pointBox = point.getBoundingClientRect();
@@ -1415,26 +1402,10 @@
         });
     }
 
-    function renderTargetHiddenInputs() {
-        if (!targetHiddenInputs) return;
-        targetHiddenInputs.innerHTML = "";
-        getSelectedValues("target-list").forEach((value) => {
-            const input = document.createElement("input");
-            input.type = "hidden";
-            input.name = "target";
-            input.value = value;
-            targetHiddenInputs.appendChild(input);
-        });
-    }
-
     function updateTargetCount() {
-        const targetCount = document.getElementById("target-count");
-        const count = getSelectedValues("target-list").length;
-        const total = Array.from(document.querySelectorAll("#target-list .option-btn")).length;
-        if (targetCount) targetCount.textContent = `${count} target(s) selected`;
-        if (graphTargetCount) graphTargetCount.textContent = `${count} target(s) selected`;
-        if (clearTargetsBtn) clearTargetsBtn.hidden = count === 0;
-        if (allTargetsBtn) allTargetsBtn.hidden = total === 0 || count === total;
+        const selectedReceptor = getSelectedReceptor();
+        if (receptorInput) receptorInput.value = selectedReceptor;
+        if (graphTargetCount) graphTargetCount.textContent = `Receptor: ${selectedReceptor || "-"}`;
         updateResetAvailability();
     }
 
@@ -1445,10 +1416,9 @@
         updateResetAvailability();
     }
 
-    function setAxisVisibility(selectedDrug, selectedTargets) {
+    function setAxisVisibility(selectedDrug, selectedReceptor) {
         const hasDrug = Boolean(selectedDrug);
-        const targetCount = Array.isArray(selectedTargets) ? selectedTargets.length : 0;
-        const showAxis = hasDrug && targetCount > 0;
+        const showAxis = hasDrug && Boolean(selectedReceptor);
         if (axisStageWrap) axisStageWrap.hidden = !showAxis;
         if (axisPlaceholder) axisPlaceholder.hidden = showAxis;
         if (!showAxis && tooltip) tooltip.classList.remove("is-visible");
@@ -1499,8 +1469,13 @@
             }
 
             if (kind === "target") {
-                btn.classList.toggle("is-selected");
-                renderTargetHiddenInputs();
+                const wasSelected = btn.classList.contains("is-selected");
+                document.querySelectorAll("#target-list .option-btn.is-selected").forEach((el) => {
+                    el.classList.remove("is-selected");
+                });
+                if (!wasSelected) {
+                    btn.classList.add("is-selected");
+                }
                 updateTargetCount();
                 saveHomeState();
                 fetchAndRenderAxisData();
@@ -1515,28 +1490,6 @@
         search.addEventListener("input", () => {
             applySearchFilter(searchId, listId);
             saveHomeState();
-        });
-    }
-
-    function wireClearTargets() {
-        if (!clearTargetsBtn) return;
-        clearTargetsBtn.addEventListener("click", async () => {
-            clearTargetSelection();
-            saveHomeState();
-            await fetchAndRenderAxisData();
-        });
-    }
-
-    function wireAllTargets() {
-        if (!allTargetsBtn) return;
-        allTargetsBtn.addEventListener("click", async () => {
-            document.querySelectorAll("#target-list .option-btn").forEach((btn) => {
-                btn.classList.add("is-selected");
-            });
-            renderTargetHiddenInputs();
-            updateTargetCount();
-            saveHomeState();
-            await fetchAndRenderAxisData();
         });
     }
 
@@ -1560,8 +1513,8 @@
     function updateResetAvailability() {
         if (!resetFiltersBtn) return;
         const hasDrug = Boolean(drugInput && drugInput.value);
-        const hasTargets = getSelectedValues("target-list").length > 0;
-        const shouldEnable = hasDrug || hasTargets;
+        const hasReceptor = Boolean(receptorInput && receptorInput.value);
+        const shouldEnable = hasDrug || hasReceptor;
         resetFiltersBtn.disabled = !shouldEnable;
         if (!shouldEnable) {
             setResetArmed(false);
@@ -1581,6 +1534,7 @@
         });
 
         if (drugInput) drugInput.value = "";
+        if (receptorInput) receptorInput.value = "";
         if (drugSearch) drugSearch.value = "";
         if (targetSearch) targetSearch.value = "";
 
@@ -1636,10 +1590,10 @@
 
     async function fetchAndRenderAxisData() {
         const selectedDrug = drugInput ? drugInput.value : "";
-        const selectedTargets = getSelectedValues("target-list");
+        const selectedReceptor = receptorInput ? receptorInput.value : "";
         const params = new URLSearchParams();
         if (selectedDrug) params.set("drug", selectedDrug);
-        selectedTargets.forEach((target) => params.append("target", target));
+        if (selectedReceptor) params.set("receptor", selectedReceptor);
 
         const response = await fetch(`/api/axis-data/?${params.toString()}`, {
             method: "GET",
@@ -1650,16 +1604,17 @@
 
         renderAxisPoints(Array.isArray(data.points) ? data.points : []);
         renderLegend(Array.isArray(data.activity_legend) ? data.activity_legend : []);
-        renderTopTargets(Array.isArray(data.strongest_targets) ? data.strongest_targets : []);
+        renderTopTargets(Array.isArray(data.comparison_rows) ? data.comparison_rows : []);
 
-        setAxisVisibility(data.selected_drug || "", Array.isArray(data.selected_targets) ? data.selected_targets : []);
+        setAxisVisibility(data.selected_drug || "", data.selected_receptor || "");
+        if (receptorInput) receptorInput.value = data.selected_receptor || "";
         if (topTargetsTitle) {
-            topTargetsTitle.innerHTML = `<i class="hgi-stroke hgi-data-table icon" aria-hidden="true"></i>pKi Targets for ${data.selected_drug || ""}`;
+            const receptorLabel = data.selected_receptor || "Selected Receptor";
+            topTargetsTitle.innerHTML = `<i class="hgi-stroke hgi-data-table icon" aria-hidden="true"></i>Most Different Drugs on ${receptorLabel}`;
         }
 
         if (graphTargetCount) {
-            const nextCount = Array.isArray(data.selected_targets) ? data.selected_targets.length : 0;
-            graphTargetCount.textContent = `${nextCount} target(s) selected`;
+            graphTargetCount.textContent = `Receptor: ${data.selected_receptor || "-"}`;
         }
         if (graphActiveDrug) {
             graphActiveDrug.textContent = `Drug: ${data.selected_drug || "-"}`;
@@ -1675,11 +1630,10 @@
     if (!restoredState) {
         applySearchFilter("drug-search", "drug-list");
         applySearchFilter("target-search", "target-list");
-        renderTargetHiddenInputs();
         updateTargetCount();
         updateDrugMetric();
         setTargetsCollapsed(!(drugInput && drugInput.value), true);
-        setAxisVisibility(drugInput ? drugInput.value : "", getSelectedValues("target-list"));
+        setAxisVisibility(drugInput ? drugInput.value : "", receptorInput ? receptorInput.value : "");
         recalcSimpleBar(drugList ? drugList.closest(".picker-scroll") : null);
         recalcSimpleBar(targetList ? targetList.closest(".picker-scroll") : null);
         saveHomeState();
@@ -1693,8 +1647,6 @@
     }
     wireCardMotion();
     wireResetControl();
-    wireClearTargets();
-    wireAllTargets();
     window.addEventListener("beforeunload", saveHomeState);
 
     if (form) {
