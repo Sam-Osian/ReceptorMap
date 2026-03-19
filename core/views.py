@@ -38,8 +38,10 @@ ACTIVITY_COLORS = {
 }
 
 
-@lru_cache(maxsize=1)
-def _load_affinity_data() -> pd.DataFrame:
+@lru_cache(maxsize=4)
+def _load_affinity_data_cached(dataset_mtime_ns: int) -> pd.DataFrame:
+    # `dataset_mtime_ns` is only used as a cache key to invalidate on file changes.
+    _ = dataset_mtime_ns
     df = pd.read_csv(DATA_PATH)
     df["activity_recoded"] = df["activity_recoded"].fillna("Unknown").astype(str)
     df["modelled_ki_nm"] = pd.to_numeric(df["modelled_ki_nm"], errors="coerce")
@@ -52,6 +54,10 @@ def _load_affinity_data() -> pd.DataFrame:
     # Use source pKi from the dataset as the plotted affinity metric.
     df["pKi_modelled"] = df["pKi"].astype(float)
     return df
+
+
+def _load_affinity_data() -> pd.DataFrame:
+    return _load_affinity_data_cached(DATA_PATH.stat().st_mtime_ns)
 
 
 def _compass_xy(direction: str, pki: float) -> tuple[float, float]:
