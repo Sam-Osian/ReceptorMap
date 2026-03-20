@@ -151,32 +151,21 @@
         duplicateWarning.style.display = "none";
         duplicateWarning.textContent =
             "This drug/target combination already exists. Use the Update workflow instead.";
-        // Place warning under the Target selector itself (not above the section heading).
-        var targetFieldContainer =
-            bySelector(".field-target_select") ||
-            (field("target_select") ? field("target_select").closest(".form-row, .fieldBox, div") : null);
-        if (targetFieldContainer) {
-            duplicateWarning.style.marginTop = "0.45rem";
-            targetFieldContainer.appendChild(duplicateWarning);
+        if (rowValuesSection) {
+            rowValuesSection.insertBefore(duplicateWarning, rowValuesSection.firstChild);
         } else {
-            var targetSelectRow = rowForField("target_select");
-            if (targetSelectRow && targetSelectRow.parentNode) {
-                targetSelectRow.parentNode.insertBefore(duplicateWarning, targetSelectRow.nextSibling);
-            } else {
-                var anchorRow = rowForField("target_new");
-                if (anchorRow && anchorRow.parentNode) {
-                    anchorRow.parentNode.insertBefore(duplicateWarning, anchorRow.nextSibling);
-                }
+            var anchorRow = rowForField("target_new") || rowForField("target_select");
+            if (anchorRow && anchorRow.parentNode) {
+                anchorRow.parentNode.insertBefore(duplicateWarning, anchorRow.nextSibling);
             }
         }
         var updateSummary = document.createElement("div");
-        updateSummary.className = "dataset-change-summary";
+        updateSummary.className = "help";
         updateSummary.style.marginTop = "0.65rem";
         updateSummary.style.padding = "0.55rem 0.65rem";
-        updateSummary.style.border = "1px solid var(--hairline-color, #d7deef)";
+        updateSummary.style.border = "1px solid #d7deef";
         updateSummary.style.borderRadius = "0.45rem";
-        updateSummary.style.background = "var(--body-bg, #fff)";
-        updateSummary.style.color = "var(--body-fg, #222)";
+        updateSummary.style.background = "#f8faff";
         updateSummary.style.display = "none";
         if (rowValuesSection) {
             rowValuesSection.appendChild(updateSummary);
@@ -273,17 +262,6 @@
 
             if (valuesDiffer(row.drug_class, newDrugClass, false)) {
                 changes.push("Drug class: " + asText(row.drug_class) + " -> " + newDrugClass);
-                var drugWideCount = Object.keys(rowMap).filter(function (key) {
-                    var candidate = rowMap[key];
-                    return candidate && candidate.drug === row.drug;
-                }).length;
-                changes.push(
-                    "Scope note: drug class updates apply to all rows for " +
-                        asText(row.drug) +
-                        " (" +
-                        drugWideCount +
-                        " row(s))."
-                );
             }
             if (valuesDiffer(row.activity, newActivity, false)) {
                 changes.push("Activity: " + asText(row.activity) + " -> " + newActivity);

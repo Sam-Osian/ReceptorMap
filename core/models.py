@@ -59,6 +59,7 @@ class DatasetEditProposal(models.Model):
     class Meta:
         ordering = ["-created_at"]
         permissions = [
+            ("can_propose_dataset_edit", "Can create/update dataset edit proposals"),
             ("can_approve_dataset_edit", "Can approve/reject dataset edit proposals"),
         ]
 

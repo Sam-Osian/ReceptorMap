@@ -12,8 +12,12 @@ from django.contrib import admin
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.urls import path, reverse
+from django.utils.html import format_html
 from django.utils import timezone
 
 from .models import DatasetEditProposal
@@ -117,6 +121,67 @@ def _format_row_snapshot(row: dict) -> str:
     return "\n".join(lines)
 
 
+def _display_value(value: object) -> str:
+    if value in {None, ""}:
+        return "-"
+    return str(value)
+
+
+def _proposal_change_summary(proposal: DatasetEditProposal, row_map: dict[str, dict]) -> list[str]:
+    action = proposal.action
+    if action == DatasetEditProposal.Action.ADD:
+        return [
+            f"New row: {proposal.drug} | {proposal.target}",
+            f"Drug class: {_display_value(proposal.drug_class)}",
+            f"Activity: {_display_value(proposal.activity)}",
+            f"Ki lower bound (nM): {_display_value(proposal.ki_lower_nm)}",
+            f"Ki upper bound (nM): {_display_value(proposal.ki_upper_nm)}",
+        ]
+
+    if action == DatasetEditProposal.Action.DELETE:
+        key = _encode_row_key(proposal.drug or "", proposal.target or "")
+        current = row_map.get(key)
+        if not current:
+            return ["Delete selected, but current dataset row was not found."]
+        return [
+            f"Delete row: {current['drug']} | {current['target']}",
+            f"Drug class: {_display_value(current.get('drug_class'))}",
+            f"Activity: {_display_value(current.get('activity'))}",
+            f"Ki lower bound (nM): {_display_value(current.get('ki_lower_nm'))}",
+            f"Ki upper bound (nM): {_display_value(current.get('ki_upper_nm'))}",
+        ]
+
+    if action == DatasetEditProposal.Action.UPDATE:
+        key = _encode_row_key(proposal.drug or "", proposal.target or "")
+        current = row_map.get(key)
+        if not current:
+            return ["Current dataset row not found. Cannot compute field-level differences."]
+
+        changes: list[str] = []
+        comparisons = (
+            ("drug_class", "Drug class"),
+            ("activity", "Activity"),
+            ("ki_lower_nm", "Ki lower bound (nM)"),
+            ("ki_upper_nm", "Ki upper bound (nM)"),
+        )
+        for field_name, label in comparisons:
+            before = current.get(field_name)
+            after = getattr(proposal, field_name)
+            if before != after:
+                changes.append(f"{label}: {_display_value(before)} -> {_display_value(after)}")
+                if field_name == "drug_class":
+                    drug_rows = sum(1 for row in row_map.values() if row.get("drug") == proposal.drug)
+                    changes.append(
+                        f"Scope note: Drug class updates are applied to all rows for {proposal.drug} "
+                        f"({drug_rows} row(s))."
+                    )
+        if not changes:
+            return ["No differences from current row."]
+        return changes
+
+    return ["No summary available."]
+
+
 class DatasetEditProposalForm(forms.ModelForm):
     existing_row = forms.ChoiceField(
         required=False,
@@ -175,6 +240,17 @@ class DatasetEditProposalForm(forms.ModelForm):
         self.fields["target_new"].widget.attrs["placeholder"] = "Enter new target"
         self.fields["drug_class_new"].widget.attrs["placeholder"] = "Enter new drug class"
         self.fields["activity_new"].widget.attrs["placeholder"] = "Enter new activity"
+        self.fields["ki_lower_nm"].label = "Ki lower bound (nM)"
+        self.fields["ki_upper_nm"].label = "Ki upper bound (nM)"
+        self.fields["drug_class_select"].help_text = (
+            "Update workflow: changing drug class updates all rows for the selected drug."
+        )
+        self.fields["ki_lower_nm"].help_text = (
+            "If you do not have a Ki range, enter one Ki value in either lower or upper."
+        )
+        self.fields["ki_upper_nm"].help_text = (
+            "If you do not have a Ki range, enter one Ki value in either lower or upper."
+        )
 
         selected_key = self._selected_row_key()
         if selected_key and selected_key in self._row_map:
@@ -195,6 +271,33 @@ class DatasetEditProposalForm(forms.ModelForm):
             self._set_select_or_new_initial("target_select", "target_new", self.initial.get("target"))
             self._set_select_or_new_initial("drug_class_select", "drug_class_new", self.initial.get("drug_class"))
             self._set_select_or_new_initial("activity_select", "activity_new", self.initial.get("activity"))
+
+        self._apply_help_icons()
+
+    def _add_help_icon(self, field_name: str, tooltip_text: str) -> None:
+        if field_name not in self.fields:
+            return
+        base_label = self.fields[field_name].label or field_name.replace("_", " ").title()
+        self.fields[field_name].label = format_html(
+            '{} <span title="{}" style="display:inline-flex;align-items:center;justify-content:center;'
+            'width:1rem;height:1rem;margin-left:0.25rem;border-radius:999px;'
+            'border:1px solid #8ea0c8;color:#2f4a87;font-weight:700;font-size:0.72rem;cursor:help;">?</span>',
+            base_label,
+            tooltip_text,
+        )
+
+    def _apply_help_icons(self) -> None:
+        self._add_help_icon("action", "Select Add, Update, or Delete to set the proposal workflow.")
+        self._add_help_icon("existing_row", "Choose the dataset row to update or delete.")
+        self._add_help_icon("drug_select", "Pick an existing drug name, or choose Add new.")
+        self._add_help_icon("target_select", "Pick an existing target name, or choose Add new.")
+        self._add_help_icon("drug_class_select", "Pick an existing drug class, or choose Add new.")
+        self._add_help_icon("activity_select", "Pick an existing activity label, or choose Add new.")
+        self._add_help_icon("ki_lower_nm", "Lower Ki bound in nanomolar (nM).")
+        self._add_help_icon("ki_upper_nm", "Upper Ki bound in nanomolar (nM).")
+        self._add_help_icon("citation", "Source supporting the proposed change.")
+        self._add_help_icon("notes", "Optional context for add/update proposals.")
+        self._add_help_icon("delete_reason", "Why this row should be removed.")
 
     def _configure_choice_field(self, field_name: str, values: list[str], noun: str) -> None:
         choices = [(NEW_CHOICE_VALUE, f"Add new {noun.lower()}..."), ("", "---------")]
@@ -325,6 +428,10 @@ class DatasetEditProposalForm(forms.ModelForm):
                     "This drug/target row already exists in the dataset. Use Update instead."
                 )
 
+        citation = (cleaned_data.get("citation") or "").strip()
+        if action in {DatasetEditProposal.Action.ADD, DatasetEditProposal.Action.DELETE} and not citation:
+            self.add_error("citation", "Citation is required for add and delete proposals.")
+
         return cleaned_data
 
 
@@ -332,7 +439,6 @@ class DatasetEditProposalForm(forms.ModelForm):
 class DatasetEditProposalAdmin(admin.ModelAdmin):
     form = DatasetEditProposalForm
     change_list_template = "admin/core/dataset_edit_proposal/change_list.html"
-    actions = ("approve_selected_proposals", "reject_selected_proposals")
 
     list_display = (
         "id",
@@ -353,7 +459,10 @@ class DatasetEditProposalAdmin(admin.ModelAdmin):
     fieldsets = (
         (
             "Workflow",
-            {"fields": ("action", "submitted_by", "reviewed_by", "reviewed_at", "applied_at")},
+            {
+                "description": "Choose workflow first. The form sections below adapt automatically.",
+                "fields": ("action", "submitted_by", "reviewed_by", "reviewed_at", "applied_at"),
+            },
         ),
         (
             "Row Selection",
@@ -380,7 +489,8 @@ class DatasetEditProposalAdmin(admin.ModelAdmin):
                 )
             },
         ),
-        ("Research Context", {"classes": ("workflow-research-context",), "fields": ("citation", "notes")}),
+        ("Evidence", {"classes": ("workflow-evidence",), "fields": ("citation",)}),
+        ("Research Context", {"classes": ("workflow-research-context",), "fields": ("notes",)}),
         ("Deletion", {"classes": ("workflow-delete-details",), "fields": ("delete_reason",)}),
         ("Timestamps", {"fields": ("created_at", "updated_at")}),
     )
@@ -388,6 +498,11 @@ class DatasetEditProposalAdmin(admin.ModelAdmin):
     def get_urls(self):
         opts = self.model._meta
         custom_urls = [
+            path(
+                "review-queue/",
+                self.admin_site.admin_view(self.review_queue_view),
+                name=f"{opts.app_label}_{opts.model_name}_review_queue",
+            ),
             path(
                 "current-dataset/",
                 self.admin_site.admin_view(self.current_dataset_view),
@@ -402,7 +517,101 @@ class DatasetEditProposalAdmin(admin.ModelAdmin):
         extra_context["current_dataset_url"] = reverse(
             f"admin:{opts.app_label}_{opts.model_name}_current_dataset"
         )
+        if self._can_approve(request):
+            extra_context["review_queue_url"] = reverse(
+                f"admin:{opts.app_label}_{opts.model_name}_review_queue"
+            )
         return super().changelist_view(request, extra_context=extra_context)
+
+    def _can_approve(self, request) -> bool:
+        return request.user.is_superuser or request.user.has_perm("core.can_approve_dataset_edit")
+
+    def _can_propose(self, request) -> bool:
+        return request.user.is_superuser or request.user.has_perm("core.can_propose_dataset_edit")
+
+    def _can_access(self, request) -> bool:
+        return self._can_propose(request) or self._can_approve(request)
+
+    def review_queue_view(self, request):
+        if not self._can_approve(request):
+            raise PermissionDenied
+
+        opts = self.model._meta
+        queue_url = reverse(f"admin:{opts.app_label}_{opts.model_name}_review_queue")
+
+        if request.method == "POST":
+            proposal_id = (request.POST.get("proposal_id") or "").strip()
+            review_action = (request.POST.get("review_action") or "").strip()
+            proposal = get_object_or_404(DatasetEditProposal, pk=proposal_id)
+
+            if proposal.status != DatasetEditProposal.Status.PENDING:
+                self.message_user(
+                    request,
+                    f"Proposal #{proposal.id} is no longer pending and cannot be reviewed.",
+                    level=messages.WARNING,
+                )
+                return HttpResponseRedirect(queue_url)
+
+            if review_action == "approve":
+                proposal.status = DatasetEditProposal.Status.APPROVED
+                proposal.rejection_reason = ""
+                proposal.reviewed_by = request.user
+                proposal.reviewed_at = timezone.now()
+                proposal.save(update_fields=["status", "rejection_reason", "reviewed_by", "reviewed_at"])
+                self.message_user(request, f"Approved proposal #{proposal.id}.")
+                return HttpResponseRedirect(queue_url)
+
+            if review_action == "reject":
+                reason = (request.POST.get("reject_reason") or "").strip()
+                if not reason:
+                    self.message_user(
+                        request,
+                        "A rejection reason is required.",
+                        level=messages.ERROR,
+                    )
+                    return HttpResponseRedirect(queue_url)
+                proposal.status = DatasetEditProposal.Status.REJECTED
+                proposal.rejection_reason = reason
+                proposal.reviewed_by = request.user
+                proposal.reviewed_at = timezone.now()
+                proposal.save(update_fields=["status", "rejection_reason", "reviewed_by", "reviewed_at"])
+                self.message_user(request, f"Rejected proposal #{proposal.id}.")
+                return HttpResponseRedirect(queue_url)
+
+            self.message_user(request, "Invalid review action.", level=messages.ERROR)
+            return HttpResponseRedirect(queue_url)
+
+        query = (request.GET.get("q") or "").strip()
+        pending_qs = DatasetEditProposal.objects.filter(status=DatasetEditProposal.Status.PENDING).select_related(
+            "submitted_by"
+        )
+        if query:
+            pending_qs = pending_qs.filter(
+                Q(drug__icontains=query)
+                | Q(target__icontains=query)
+                | Q(drug_class__icontains=query)
+                | Q(activity__icontains=query)
+                | Q(citation__icontains=query)
+            )
+        pending_qs = pending_qs.order_by("created_at", "id")
+
+        paginator = Paginator(pending_qs, per_page=50)
+        page_obj = paginator.get_page(request.GET.get("page"))
+        row_map = _build_dataset_row_map()
+        for proposal in page_obj.object_list:
+            proposal.review_change_summary = _proposal_change_summary(proposal, row_map)
+
+        context = {
+            **self.admin_site.each_context(request),
+            "opts": opts,
+            "title": "Review queue",
+            "search_query": query,
+            "page_obj": page_obj,
+            "is_paginated": page_obj.has_other_pages(),
+            "changelist_url": reverse(f"admin:{opts.app_label}_{opts.model_name}_changelist"),
+            "queue_url": queue_url,
+        }
+        return TemplateResponse(request, "admin/core/dataset_edit_proposal/review_queue.html", context)
 
     def current_dataset_view(self, request):
         if not self.has_view_permission(request):
@@ -444,74 +653,46 @@ class DatasetEditProposalAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if request.user.is_superuser or request.user.has_perm("core.can_approve_dataset_edit"):
+        if self._can_approve(request):
             return qs
-        return qs.filter(submitted_by=request.user)
+        if self._can_propose(request):
+            return qs.filter(submitted_by=request.user)
+        return qs.none()
 
-    def get_actions(self, request):
-        actions = super().get_actions(request)
-        can_approve = request.user.is_superuser or request.user.has_perm("core.can_approve_dataset_edit")
-        if not can_approve:
-            actions.pop("approve_selected_proposals", None)
-            actions.pop("reject_selected_proposals", None)
-        return actions
-
-    @admin.action(description="Approve selected pending proposals")
-    def approve_selected_proposals(self, request, queryset):
-        can_approve = request.user.is_superuser or request.user.has_perm("core.can_approve_dataset_edit")
-        if not can_approve:
-            self.message_user(request, "You do not have permission to approve proposals.", level=messages.ERROR)
-            return
-
-        pending_qs = queryset.filter(status=DatasetEditProposal.Status.PENDING)
-        updated = pending_qs.update(
-            status=DatasetEditProposal.Status.APPROVED,
-            reviewed_by=request.user,
-            reviewed_at=timezone.now(),
-            rejection_reason="",
-        )
-        self.message_user(request, f"Approved {updated} proposal(s).")
-
-    @admin.action(description="Reject selected pending proposals")
-    def reject_selected_proposals(self, request, queryset):
-        can_approve = request.user.is_superuser or request.user.has_perm("core.can_approve_dataset_edit")
-        if not can_approve:
-            self.message_user(request, "You do not have permission to reject proposals.", level=messages.ERROR)
-            return
-
-        pending_qs = queryset.filter(status=DatasetEditProposal.Status.PENDING)
-        rejected = 0
-        now = timezone.now()
-        for proposal in pending_qs:
-            proposal.status = DatasetEditProposal.Status.REJECTED
-            proposal.reviewed_by = request.user
-            proposal.reviewed_at = now
-            if not (proposal.rejection_reason or "").strip():
-                proposal.rejection_reason = "Rejected via admin review workflow."
-            proposal.save(update_fields=["status", "reviewed_by", "reviewed_at", "rejection_reason"])
-            rejected += 1
-        self.message_user(request, f"Rejected {rejected} proposal(s).")
+    def has_module_permission(self, request):
+        return self._can_access(request)
 
     def has_view_permission(self, request, obj=None):
-        can_approve = request.user.is_superuser or request.user.has_perm("core.can_approve_dataset_edit")
-        if can_approve or obj is None:
-            return super().has_view_permission(request, obj)
+        if not self._can_access(request):
+            return False
+        if self._can_approve(request) or obj is None:
+            return True
         return obj.submitted_by_id == request.user.id
 
+    def has_add_permission(self, request):
+        return self._can_propose(request)
+
     def has_change_permission(self, request, obj=None):
-        can_approve = request.user.is_superuser or request.user.has_perm("core.can_approve_dataset_edit")
-        if can_approve or obj is None:
-            return super().has_change_permission(request, obj)
+        if self._can_approve(request):
+            return True
+        if not self._can_propose(request):
+            return False
+        if obj is None:
+            return True
         return obj.submitted_by_id == request.user.id and obj.status == DatasetEditProposal.Status.PENDING
 
     def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser or request.user.has_perm("core.can_approve_dataset_edit"):
-            return super().has_delete_permission(request, obj)
+        if self._can_approve(request):
+            return True
+        if self._can_propose(request):
+            if obj is None:
+                return True
+            return obj.submitted_by_id == request.user.id and obj.status == DatasetEditProposal.Status.PENDING
         return False
 
     def get_readonly_fields(self, request, obj=None):
         fields = list(super().get_readonly_fields(request, obj))
-        if not request.user.is_superuser and not request.user.has_perm("core.can_approve_dataset_edit"):
+        if not self._can_approve(request):
             fields.extend(["reviewed_by", "reviewed_at"])
         return fields
 
@@ -526,7 +707,7 @@ class DatasetEditProposalAdmin(admin.ModelAdmin):
         if not obj.pk:
             obj.status = DatasetEditProposal.Status.PENDING
 
-        can_approve = request.user.is_superuser or request.user.has_perm("core.can_approve_dataset_edit")
+        can_approve = self._can_approve(request)
         if can_approve and obj.status in {DatasetEditProposal.Status.APPROVED, DatasetEditProposal.Status.REJECTED}:
             if obj.status != previous_status:
                 obj.reviewed_by = request.user

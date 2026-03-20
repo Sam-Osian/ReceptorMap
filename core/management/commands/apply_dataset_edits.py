@@ -31,6 +31,27 @@ def _dataset_path() -> Path:
     return settings.BASE_DIR / "data" / "interim_data" / "antidepressants_binding_affinities.csv"
 
 
+def _derive_activity_recoded(proposal: DatasetEditProposal) -> str:
+    activity_text = (proposal.activity or "").strip()
+    lowered = activity_text.lower()
+    if not lowered:
+        raise CommandError(f"Proposal {proposal.id}: `activity` is required for add/update.")
+
+    if lowered in {"agonist", "full agonist", "partial agonist"}:
+        return "Agonist"
+    if lowered in {"antagonist", "inverse agonist", "inhibitor", "inhibition", "blocker"}:
+        return "Antagonist"
+    if "agonist" in lowered and "antagon" not in lowered and "inverse" not in lowered:
+        return "Agonist"
+    if any(token in lowered for token in ("antagon", "inhib", "block", "inverse agon")):
+        return "Antagonist"
+
+    raise CommandError(
+        f"Proposal {proposal.id}: could not auto-derive `activity_recoded` from activity '{activity_text}'. "
+        "Use a recognised activity term."
+    )
+
+
 def _proposal_row_values(proposal: DatasetEditProposal) -> dict:
     ki_lower_nm = proposal.ki_lower_nm
     ki_upper_nm = proposal.ki_upper_nm
@@ -60,6 +81,7 @@ def _proposal_row_values(proposal: DatasetEditProposal) -> dict:
     proposal.ki_is_range = ki_is_range
     proposal.modelled_ki_nm = modelled_ki_nm
     proposal.pKi = pki
+    proposal.activity_recoded = _derive_activity_recoded(proposal)
 
     return {
         "drug": proposal.drug,
@@ -82,7 +104,6 @@ def _validate_add_or_update(proposal: DatasetEditProposal) -> None:
         "target": proposal.target,
         "drug_class": proposal.drug_class,
         "activity": proposal.activity,
-        "activity_recoded": proposal.activity_recoded,
     }
     for field_name, value in required_text.items():
         if not (value or "").strip():
@@ -157,8 +178,22 @@ class Command(BaseCommand):
                             raise CommandError(
                                 f"Proposal {proposal.id}: cannot update, row not found for ({proposal.drug}, {proposal.target})."
                             )
+                        current_drug_class = str(df.loc[mask, "drug_class"].iloc[0]).strip()
+                        proposed_drug_class = str(proposal.drug_class or "").strip()
+                        drug_class_changed = current_drug_class != proposed_drug_class
+
                         for col, value in row_values.items():
                             df.loc[mask, col] = value
+
+                        # Business rule: in update workflow, a changed drug class is drug-wide.
+                        if drug_class_changed:
+                            drug_mask = df["drug"] == proposal.drug
+                            if not bool(drug_mask.any()):
+                                raise CommandError(
+                                    f"Proposal {proposal.id}: cannot apply drug-wide class update; "
+                                    f"no rows found for drug '{proposal.drug}'."
+                                )
+                            df.loc[drug_mask, "drug_class"] = proposal.drug_class
                         changed_df = True
 
                     elif proposal.action == DatasetEditProposal.Action.DELETE:
@@ -181,6 +216,7 @@ class Command(BaseCommand):
                                 "ki_is_range",
                                 "modelled_ki_nm",
                                 "pKi",
+                                "activity_recoded",
                                 "processing_error",
                                 "applied_at",
                             ]
