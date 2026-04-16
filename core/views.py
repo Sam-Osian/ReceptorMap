@@ -13,6 +13,7 @@ from pathlib import Path
 import pandas as pd
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.db import OperationalError, ProgrammingError
 from django.http import FileResponse
 from django.http import HttpRequest, HttpResponse
 from django.http import JsonResponse
@@ -669,26 +670,34 @@ def editor_save_api(request: HttpRequest) -> JsonResponse:
     _invalidate_caches()
 
     # Persist audit log
-    from .models import CsvEditRecord  # local import avoids circular
-    CsvEditRecord.objects.bulk_create([
-        CsvEditRecord(
-            session_id=session_id,
-            drug=e["drug"],
-            target=e["target"],
-            field_name=e["field"],
-            old_value=e["old"],
-            new_value=e["new"],
-            edited_by=request.user,
-        )
-        for e in audit_entries
-    ])
+    audit_warning = None
+    try:
+        from .models import CsvEditRecord  # local import avoids circular
+        CsvEditRecord.objects.bulk_create([
+            CsvEditRecord(
+                session_id=session_id,
+                drug=e["drug"],
+                target=e["target"],
+                field_name=e["field"],
+                old_value=e["old"],
+                new_value=e["new"],
+                edited_by=request.user,
+            )
+            for e in audit_entries
+        ])
+    except (OperationalError, ProgrammingError):
+        # Keep saves working even if local DB audit table isn't migrated yet.
+        audit_warning = "Audit records unavailable (database migration needed)."
 
-    return JsonResponse({
+    payload = {
         "success": True,
         "applied": len(audit_entries),
         "session": session_id,
         "updated_rows": updated_rows,
-    })
+    }
+    if audit_warning:
+        payload["audit_warning"] = audit_warning
+    return JsonResponse(payload)
 
 
 @login_required(login_url="/editor/login/")
@@ -696,20 +705,24 @@ def editor_audit_api(request: HttpRequest) -> JsonResponse:
     if not _can_edit_csv(request.user):
         return JsonResponse({"error": "Permission denied"}, status=403)
 
-    from .models import CsvEditRecord
-    qs = CsvEditRecord.objects.select_related("edited_by").order_by("-edited_at")[:300]
-    records = [
-        {
-            "id": r.id,
-            "session": r.session_id[:8],
-            "drug": r.drug,
-            "target": r.target,
-            "field": r.field_name,
-            "old": r.old_value,
-            "new": r.new_value,
-            "by": r.edited_by.username if r.edited_by else "—",
-            "at": r.edited_at.strftime("%Y-%m-%d %H:%M:%S UTC"),
-        }
-        for r in qs
-    ]
+    try:
+        from .models import CsvEditRecord
+        qs = CsvEditRecord.objects.select_related("edited_by").order_by("-edited_at")[:300]
+        records = [
+            {
+                "id": r.id,
+                "session": r.session_id[:8],
+                "drug": r.drug,
+                "target": r.target,
+                "field": r.field_name,
+                "old": r.old_value,
+                "new": r.new_value,
+                "by": r.edited_by.username if r.edited_by else "—",
+                "at": r.edited_at.strftime("%Y-%m-%d %H:%M:%S UTC"),
+            }
+            for r in qs
+        ]
+    except (OperationalError, ProgrammingError):
+        # Graceful fallback when audit table is unavailable locally.
+        return JsonResponse({"records": []})
     return JsonResponse({"records": records})

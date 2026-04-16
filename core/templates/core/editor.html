@@ -1762,7 +1762,19 @@
         const body = document.getElementById('audit-body');
         body.innerHTML = '<p class="audit-empty"><i class="hgi-stroke hgi-loading-01" style="animation:spin 0.8s linear infinite"></i> Loading…</p>';
         try {
-            const resp = await fetch("{% url 'editor_audit' %}");
+            const resp = await fetch("{% url 'editor_audit' %}", { credentials: 'same-origin' });
+            const ct = (resp.headers.get('content-type') || '').toLowerCase();
+            if (!resp.ok || !ct.includes('application/json')) {
+                let preview = '';
+                try {
+                    preview = (await resp.text()).slice(0, 260);
+                } catch {}
+                if (resp.status === 401 || resp.status === 403 || resp.status === 302) {
+                    body.innerHTML = `<p class="audit-empty">Session expired or access denied.<br><small style="display:block;margin-top:0.45rem;color:#8d96b6">debug: status=${resp.status}, content-type=${esc(ct || 'unknown')}${preview ? `<br>preview: ${esc(preview)}` : ''}</small></p>`;
+                    return;
+                }
+                throw new Error(`Audit request failed (${resp.status}) ct=${ct || 'unknown'} preview=${preview}`);
+            }
             const data = await resp.json();
             auditLoaded = true;
             const recs = data.records || [];
@@ -1779,7 +1791,8 @@
             });
             document.getElementById('audit-count-badge').textContent = `(${grouped.length} sessions, ${recs.length} changes)`;
             if (!recs.length) { body.innerHTML = '<p class="audit-empty">No edits recorded yet.</p>'; return; }
-            body.innerHTML = `<div class="audit-groups">${grouped.map((g, idx) => `<details class="audit-group"${idx===0?' open':''}>
+            try {
+                body.innerHTML = `<div class="audit-groups">${grouped.map((g, idx) => `<details class="audit-group"${idx===0?' open':''}>
                 <summary class="audit-group-summary">
                     <span class="audit-group-meta">
                         <span class="audit-group-when">${esc(g.at)}</span>
@@ -1800,7 +1813,23 @@
                     </tr>`).join('')}</tbody></table>
                 </div>
             </details>`).join('')}</div>`;
-        } catch { body.innerHTML = '<p class="audit-empty">Failed to load audit log.</p>'; }
+            } catch {
+                body.innerHTML = `<table class="audit-table"><thead><tr>
+                    <th>When</th><th>By</th><th>Session</th><th>Drug</th><th>Target</th><th>Field</th><th>Before</th><th>After</th>
+                </tr></thead><tbody>${recs.map(r => `<tr>
+                    <td style="white-space:nowrap;color:#6e7898">${esc(r.at)}</td>
+                    <td style="font-weight:700">${esc(r.by)}</td>
+                    <td><span class="audit-session">${esc(r.session)}</span></td>
+                    <td style="font-weight:700;color:#1a2240">${esc(r.drug)}</td>
+                    <td style="color:#485283">${esc(r.target)}</td>
+                    <td><span class="audit-field-tag">${esc(r.field)}</span></td>
+                    <td style="color:#c04040;text-decoration:line-through">${esc(r.old||'—')}</td>
+                    <td style="color:#1a7040;font-weight:700">${esc(r.new||'—')}</td>
+                </tr>`).join('')}</tbody></table>`;
+            }
+        } catch (err) {
+            body.innerHTML = `<p class="audit-empty">Failed to load audit log.<br><small style="display:block;margin-top:0.45rem;color:#8d96b6">debug: ${esc(err && err.message ? err.message : String(err || 'unknown error'))}</small></p>`;
+        }
     }
 
     /* ── Load animation ── */
