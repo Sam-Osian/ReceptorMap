@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Access Denied — ReceptorMap Editor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.hugeicons.com/font/hgi-stroke-rounded.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            margin: 0; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            font-family: "Manrope", sans-serif;
+            background: #f4f5f9; color: #181b2a;
+            padding: 2rem;
+        }
+        .card {
+            background: #fff; border: 1px solid #dde3f0; border-radius: 1.2rem;
+            box-shadow: 0 12px 40px rgba(18,26,60,0.12);
+            padding: 2.5rem 2.2rem; max-width: 380px; width: 100%;
+            text-align: center;
+        }
+        .card i { font-size: 2.4rem; color: #b0b8d8; display: block; margin-bottom: 1rem; }
+        h1 { margin: 0 0 0.5rem; font-size: 1.15rem; font-weight: 800; color: #1a2240; }
+        p { margin: 0 0 1.4rem; font-size: 0.83rem; color: #6e7898; line-height: 1.6; }
+        a { font-size: 0.8rem; color: #4065d8; font-weight: 700; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <i class="hgi-stroke hgi-lock-01"></i>
+        <h1>Access denied</h1>
+        <p>Your account does not have the <strong>can_edit_csv</strong> permission. Ask an administrator to add you to the <strong>Dataset Editors</strong> group in Django admin.</p>
+        <a href="{% url 'home' %}">← Back to ReceptorMap</a>
+    </div>
+</body>
+</html>

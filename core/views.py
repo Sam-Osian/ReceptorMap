@@ -1,16 +1,26 @@
 from __future__ import annotations
 
+import csv
+import json
+import math
+import shutil
+import tempfile
+import uuid
 from functools import lru_cache
 import re
+from pathlib import Path
 
 import pandas as pd
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.http import FileResponse
 from django.http import HttpRequest, HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.html import escape
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 
 DATA_PATH = settings.BASE_DIR / "data" / "antidepressants_binding_affinities.csv"
@@ -49,6 +59,10 @@ ACTIVITY_TO_DIRECTION = {
 }
 
 
+def _derive_activity_recoded(activity: object) -> str:
+    return ACTIVITY_TO_DIRECTION.get(str(activity or "").strip().lower(), "")
+
+
 def _normalise_direction(value: object) -> str | None:
     text = str(value or "").strip().lower()
     if text == "agonist":
@@ -62,7 +76,7 @@ def _derive_direction(activity_recoded: object, activity: object) -> str | None:
     recoded = _normalise_direction(activity_recoded)
     if recoded:
         return recoded
-    return ACTIVITY_TO_DIRECTION.get(str(activity or "").strip().lower())
+    return _derive_activity_recoded(activity) or None
 
 
 @lru_cache(maxsize=4)
@@ -396,3 +410,306 @@ def axis_data(request: HttpRequest) -> JsonResponse:
     selected_receptor = request.GET.get("receptor") or request.GET.get("target", "")
     payload = _build_view_payload(df, selected_drug, selected_receptor)
     return JsonResponse(payload)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CSV Editor views
+# ─────────────────────────────────────────────────────────────────────────────
+
+FULL_CSV_COLUMNS = [
+    "drug", "drug_class", "target", "activity", "activity_recoded",
+    "ki_lower_nm", "ki_upper_nm", "modelled_ki_nm", "ki_is_range",
+    "log10_ki_nm", "pKi", "source_url", "evidence_note", "last_verified_at",
+]
+
+EDITABLE_FIELDS = frozenset({
+    "drug_class", "activity",
+    "ki_lower_nm", "ki_upper_nm",
+    "source_url", "evidence_note",
+})
+
+NUMERIC_FIELDS = frozenset({"ki_lower_nm", "ki_upper_nm", "modelled_ki_nm"})
+
+ACTIVITY_OPTIONS = [
+    "", "Agonist", "Antagonist", "Full agonist", "Inhibitor",
+    "Partial agonist", "Blocker", "Ligand",
+]
+
+
+def _can_edit_csv(user) -> bool:
+    return user.is_superuser or user.has_perm("core.can_edit_csv")
+
+
+def _load_full_rows() -> list[dict]:
+    """Load all rows from the CSV with every column preserved as strings."""
+    rows: list[dict] = []
+    with DATA_PATH.open("r", newline="", encoding="utf-8") as fh:
+        reader = csv.DictReader(fh)
+        for raw in reader:
+            row = {col: (raw.get(col) or "").strip() for col in FULL_CSV_COLUMNS}
+            rows.append(row)
+    return rows
+
+
+def _write_full_rows(rows: list[dict]) -> None:
+    """Atomically write rows back to the CSV (temp-file + rename)."""
+    tmp_fd, tmp_name = tempfile.mkstemp(
+        suffix=".tmp", dir=DATA_PATH.parent, prefix="_editor_"
+    )
+    tmp_path = Path(tmp_name)
+    try:
+        with open(tmp_fd, mode="w", newline="", encoding="utf-8") as fh:
+            writer = csv.DictWriter(fh, fieldnames=FULL_CSV_COLUMNS)
+            writer.writeheader()
+            writer.writerows(rows)
+        tmp_path.replace(DATA_PATH)
+    except Exception:
+        tmp_path.unlink(missing_ok=True)
+        raise
+
+
+def _recompute_derived(row: dict) -> None:
+    """Recompute log10_ki_nm and pKi from the current modelled_ki_nm string."""
+    val_str = row.get("modelled_ki_nm", "")
+    try:
+        ki = float(val_str)
+        if ki > 0:
+            log10 = math.log10(ki)
+            row["log10_ki_nm"] = f"{log10:.15g}"
+            row["pKi"] = f"{9.0 - log10:.15g}"
+            return
+    except (ValueError, TypeError):
+        pass
+    # Can't compute — leave existing values intact
+
+
+def _get_drug_class_options() -> list[str]:
+    classes: set[str] = set()
+    try:
+        for row in _load_full_rows():
+            dc = row.get("drug_class", "")
+            if dc:
+                classes.add(dc)
+    except Exception:
+        pass
+    return [""] + sorted(classes)
+
+
+def _invalidate_caches() -> None:
+    _load_affinity_data_cached.cache_clear()
+    try:
+        from core.admin import _load_dataset_rows_cached
+        _load_dataset_rows_cached.cache_clear()
+    except Exception:
+        pass
+
+
+@login_required(login_url="/editor/login/")
+def editor_view(request: HttpRequest) -> HttpResponse:
+    if not _can_edit_csv(request.user):
+        return render(request, "core/editor_access_denied.html", status=403)
+
+    rows = _load_full_rows()
+    drug_class_options = _get_drug_class_options()
+    unique_drugs = sorted({r["drug"] for r in rows})
+
+    dropdown_options = {
+        "drug_class": drug_class_options,
+        "activity": ACTIVITY_OPTIONS,
+    }
+
+    context = {
+        "current_page": "editor",
+        "rows": rows,
+        "total_rows": len(rows),
+        "drug_count": len(unique_drugs),
+        "dropdown_options": dropdown_options,
+    }
+    return render(request, "core/editor.html", context)
+
+
+@login_required(login_url="/editor/login/")
+@require_POST
+def editor_save_api(request: HttpRequest) -> JsonResponse:
+    if not _can_edit_csv(request.user):
+        return JsonResponse({"error": "Permission denied"}, status=403)
+
+    try:
+        payload = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    change_list: list[dict] = payload.get("changes", [])
+    if not change_list:
+        return JsonResponse({"error": "No changes provided"}, status=400)
+
+    # Per-field validation
+    drug_class_opts = set(_get_drug_class_options())
+    dropdown_validators: dict[str, set] = {
+        "activity": set(ACTIVITY_OPTIONS),
+        "drug_class": drug_class_opts,
+    }
+    errors: list[str] = []
+
+    for i, ch in enumerate(change_list, 1):
+        field = str(ch.get("field", ""))
+        new_val = str(ch.get("newVal", "") or "")
+
+        if field not in EDITABLE_FIELDS:
+            errors.append(f"Change {i}: field '{field}' is not editable.")
+            continue
+
+        if field in NUMERIC_FIELDS and new_val:
+            try:
+                float(new_val)
+            except ValueError:
+                errors.append(f"Change {i}: invalid number for '{field}': {new_val!r}")
+
+    if errors:
+        return JsonResponse({"error": "Validation errors", "details": errors}, status=400)
+
+    # Load current CSV
+    all_rows = _load_full_rows()
+    row_index: dict[tuple[str, str], dict] = {
+        (r["drug"], r["target"]): r for r in all_rows
+    }
+
+    # Group changes by (drug, target)
+    row_changes: dict[tuple[str, str], dict[str, str]] = {}
+    for ch in change_list:
+        drug = str(ch.get("drug", ""))
+        target = str(ch.get("target", ""))
+        field = str(ch.get("field", ""))
+        new_val = str(ch.get("newVal", "") or "")
+        key = (drug, target)
+        row_changes.setdefault(key, {})[field] = new_val
+
+    missing = [f"{d}/{t}" for d, t in row_changes if (d, t) not in row_index]
+    if missing:
+        return JsonResponse({"error": "Rows not found", "details": missing}, status=400)
+
+    session_id = uuid.uuid4().hex
+    audit_entries: list[dict] = []
+    updated_rows: list[dict] = []
+    verified_date = timezone.localdate().isoformat()
+
+    for (drug, target), field_map in row_changes.items():
+        row = row_index[(drug, target)]
+        ki_touched = False
+        row_changed = False
+
+        for field, new_val in field_map.items():
+            old_val = row.get(field, "")
+            if old_val == new_val:
+                continue
+            row[field] = new_val
+            row_changed = True
+            audit_entries.append({
+                "drug": drug, "target": target,
+                "field": field, "old": old_val, "new": new_val,
+            })
+            if field in NUMERIC_FIELDS:
+                ki_touched = True
+
+        if ki_touched:
+            # ki_is_range is derived: True only when both bounds are provided.
+            lo_str = row.get("ki_lower_nm", "")
+            hi_str = row.get("ki_upper_nm", "")
+            is_range = bool(lo_str and hi_str)
+            derived_range_val = "True" if is_range else "False"
+            old_range_val = row.get("ki_is_range", "")
+            if old_range_val != derived_range_val:
+                row["ki_is_range"] = derived_range_val
+                audit_entries.append({
+                    "drug": drug, "target": target,
+                    "field": "ki_is_range", "old": old_range_val, "new": derived_range_val,
+                })
+
+            if is_range and lo_str and hi_str:
+                try:
+                    lo, hi = float(lo_str), float(hi_str)
+                    if lo > 0 and hi > 0:
+                        geom = math.sqrt(lo * hi)
+                        row["modelled_ki_nm"] = f"{geom:.15g}"
+                except (ValueError, TypeError):
+                    pass
+            _recompute_derived(row)
+
+        if "activity" in field_map:
+            derived_activity_recoded = _derive_activity_recoded(row.get("activity", ""))
+            old_activity_recoded = row.get("activity_recoded", "")
+            if old_activity_recoded != derived_activity_recoded:
+                row["activity_recoded"] = derived_activity_recoded
+                row_changed = True
+                audit_entries.append({
+                    "drug": drug, "target": target,
+                    "field": "activity_recoded", "old": old_activity_recoded, "new": derived_activity_recoded,
+                })
+
+        if row_changed:
+            old_verified = row.get("last_verified_at", "")
+            if old_verified != verified_date:
+                row["last_verified_at"] = verified_date
+                audit_entries.append({
+                    "drug": drug, "target": target,
+                    "field": "last_verified_at", "old": old_verified, "new": verified_date,
+                })
+            updated_rows.append({
+                "drug": drug,
+                "target": target,
+                "activity_recoded": row.get("activity_recoded", ""),
+                "last_verified_at": row.get("last_verified_at", ""),
+            })
+
+    try:
+        _write_full_rows(all_rows)
+    except Exception as exc:
+        return JsonResponse({"error": f"Failed to write CSV: {exc}"}, status=500)
+
+    _invalidate_caches()
+
+    # Persist audit log
+    from .models import CsvEditRecord  # local import avoids circular
+    CsvEditRecord.objects.bulk_create([
+        CsvEditRecord(
+            session_id=session_id,
+            drug=e["drug"],
+            target=e["target"],
+            field_name=e["field"],
+            old_value=e["old"],
+            new_value=e["new"],
+            edited_by=request.user,
+        )
+        for e in audit_entries
+    ])
+
+    return JsonResponse({
+        "success": True,
+        "applied": len(audit_entries),
+        "session": session_id,
+        "updated_rows": updated_rows,
+    })
+
+
+@login_required(login_url="/editor/login/")
+def editor_audit_api(request: HttpRequest) -> JsonResponse:
+    if not _can_edit_csv(request.user):
+        return JsonResponse({"error": "Permission denied"}, status=403)
+
+    from .models import CsvEditRecord
+    qs = CsvEditRecord.objects.select_related("edited_by").order_by("-edited_at")[:300]
+    records = [
+        {
+            "id": r.id,
+            "session": r.session_id[:8],
+            "drug": r.drug,
+            "target": r.target,
+            "field": r.field_name,
+            "old": r.old_value,
+            "new": r.new_value,
+            "by": r.edited_by.username if r.edited_by else "—",
+            "at": r.edited_at.strftime("%Y-%m-%d %H:%M:%S UTC"),
+        }
+        for r in qs
+    ]
+    return JsonResponse({"records": records})

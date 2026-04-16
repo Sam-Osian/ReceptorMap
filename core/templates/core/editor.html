@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dataset Editor — ReceptorMap</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%234760d4'/%3E%3Cstop offset='1' stop-color='%232f9d68'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='8' y='8' width='48' height='48' rx='13' fill='%23f9fbff' stroke='%23ccd5e8' stroke-width='2'/%3E%3Ccircle cx='32' cy='32' r='12.6' fill='none' stroke='%23dbe2f0' stroke-width='2'/%3E%3Cpath d='M18 32H46' stroke='%23202a45' stroke-width='2.6' stroke-linecap='round'/%3E%3Ccircle cx='22' cy='32' r='3.6' fill='%234760d4'/%3E%3Ccircle cx='42' cy='32' r='3.6' fill='%232f9d68'/%3E%3Crect x='29.2' y='29.2' width='5.6' height='5.6' rx='1.4' transform='rotate(45 32 32)' fill='%23202a45'/%3E%3Cpath d='M24 24.8c2.6-2.3 5-3.4 8-3.4s5.4 1.1 8 3.4' fill='none' stroke='url(%23g)' stroke-width='2.1' stroke-linecap='round'/%3E%3C/svg%3E">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.hugeicons.com/font/hgi-stroke-rounded.css">
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html, body {
+            margin: 0; padding: 0;
+            height: 100%;
+            font-family: "Manrope", "Segoe UI", sans-serif;
+            color: #181b2a;
+            background: #f4f5f9;
+            font-size: 14px;
+        }
+
+        /* ── App shell: toolbar + sheet filling the viewport ── */
+        .editor-shell {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ── Toolbar ── */
+        .editor-toolbar {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.35rem;
+            padding: 1rem 1.4rem;
+            background: linear-gradient(180deg, #ffffff, #fafbfe);
+            border-bottom: 1px solid #e2e6f0;
+            box-shadow: 0 1px 4px rgba(18,26,60,0.06);
+        }
+
+        .et-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-width: 0;
+        }
+
+        .brand-mark {
+            width: 2.85rem; height: 2.85rem;
+            background: #fff;
+            border: 1px solid #d0d8ee;
+            border-radius: 0.72rem;
+            box-shadow: 0 2px 8px rgba(50,64,104,0.13);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .brand-mark svg { width: 2.05rem; height: 2.05rem; display: block; }
+
+        .et-title-group { min-width: 0; }
+        .et-title {
+            margin: 0;
+            font-family: "Outfit", sans-serif;
+            font-size: 1.46rem;
+            font-weight: 700;
+            color: #181b2a;
+            letter-spacing: -0.01em;
+            white-space: nowrap;
+        }
+        .et-subtitle {
+            margin: 0;
+            font-size: 0.96rem;
+            line-height: 1.25;
+            color: #8a90a8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .et-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-shrink: 0;
+        }
+
+        /* Toolbar buttons */
+        .btn-ghost {
+            height: 2.2rem;
+            padding: 0 0.92rem;
+            border: 1px solid #dde3f0;
+            border-radius: 0.62rem;
+            background: #fff;
+            color: #4b5578;
+            font-size: 0.82rem;
+            font-family: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.36rem;
+            transition: border-color 130ms ease, background 130ms ease, transform 120ms ease;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn-ghost:hover {
+            border-color: #c0cae6;
+            background: #f5f8ff;
+            transform: translateY(-1px);
+        }
+
+        .btn-save {
+            height: 2.2rem;
+            padding: 0 1rem;
+            border: none;
+            border-radius: 0.62rem;
+            background: linear-gradient(135deg, #1e2f6a, #2a45a8);
+            color: #fff;
+            font-size: 0.82rem;
+            font-family: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.38rem;
+            box-shadow: 0 2px 8px rgba(30,47,106,0.32);
+            transition: opacity 140ms ease, transform 120ms ease, box-shadow 130ms ease;
+            white-space: nowrap;
+        }
+        .btn-save:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(30,47,106,0.42);
+        }
+        .btn-save:disabled { opacity: 0.36; cursor: not-allowed; box-shadow: none; }
+
+        .change-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.34rem;
+            height: 1.34rem;
+            padding: 0 0.31rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.22);
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+
+        @media (max-width: 1100px) {
+            .editor-toolbar { padding: 0.8rem 1rem; gap: 0.8rem; }
+            .et-meta { gap: 0.7rem; }
+            .brand-mark { width: 2.35rem; height: 2.35rem; border-radius: 0.62rem; }
+            .brand-mark svg { width: 1.7rem; height: 1.7rem; }
+            .et-title { font-size: 1.16rem; }
+            .et-subtitle { font-size: 0.78rem; }
+            .et-actions { gap: 0.45rem; }
+            .btn-ghost,
+            .btn-save { height: 2rem; font-size: 0.76rem; }
+        }
+
+        /* ── Spreadsheet area ── */
+        .sheet-area {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sheet-scroll {
+            flex: 1;
+            overflow: auto;
+        }
+
+        /* ── Table ── */
+        .sheet-table {
+            border-collapse: collapse;
+            min-width: max-content;
+            width: 100%;
+            table-layout: fixed;
+            --col-drug-w: 148px;
+            --col-target-w: 92px;
+        }
+
+        .sheet-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 12;
+            background: #f0f2f9;
+            border-bottom: 2px solid #dde3f0;
+            padding: 0 0.7rem;
+            height: 2.3rem;
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.055em;
+            text-transform: uppercase;
+            color: #6673a0;
+            white-space: nowrap;
+            text-align: left;
+            user-select: none;
+        }
+        .sheet-table thead th.th-computed { color: #96a0c0; font-style: italic; }
+        .th-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.28rem;
+        }
+        .th-info-btn {
+            width: 1rem;
+            height: 1rem;
+            padding: 0;
+            border: 0;
+            border-radius: 999px;
+            background: transparent;
+            color: #8a94b8;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: help;
+            transition: color 110ms ease, background 110ms ease;
+        }
+        .th-info-btn:hover,
+        .th-info-btn:focus-visible {
+            color: #4f5f93;
+            background: rgba(79,95,147,0.08);
+            outline: none;
+        }
+        .th-info-btn i { font-size: 0.76rem; line-height: 1; }
+        .th-drug-search-btn {
+            width: 1rem;
+            height: 1rem;
+            padding: 0;
+            border: 0;
+            border-radius: 999px;
+            background: transparent;
+            color: #8a94b8;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: color 110ms ease, background 110ms ease;
+        }
+        .th-drug-search-btn:hover,
+        .th-drug-search-btn:focus-visible,
+        .th-drug-search-btn.is-open {
+            color: #4f5f93;
+            background: rgba(79,95,147,0.08);
+            outline: none;
+        }
+        .th-drug-search-btn i { font-size: 0.76rem; line-height: 1; }
+        #drug-search-panel {
+            position: fixed;
+            z-index: 9500;
+            display: none;
+            width: 240px;
+            background: #fff;
+            border: 1px solid #cdd6ee;
+            border-radius: 0.7rem;
+            box-shadow: 0 8px 28px rgba(20,30,70,0.18);
+            overflow: hidden;
+            animation: ddFadeIn 110ms cubic-bezier(0.22,1,0.36,1);
+        }
+        #drug-search-input {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid #edf0f8;
+            padding: 0.5rem 0.72rem;
+            font-size: 0.78rem;
+            font-family: inherit;
+            font-weight: 600;
+            color: #181b2a;
+            outline: none;
+            background: #f9fafd;
+        }
+        #drug-search-options {
+            max-height: 228px;
+            overflow-y: auto;
+            padding: 0.28rem 0;
+        }
+        .drug-search-opt {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.36rem 0.72rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #2c3556;
+            cursor: pointer;
+            transition: background 70ms ease;
+        }
+        .drug-search-opt:hover { background: #eef3ff; color: #1a2870; }
+        .drug-search-opt.is-selected { background: #e8eeff; color: #172068; }
+        .drug-search-empty {
+            padding: 0.42rem 0.72rem;
+            color: #9aa3c2;
+            font-size: 0.74rem;
+            font-weight: 600;
+        }
+        #field-help-tip {
+            position: fixed;
+            z-index: 12000;
+            max-width: 260px;
+            padding: 0.45rem 0.55rem;
+            border-radius: 0.5rem;
+            border: 1px solid #cfd8ee;
+            background: #ffffff;
+            box-shadow: 0 10px 28px rgba(16,24,56,0.2);
+            color: #2a3354;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0;
+            line-height: 1.35;
+            text-transform: none;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(4px);
+            transition: opacity 120ms ease, transform 120ms ease;
+        }
+        #field-help-tip.is-open {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Sticky identity columns */
+        .col-drug   { position: sticky; left: 0; z-index: 6; width: var(--col-drug-w); min-width: var(--col-drug-w); }
+        .col-target { width: var(--col-target-w); min-width: var(--col-target-w); }
+        thead .col-drug { z-index: 18; background: #f0f2f9; }
+
+        /* Column widths */
+        .col-drug-class  { width: 174px; min-width: 174px; }
+        .col-activity    { width: 128px; min-width: 128px; }
+        .col-act-recoded { width: 130px; min-width: 130px; }
+        .col-ki-lo       { width: 108px; min-width: 108px; }
+        .col-ki-hi       { width: 108px; min-width: 108px; }
+        .col-ki-mod      { width: 128px; min-width: 128px; }
+        .col-ki-range    { width: 86px;  min-width: 86px; }
+        .col-log10       { width: 94px;  min-width: 94px; }
+        .col-pki         { width: 74px;  min-width: 74px; }
+        .col-url         { width: 164px; min-width: 164px; }
+        .col-note        { width: 268px; min-width: 268px; }
+        .col-date        { width: 110px; min-width: 110px; }
+
+        /* Rows */
+        .sheet-table tbody tr {
+            border-bottom: 1px solid #edf0f8;
+            background: #fff;
+            transition: background 70ms ease;
+        }
+        .sheet-table tbody tr:hover { background: #f7f9ff; }
+        .sheet-table tbody tr.drug-alt { background: #fafbfe; }
+        .sheet-table tbody tr.drug-alt:hover { background: #f2f5ff; }
+        .sheet-table tbody tr.row-hidden { display: none; }
+
+        /* Cells */
+        .sheet-table tbody td {
+            padding: 0;
+            height: 2.5rem;
+            vertical-align: middle;
+            position: relative;
+            border-right: 1px solid #edf0f8;
+        }
+
+        /* Sticky body cells inherit row bg */
+        tbody .col-drug {
+            background: inherit;
+            border-right: 1px solid #dde3f0;
+        }
+
+        /* Cell text */
+        .cv {
+            display: block;
+            padding: 0 0.7rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #181b2a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 2.5rem;
+            height: 100%;
+        }
+        td.col-drug .cv  { font-weight: 800; color: #1a2240; }
+        td.col-target .cv { color: #313b60; font-weight: 700; }
+        td.cell-computed .cv { color: #8e97b8; font-size: 0.73rem; }
+        td.cell-computed { background: #f9fafd !important; }
+        td.cell-readonly { background: #f9fafd !important; }
+        td.cell-readonly .cv { color: #8e97b8; font-weight: 600; }
+        td.cell-readonly.col-drug .cv { color: #1a2240; font-weight: 800; }
+        td.cell-readonly.col-target .cv { color: #1a2240; font-weight: 800; }
+
+        /* Editable cells */
+        td.cell-editable { cursor: cell; }
+
+        /* Changed cells */
+        td.cell-changed { background: #fffbec !important; }
+        td.cell-changed::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, #f59e0b, #d97706);
+        }
+        td.cell-changed .cv { color: #7c4a03; }
+        td.cell-derived-changed { background: #f2f6ff !important; }
+        td.cell-derived-changed::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, #6a86e8, #4f67c8);
+        }
+        td.cell-derived-changed .cv { color: #3850a8; }
+
+        /* Active (being edited) cell */
+        td.cell-active { outline: 2px solid #6080d8; outline-offset: -2px; z-index: 4; }
+
+        /* Boolean chip */
+        .bool-chip {
+            display: inline-flex; align-items: center; gap: 0.26rem;
+            padding: 0.16rem 0.46rem;
+            border-radius: 999px;
+            font-size: 0.69rem; font-weight: 700;
+            cursor: default;
+            transition: filter 110ms ease;
+        }
+        .bool-chip:hover { filter: brightness(0.93); }
+        .bool-chip.is-true  { background: #e4f5ec; color: #1a7040; }
+        .bool-chip.is-false { background: #f0f1f8; color: #6672a0; }
+
+        /* URL link */
+        .url-link {
+            display: inline-flex; align-items: center; gap: 0.26rem;
+            color: #4065d8; text-decoration: none;
+            font-size: 0.76rem; font-weight: 600;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+        }
+        .url-link:hover { text-decoration: underline; }
+        .url-link-extra {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #6d7db7;
+            background: #ecf1ff;
+            border: 1px solid #d7e1ff;
+            border-radius: 999px;
+            padding: 0.05rem 0.36rem;
+            flex-shrink: 0;
+        }
+
+        /* ── Dropdown panel ── */
+        #dd-panel {
+            position: fixed; z-index: 9000;
+            background: #fff;
+            border: 1px solid #cdd6ee;
+            border-radius: 0.7rem;
+            box-shadow: 0 8px 28px rgba(20,30,70,0.18);
+            min-width: 160px; overflow: hidden;
+            animation: ddFadeIn 110ms cubic-bezier(0.22,1,0.36,1);
+        }
+        @keyframes ddFadeIn {
+            from { opacity: 0; transform: translateY(-5px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .dd-search {
+            width: 100%; border: none; border-bottom: 1px solid #edf0f8;
+            padding: 0.5rem 0.72rem;
+            font-size: 0.78rem; font-family: inherit; font-weight: 600;
+            color: #181b2a; outline: none; background: #f9fafd;
+        }
+        .dd-opts { max-height: 196px; overflow-y: auto; padding: 0.28rem 0; }
+        .dd-opt {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.36rem 0.72rem;
+            font-size: 0.78rem; font-weight: 600; color: #2c3556;
+            cursor: pointer; transition: background 70ms ease;
+        }
+        .dd-opt:hover { background: #eef3ff; color: #1a2870; }
+        .dd-opt.is-selected { background: #e8eeff; color: #172068; }
+        .dd-opt.is-empty-opt { color: #a0aacc; font-style: italic; }
+        .dd-check { font-size: 0.74rem; color: #2a4acc; flex-shrink: 0; }
+
+        /* ── Inline input overlay ── */
+        #cell-input-overlay {
+            position: fixed; z-index: 8500;
+            border: 2px solid #6080d8; border-radius: 4px;
+            background: #fff; padding: 0 0.65rem;
+            font-size: 0.78rem; font-family: inherit; font-weight: 600; color: #181b2a;
+            outline: none; box-shadow: 0 0 0 4px rgba(96,128,216,0.14);
+            display: none;
+        }
+        #cell-input-overlay.is-invalid {
+            border-color: #e53e3e;
+            box-shadow: 0 0 0 4px rgba(229,62,62,0.12);
+        }
+
+        /* ── Textarea popup ── */
+        #textarea-popup {
+            position: fixed; z-index: 9000; display: none;
+            background: #fff;
+            border: 1px solid #cdd6ee; border-radius: 0.7rem;
+            box-shadow: 0 8px 28px rgba(20,30,70,0.18);
+            padding: 0.5rem; min-width: 320px; max-width: 500px;
+            animation: ddFadeIn 110ms cubic-bezier(0.22,1,0.36,1);
+        }
+        #textarea-popup textarea {
+            width: 100%; min-height: 108px;
+            border: 1px solid #dde3f0; border-radius: 0.4rem;
+            padding: 0.52rem 0.62rem;
+            font-size: 0.78rem; font-family: inherit; font-weight: 500;
+            color: #181b2a; outline: none; resize: vertical; line-height: 1.5;
+            background: #f9fafd; transition: border-color 130ms ease;
+        }
+        #textarea-popup textarea:focus { border-color: #9cb2e8; background: #fff; }
+        .ta-footer { display: flex; justify-content: flex-end; gap: 0.38rem; margin-top: 0.38rem; }
+        .ta-btn {
+            height: 1.75rem; padding: 0 0.68rem;
+            border-radius: 0.4rem; border: 1px solid transparent;
+            font-size: 0.74rem; font-family: inherit; font-weight: 700; cursor: pointer;
+        }
+        .ta-btn-cancel { border-color: #dde3f0; background: #fff; color: #5a6280; }
+        .ta-btn-cancel:hover { background: #f5f7ff; }
+        .ta-btn-ok { background: #1e2f6a; color: #fff; }
+        .ta-btn-ok:hover { background: #243680; }
+
+        /* ── Source URL modal ── */
+        .url-modal-overlay {
+            position: fixed; inset: 0; z-index: 10100;
+            background: rgba(15,20,50,0.46);
+            display: none; align-items: center; justify-content: center;
+            padding: 1.5rem;
+            backdrop-filter: blur(2px);
+        }
+        .url-modal-overlay.is-open { display: flex; animation: mOverIn 150ms ease; }
+        .url-modal-box {
+            background: #fff;
+            border-radius: 0.95rem;
+            border: 1px solid #d8e0f4;
+            box-shadow: 0 24px 64px rgba(15,22,60,0.26);
+            width: min(680px, 96vw);
+            max-height: 84vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: mBoxIn 200ms cubic-bezier(0.22,1,0.36,1);
+        }
+        .url-modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.9rem 1.1rem 0.72rem;
+            border-bottom: 1px solid #e8ecf5;
+        }
+        .url-modal-title {
+            margin: 0;
+            font-family: "Outfit", sans-serif;
+            font-size: 1rem;
+            color: #1b2341;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.34rem;
+        }
+        .url-modal-body { padding: 0.9rem 1.1rem; }
+        .url-modal-hint {
+            margin: 0 0 0.5rem;
+            font-size: 0.74rem;
+            color: #7d86a8;
+            font-weight: 600;
+        }
+        .url-url-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            max-height: 320px;
+            overflow: auto;
+            padding-right: 0.1rem;
+            margin-bottom: 0.6rem;
+        }
+        .url-row {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .url-row-input {
+            width: 100%;
+            border: 1px solid #dde3f0;
+            border-radius: 0.55rem;
+            padding: 0.48rem 0.62rem;
+            font-size: 0.78rem;
+            font-family: inherit;
+            font-weight: 600;
+            color: #1a2240;
+            outline: none;
+            background: #f9fafd;
+            transition: border-color 130ms ease;
+        }
+        .url-row-input:focus { border-color: #9cb2e8; background: #fff; }
+        .url-row-remove {
+            height: 2rem;
+            min-width: 2rem;
+            border: 1px solid #dde3f0;
+            border-radius: 0.5rem;
+            background: #fff;
+            color: #6f789a;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .url-row-remove:hover { background: #f5f7ff; border-color: #c7d2ee; }
+        #url-add-row {
+            height: 2rem;
+            padding: 0 0.74rem;
+            border: 1px dashed #cdd6ee;
+            border-radius: 0.55rem;
+            background: #f7f9ff;
+            color: #4e5e94;
+            font-size: 0.76rem;
+            font-family: inherit;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            cursor: pointer;
+        }
+        #url-add-row:hover { background: #eef3ff; border-color: #bfcbea; }
+        .url-modal-footer {
+            display: flex; justify-content: flex-end; gap: 0.42rem;
+            padding: 0.72rem 1.1rem 0.95rem;
+            border-top: 1px solid #eef2f8;
+        }
+
+        /* ── Save modal ── */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 10000;
+            background: rgba(15,20,50,0.46);
+            display: none; align-items: center; justify-content: center;
+            padding: 1.5rem;
+            backdrop-filter: blur(2px);
+        }
+        .modal-overlay.is-open { display: flex; animation: mOverIn 150ms ease; }
+        @keyframes mOverIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-box {
+            background: #fff; border-radius: 1.1rem;
+            border: 1px solid #d8e0f4;
+            box-shadow: 0 24px 64px rgba(15,22,60,0.26);
+            max-width: 760px; width: 100%; max-height: 88vh;
+            display: flex; flex-direction: column; overflow: hidden;
+            animation: mBoxIn 200ms cubic-bezier(0.22,1,0.36,1);
+        }
+        @keyframes mBoxIn {
+            from { transform: translateY(14px) scale(0.97); opacity: 0; }
+            to   { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1rem 1.4rem 0.85rem;
+            border-bottom: 1px solid #e8ecf5;
+        }
+        .modal-title {
+            margin: 0; font-family: "Outfit", sans-serif;
+            font-size: 1.05rem; font-weight: 700; color: #181b2a;
+            display: flex; align-items: center; gap: 0.45rem;
+        }
+        .modal-close-btn {
+            width: 1.85rem; height: 1.85rem;
+            border: 1px solid #dde3f0; border-radius: 50%;
+            background: #fff; color: #6673a0; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 0.88rem;
+            transition: background 110ms ease;
+        }
+        .modal-close-btn:hover { background: #f5f7ff; }
+        .modal-body { padding: 0.9rem 1.4rem; overflow-y: auto; flex: 1; }
+        .modal-subtitle { margin: 0 0 0.8rem; font-size: 0.8rem; color: #6e7898; }
+        .diff-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+        .diff-table thead th {
+            padding: 0.38rem 0.58rem;
+            background: #f4f6fb; border-bottom: 2px solid #dde3f0;
+            font-size: 0.64rem; font-weight: 800; letter-spacing: 0.05em;
+            text-transform: uppercase; color: #7280a8; text-align: left;
+        }
+        .diff-table tbody tr { border-bottom: 1px solid #edf0f8; }
+        .diff-table tbody td { padding: 0.42rem 0.58rem; vertical-align: top; }
+        .diff-drug   { font-weight: 700; color: #1a2240; }
+        .diff-target { color: #485283; font-weight: 600; }
+        .diff-field  { font-size: 0.69rem; font-weight: 700; color: #8e97b8; text-transform: uppercase; letter-spacing: 0.04em; }
+        .diff-old    { color: #c04040; text-decoration: line-through; font-weight: 600; }
+        .diff-new    { color: #1a7040; font-weight: 700; }
+        .modal-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.85rem 1.4rem; border-top: 1px solid #e8ecf5; gap: 0.5rem;
+        }
+        .modal-note { font-size: 0.74rem; color: #9099be; }
+        .btn-modal-cancel {
+            padding: 0 0.9rem; height: 2rem;
+            border: 1px solid #dde3f0; border-radius: 0.52rem;
+            background: #fff; color: #4b5578;
+            font-size: 0.78rem; font-family: inherit; font-weight: 700; cursor: pointer;
+        }
+        .btn-modal-cancel:hover { background: #f5f7ff; }
+        .btn-modal-confirm {
+            padding: 0 1rem; height: 2rem; border: none; border-radius: 0.52rem;
+            background: linear-gradient(135deg, #1e2f6a, #2a45a8); color: #fff;
+            font-size: 0.78rem; font-family: inherit; font-weight: 700; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 0.38rem;
+            box-shadow: 0 2px 8px rgba(30,47,106,0.30);
+            transition: opacity 120ms ease, transform 110ms ease;
+        }
+        .btn-modal-confirm:hover:not(:disabled) { transform: translateY(-1px); }
+        .btn-modal-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ── Audit drawer ── */
+        .audit-drawer {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 9500;
+            background: #fff;
+            border-top: 1px solid #cdd6ee;
+            border-radius: 1rem 1rem 0 0;
+            box-shadow: 0 -8px 32px rgba(15,22,60,0.13);
+            transform: translateY(100%);
+            transition: transform 280ms cubic-bezier(0.22,1,0.36,1);
+            max-height: 48vh; display: flex; flex-direction: column;
+        }
+        .audit-drawer.is-open { transform: translateY(0); }
+        .audit-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.72rem 1.1rem; border-bottom: 1px solid #e8ecf5; flex-shrink: 0;
+        }
+        .audit-title {
+            margin: 0; font-size: 0.84rem; font-weight: 800; color: #1a2240;
+            display: flex; align-items: center; gap: 0.4rem;
+        }
+        .audit-close-btn {
+            width: 1.75rem; height: 1.75rem;
+            border: 1px solid #dde3f0; border-radius: 50%;
+            background: #fff; color: #6673a0; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 0.84rem;
+            transition: background 110ms ease;
+        }
+        .audit-close-btn:hover { background: #f5f7ff; }
+        .audit-body { overflow-y: auto; flex: 1; }
+        .audit-table { width: 100%; border-collapse: collapse; font-size: 0.74rem; }
+        .audit-table thead th {
+            position: sticky; top: 0;
+            padding: 0.38rem 0.62rem; background: #f4f6fb; border-bottom: 2px solid #dde3f0;
+            font-size: 0.62rem; font-weight: 800; letter-spacing: 0.055em;
+            text-transform: uppercase; color: #7280a8; text-align: left; white-space: nowrap;
+        }
+        .audit-table tbody tr { border-bottom: 1px solid #edf0f8; }
+        .audit-table tbody td { padding: 0.36rem 0.62rem; vertical-align: middle; }
+        .audit-session { font-family: monospace; color: #9099be; font-size: 0.68rem; }
+        .audit-field-tag {
+            display: inline-block; padding: 0.06rem 0.35rem;
+            border-radius: 999px; background: #eef2ff; color: #3d53b0;
+            font-size: 0.63rem; font-weight: 700; letter-spacing: 0.03em;
+        }
+        .audit-empty { padding: 1.4rem; text-align: center; color: #9099be; font-size: 0.78rem; }
+        .audit-groups { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.6rem 0.7rem 0.8rem; }
+        .audit-group {
+            border: 1px solid #e1e6f4;
+            border-radius: 0.62rem;
+            background: #fff;
+            overflow: hidden;
+        }
+        .audit-group-summary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
+            padding: 0.52rem 0.66rem;
+            background: #f8faff;
+            border-bottom: 1px solid #e8ecf5;
+        }
+        .audit-group-summary::-webkit-details-marker { display: none; }
+        .audit-group-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 0;
+        }
+        .audit-group-when {
+            color: #6e7898;
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .audit-group-by {
+            color: #1a2240;
+            font-size: 0.74rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .audit-group-count {
+            color: #4f5f93;
+            font-size: 0.7rem;
+            font-weight: 800;
+            background: #ebf0ff;
+            border: 1px solid #d5defa;
+            border-radius: 999px;
+            padding: 0.06rem 0.42rem;
+            white-space: nowrap;
+        }
+        .audit-group-body { padding: 0.32rem 0.4rem 0.45rem; }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed; bottom: 1.4rem; right: 1.4rem; z-index: 12000;
+            padding: 0.65rem 0.95rem; border-radius: 0.58rem;
+            font-size: 0.8rem; font-weight: 700; color: #fff;
+            display: flex; align-items: center; gap: 0.45rem;
+            box-shadow: 0 8px 24px rgba(15,22,60,0.22);
+            opacity: 0; transform: translateY(10px);
+            transition: opacity 190ms ease, transform 190ms cubic-bezier(0.22,1,0.36,1);
+            pointer-events: none;
+        }
+        .toast.is-visible { opacity: 1; transform: translateY(0); }
+        .toast-success { background: linear-gradient(135deg, #1a7040, #2a9d5c); }
+        .toast-error   { background: linear-gradient(135deg, #c03030, #e04040); }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+{{ dropdown_options|json_script:"dropdown-options-data" }}
+
+<div class="editor-shell">
+
+    <!-- ── Toolbar ── -->
+    <div class="editor-toolbar">
+        <div class="et-meta">
+            <div class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 64 64">
+                    <defs>
+                        <linearGradient id="rm-g" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#4760d4"/>
+                            <stop offset="1" stop-color="#2f9d68"/>
+                        </linearGradient>
+                    </defs>
+                    <rect x="8" y="8" width="48" height="48" rx="13" fill="#f9fbff" stroke="#ccd5e8" stroke-width="2"/>
+                    <circle cx="32" cy="32" r="12.6" fill="none" stroke="#dbe2f0" stroke-width="2"/>
+                    <path d="M18 32H46" stroke="#202a45" stroke-width="2.6" stroke-linecap="round"/>
+                    <circle cx="22" cy="32" r="3.6" fill="#4760d4"/>
+                    <circle cx="42" cy="32" r="3.6" fill="#2f9d68"/>
+                    <rect x="29.2" y="29.2" width="5.6" height="5.6" rx="1.4" transform="rotate(45 32 32)" fill="#202a45"/>
+                    <path d="M24 24.8c2.6-2.3 5-3.4 8-3.4s5.4 1.1 8 3.4" fill="none" stroke="url(#rm-g)" stroke-width="2.1" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="et-title-group">
+                <h1 class="et-title">Dataset Editor</h1>
+                <p class="et-subtitle">{{ total_rows }} rows &middot; {{ drug_count }} drugs &middot; {{ request.user.username }}</p>
+            </div>
+        </div>
+        <div class="et-actions">
+            <button id="audit-btn" class="btn-ghost" type="button">
+                <i class="hgi-stroke hgi-clock-03"></i> Audit log
+            </button>
+            <button id="undo-btn" class="btn-ghost" type="button" disabled title="Undo (Ctrl/Cmd+Z)">
+                <i class="hgi-stroke hgi-undo-02"></i> Undo
+            </button>
+            <button id="redo-btn" class="btn-ghost" type="button" disabled title="Redo (Ctrl/Cmd+Y)">
+                <i class="hgi-stroke hgi-redo-02"></i> Redo
+            </button>
+            <a href="{% url 'editor_logout' %}" class="btn-ghost">
+                <i class="hgi-stroke hgi-logout-02"></i> Sign out
+            </a>
+            <button id="save-btn" class="btn-save" type="button" disabled aria-live="polite">
+                <i class="hgi-stroke hgi-floppy-disk"></i>
+                Save changes
+                <span class="change-badge" id="change-count">0</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ── Spreadsheet ── -->
+    <div class="sheet-area">
+        <div class="sheet-scroll" id="sheet-scroll">
+            <table class="sheet-table" id="sheet-table" role="grid" aria-label="Binding affinities dataset">
+                <thead>
+                    <tr>
+                        <th class="col-drug"><span class="th-label">Drug<button class="th-info-btn" type="button" data-help="Primary drug name for the row. Read-only." aria-label="What is Drug?"><i class="hgi-stroke hgi-information-circle"></i></button><button id="drug-search-btn" class="th-drug-search-btn" type="button" aria-label="Search/filter drugs"><i class="hgi-stroke hgi-search-01"></i></button></span></th>
+                        <th class="col-target"><span class="th-label">Target<button class="th-info-btn" type="button" data-help="Primary receptor/target for this binding row. Read-only." aria-label="What is Target?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
+                        <th class="col-drug-class"><span class="th-label">Drug Class<button class="th-info-btn" type="button" data-help="Pharmacological class grouping for the drug." aria-label="What is Drug Class?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
+                        <th class="col-activity"><span class="th-label">Activity<button class="th-info-btn" type="button" data-help="Functional activity label curated from evidence (for example inhibitor, agonist)." aria-label="What is Activity?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
+                        <th class="col-act-recoded"><span class="th-label">Act. Recoded<button class="th-info-btn" type="button" data-help="Binary recode used for direction analyses. Read-only." aria-label="What is Act. Recoded?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
+                        <th class="col-ki-lo"><span class="th-label">Ki Lower (nM)<button class="th-info-btn" type="button" data-help="Lower bound of the Ki value in nM when a range is reported." aria-label="What is Ki Lower?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
+                        <th class="col-ki-hi"><span class="th-label">Ki Upper (nM)<button class="th-info-btn" type="button" data-help="Upper bound of the Ki value in nM when a range is reported." aria-label="What is Ki Upper?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
+                        <th class="col-ki-mod"><span class="th-label">Modelled Ki (nM)<button class="th-info-btn" type="button" data-help="Single Ki value used for computations. Auto-generated and read-only." aria-label="What is Modelled Ki?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
+                        <th class="col-ki-range"><span class="th-label">Ki Range?<button class="th-info-btn" type="button" data-help="Indicates whether both Ki Lower and Ki Upper are present. Auto-generated and read-only." aria-label="What is Ki Range?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
+                        <th class="col-log10 th-computed"><span class="th-label">log₁₀ Ki<button class="th-info-btn" type="button" data-help="Base-10 logarithm of Modelled Ki (nM). Auto-generated and read-only." aria-label="What is log10 Ki?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
+                        <th class="col-pki th-computed"><span class="th-label">pKi<button class="th-info-btn" type="button" data-help="Affinity score computed as 9 - log10(Ki in nM). Auto-generated and read-only." aria-label="What is pKi?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
+                        <th class="col-url"><span class="th-label">Source URL<button class="th-info-btn" type="button" data-help="Reference link supporting the value in the row." aria-label="What is Source URL?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
+                        <th class="col-note"><span class="th-label">Evidence Note<button class="th-info-btn" type="button" data-help="Short summary of the evidence rationale for this row." aria-label="What is Evidence Note?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
+                        <th class="col-date"><span class="th-label">Last Verified<button class="th-info-btn" type="button" data-help="Date this row was last saved/updated in the editor. Auto-managed and read-only." aria-label="What is Last Verified?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
+                    </tr>
+                </thead>
+                <tbody id="sheet-tbody">
+                {% for row in rows %}
+                <tr class="sheet-row" data-drug="{{ row.drug }}" data-target="{{ row.target }}">
+                    <td class="cell-readonly col-drug"><span class="cv">{{ row.drug }}</span></td>
+                    <td class="cell-readonly col-target"><span class="cv">{{ row.target }}</span></td>
+                    <td class="cell-editable col-drug-class" data-field="drug_class" data-type="select" data-value="{{ row.drug_class }}">
+                        <span class="cv">{% if row.drug_class %}{{ row.drug_class }}{% else %}—{% endif %}</span>
+                    </td>
+                    <td class="cell-editable col-activity" data-field="activity" data-type="select" data-value="{{ row.activity }}">
+                        <span class="cv">{% if row.activity %}{{ row.activity }}{% else %}—{% endif %}</span>
+                    </td>
+                    <td class="cell-readonly col-act-recoded" data-field="activity_recoded" data-type="computed" data-value="{{ row.activity_recoded }}">
+                        <span class="cv">{% if row.activity_recoded %}{{ row.activity_recoded }}{% else %}—{% endif %}</span>
+                    </td>
+                    <td class="cell-editable col-ki-lo" data-field="ki_lower_nm" data-type="number" data-value="{{ row.ki_lower_nm }}">
+                        <span class="cv">{% if row.ki_lower_nm %}{{ row.ki_lower_nm }}{% else %}—{% endif %}</span>
+                    </td>
+                    <td class="cell-editable col-ki-hi" data-field="ki_upper_nm" data-type="number" data-value="{{ row.ki_upper_nm }}">
+                        <span class="cv">{% if row.ki_upper_nm %}{{ row.ki_upper_nm }}{% else %}—{% endif %}</span>
+                    </td>
+                    <td class="cell-readonly col-ki-mod" data-field="modelled_ki_nm" data-type="computed" data-value="{{ row.modelled_ki_nm }}">
+                        <span class="cv">{% if row.modelled_ki_nm %}{{ row.modelled_ki_nm }}{% else %}—{% endif %}</span>
+                    </td>
+                    <td class="cell-readonly col-ki-range" data-field="ki_is_range" data-type="computed" data-value="{{ row.ki_is_range }}">
+                        <span class="cv">
+                            {% if row.ki_is_range == "True" %}
+                            <span class="bool-chip is-true"><i class="hgi-stroke hgi-checkmark-circle-01"></i>Yes</span>
+                            {% else %}
+                            <span class="bool-chip is-false"><i class="hgi-stroke hgi-cancel-circle"></i>No</span>
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td class="cell-computed col-log10" data-field="log10_ki_nm" data-type="computed" data-value="{{ row.log10_ki_nm }}">
+                        <span class="cv">{% if row.log10_ki_nm %}{{ row.log10_ki_nm|floatformat:4 }}{% else %}—{% endif %}</span>
+                    </td>
+                    <td class="cell-computed col-pki" data-field="pKi" data-type="computed" data-value="{{ row.pKi }}">
+                        <span class="cv">{% if row.pKi %}{{ row.pKi|floatformat:4 }}{% else %}—{% endif %}</span>
+                    </td>
+                    <td class="cell-editable col-url" data-field="source_url" data-type="url" data-value="{{ row.source_url }}">
+                        <span class="cv">
+                            {% if row.source_url %}
+                            <a class="url-link" href="{{ row.source_url }}" target="_blank" rel="noopener" tabindex="-1"
+                               onclick="event.stopPropagation()"><i class="hgi-stroke hgi-link-03"></i>{{ row.source_url|truncatechars:28 }}</a>
+                            {% else %}—{% endif %}
+                        </span>
+                    </td>
+                    <td class="cell-editable col-note" data-field="evidence_note" data-type="textarea" data-value="{{ row.evidence_note }}">
+                        <span class="cv" title="{{ row.evidence_note }}">{% if row.evidence_note %}{{ row.evidence_note|truncatechars:60 }}{% else %}—{% endif %}</span>
+                    </td>
+                    <td class="cell-readonly col-date" data-field="last_verified_at" data-type="computed" data-value="{{ row.last_verified_at }}">
+                        <span class="cv">{% if row.last_verified_at %}{{ row.last_verified_at }}{% else %}—{% endif %}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ── Dropdown panel ── -->
+<div id="dd-panel" style="display:none" role="listbox">
+    <input type="text" id="dd-search" class="dd-search" placeholder="Search…" autocomplete="off" spellcheck="false">
+    <div class="dd-opts" id="dd-opts"></div>
+</div>
+
+<!-- ── Inline input overlay ── -->
+<input type="text" id="cell-input-overlay" autocomplete="off" spellcheck="false">
+
+<!-- ── Textarea popup ── -->
+<div id="textarea-popup">
+    <textarea id="textarea-edit" rows="5"></textarea>
+    <div class="ta-footer">
+        <button class="ta-btn ta-btn-cancel" id="ta-cancel">Cancel</button>
+        <button class="ta-btn ta-btn-ok" id="ta-ok">Apply</button>
+    </div>
+</div>
+
+<!-- ── Source URL modal ── -->
+<div class="url-modal-overlay" id="url-modal" role="dialog" aria-modal="true" aria-labelledby="url-modal-title">
+    <div class="url-modal-box">
+        <div class="url-modal-header">
+            <h3 class="url-modal-title" id="url-modal-title">
+                <i class="hgi-stroke hgi-link-03"></i>
+                Source URLs
+            </h3>
+            <button class="modal-close-btn" id="url-modal-close" aria-label="Close source URLs editor">
+                <i class="hgi-stroke hgi-cancel-01"></i>
+            </button>
+        </div>
+        <div class="url-modal-body">
+            <p class="url-modal-hint">Add one URL per box. Use + Add URL for additional sources.</p>
+            <div class="url-url-list" id="url-url-list"></div>
+            <button id="url-add-row" type="button"><i class="hgi-stroke hgi-plus-sign"></i> Add URL</button>
+        </div>
+        <div class="url-modal-footer">
+            <button class="btn-modal-cancel" id="url-modal-cancel" type="button">Cancel</button>
+            <button class="btn-modal-confirm" id="url-modal-apply" type="button">
+                <i class="hgi-stroke hgi-checkmark-circle-01"></i> Apply
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Save modal ── -->
+<div class="modal-overlay" id="save-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title-text">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2 class="modal-title" id="modal-title-text">
+                <i class="hgi-stroke hgi-floppy-disk" style="font-size:0.96rem;color:#4065d8"></i>
+                Save changes
+            </h2>
+            <button class="modal-close-btn" id="modal-close" aria-label="Close">
+                <i class="hgi-stroke hgi-cancel-01"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-subtitle">Review every change below. This will write directly to the CSV file.</p>
+            <table class="diff-table">
+                <thead>
+                    <tr>
+                        <th>Drug</th><th>Target</th><th>Field</th>
+                        <th>Before</th><th></th><th>After</th>
+                    </tr>
+                </thead>
+                <tbody id="diff-tbody"></tbody>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <span class="modal-note" id="modal-change-note"></span>
+            <div style="display:flex;gap:0.45rem;align-items:center">
+                <button class="btn-modal-cancel" id="modal-cancel">Cancel</button>
+                <button class="btn-modal-confirm" id="modal-confirm">
+                    <i class="hgi-stroke hgi-floppy-disk"></i> Confirm &amp; Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Audit drawer ── -->
+<div class="audit-drawer" id="audit-drawer" role="complementary" aria-label="Audit log">
+    <div class="audit-header">
+        <h3 class="audit-title">
+            <i class="hgi-stroke hgi-clock-03"></i> Audit Log
+            <span id="audit-count-badge" style="font-size:0.68rem;font-weight:700;color:#9099be;margin-left:0.28rem"></span>
+        </h3>
+        <button class="audit-close-btn" id="audit-close" aria-label="Close audit log">
+            <i class="hgi-stroke hgi-arrow-down-01"></i>
+        </button>
+    </div>
+    <div class="audit-body" id="audit-body">
+        <p class="audit-empty">Loading…</p>
+    </div>
+</div>
+<div id="field-help-tip" role="tooltip" aria-hidden="true"></div>
+<div id="drug-search-panel" role="dialog" aria-label="Filter by drug">
+    <input type="text" id="drug-search-input" placeholder="Search drugs…" autocomplete="off" spellcheck="false" aria-label="Search drugs">
+    <div id="drug-search-options"></div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    const DROPDOWN_OPTIONS = JSON.parse(document.getElementById('dropdown-options-data').textContent);
+    const FIELD_LABELS = {
+        drug_class: 'Drug Class', activity: 'Activity', activity_recoded: 'Act. Recoded',
+        ki_lower_nm: 'Ki Lower (nM)', ki_upper_nm: 'Ki Upper (nM)', modelled_ki_nm: 'Modelled Ki (nM)',
+        ki_is_range: 'Ki Range?', source_url: 'Source URL', evidence_note: 'Evidence Note',
+        last_verified_at: 'Last Verified',
+    };
+
+    const changes = {};
+    const NON_SUBMIT_CHANGE_FIELDS = new Set(['ki_is_range', 'activity_recoded']);
+    const undoStack = [];
+    const redoStack = [];
+    let activeEdit  = null;
+    let ddActiveTd  = null;
+    let auditLoaded = false;
+    let activeHelpBtn = null;
+    let activeTxn = null;
+    let isReplayingHistory = false;
+    let drugFilterQuery = '';
+
+    function cellKey(drug, target, field) { return `${drug}\x1E${target}\x1E${field}`; }
+
+    function esc(str) {
+        if (str == null) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function getCsrf() {
+        const m = document.cookie.match(/csrftoken=([^;]+)/);
+        return m ? m[1] : '';
+    }
+
+    function syncStickyColumns() {
+        const table = document.getElementById('sheet-table');
+        if (!table) return;
+        const drugTh = table.querySelector('thead th.col-drug');
+        const targetTh = table.querySelector('thead th.col-target');
+        if (!drugTh || !targetTh) return;
+
+        const drugW = Math.round(drugTh.getBoundingClientRect().width);
+        const targetW = Math.round(targetTh.getBoundingClientRect().width);
+        if (drugW > 0) table.style.setProperty('--col-drug-w', `${drugW}px`);
+        if (targetW > 0) table.style.setProperty('--col-target-w', `${targetW}px`);
+    }
+
+    function showToast(msg, type) {
+        const t = document.createElement('div');
+        t.className = `toast toast-${type}`;
+        t.innerHTML = `<i class="hgi-stroke ${type === 'success' ? 'hgi-checkmark-circle-01' : 'hgi-alert-circle'}"></i>${esc(msg)}`;
+        document.body.appendChild(t);
+        requestAnimationFrame(() => {
+            t.classList.add('is-visible');
+            setTimeout(() => { t.classList.remove('is-visible'); setTimeout(() => t.remove(), 300); }, 4200);
+        });
+    }
+
+    /* ── Row drug-group alternation ── */
+    (function () {
+        let lastDrug = null, alt = false;
+        document.querySelectorAll('#sheet-tbody .sheet-row').forEach(tr => {
+            const d = tr.dataset.drug;
+            if (d !== lastDrug) { alt = !alt; lastDrug = d; }
+            if (alt) tr.classList.add('drug-alt');
+        });
+    }());
+
+    /* ── Save button ── */
+    function updateSaveBtn() {
+        const n = Object.keys(changes).length;
+        document.getElementById('change-count').textContent = n;
+        document.getElementById('save-btn').disabled = n === 0;
+    }
+
+    function updateHistoryButtons() {
+        document.getElementById('undo-btn').disabled = undoStack.length === 0;
+        document.getElementById('redo-btn').disabled = redoStack.length === 0;
+    }
+
+    function runUserEdit(fn) {
+        if (isReplayingHistory) { fn(); return; }
+        const prevTxn = activeTxn;
+        activeTxn = [];
+        fn();
+        const txn = activeTxn;
+        activeTxn = prevTxn;
+        if (txn.length > 0) {
+            undoStack.push(txn);
+            redoStack.length = 0;
+            updateHistoryButtons();
+        }
+    }
+
+    function initCellBaselines() {
+        document.querySelectorAll('#sheet-tbody td[data-field]').forEach(td => {
+            td.dataset.initialValue = String(td.dataset.value || '');
+        });
+    }
+
+    function rebaseCellBaselines() {
+        document.querySelectorAll('#sheet-tbody td[data-field]').forEach(td => {
+            td.dataset.initialValue = String(td.dataset.value || '');
+        });
+    }
+
+    function deriveKiRange(tr) {
+        const loTd = tr.querySelector('td[data-field="ki_lower_nm"]');
+        const hiTd = tr.querySelector('td[data-field="ki_upper_nm"]');
+        const lo = String(loTd?.dataset.value || '').trim();
+        const hi = String(hiTd?.dataset.value || '').trim();
+        return (lo !== '' && hi !== '') ? 'True' : 'False';
+    }
+
+    function deriveRecodedFromActivity(activityVal) {
+        const k = String(activityVal || '').trim().toLowerCase();
+        if (k === 'agonist' || k === 'full agonist' || k === 'partial agonist') return 'Agonist';
+        if (k === 'antagonist' || k === 'inverse agonist' || k === 'inhibitor' || k === 'inhibition' || k === 'blocker') return 'Antagonist';
+        return '';
+    }
+
+    function refreshActivityRecoded(tr) {
+        const activityTd = tr.querySelector('td[data-field="activity"]');
+        const recodedTd = tr.querySelector('td.col-act-recoded');
+        if (!activityTd || !recodedTd) return;
+        const recoded = deriveRecodedFromActivity(activityTd.dataset.value);
+        const drug = tr.dataset.drug || '';
+        const target = tr.dataset.target || '';
+        applyChange(recodedTd, drug, target, 'activity_recoded', recoded, { derived: true });
+    }
+
+    function refreshKiRange(tr) {
+        const td = tr.querySelector('td[data-field="ki_is_range"]');
+        if (!td) return;
+        const drug = tr.dataset.drug || '';
+        const target = tr.dataset.target || '';
+        applyChange(td, drug, target, 'ki_is_range', deriveKiRange(tr), { derived: true });
+    }
+
+    function parseSourceUrls(raw) {
+        return String(raw || '')
+            .split(/\r?\n/)
+            .map(s => s.trim())
+            .filter(Boolean);
+    }
+
+    function renderSourceUrlCell(td, rawVal) {
+        const cv = td.querySelector('.cv');
+        if (!cv) return;
+        const urls = parseSourceUrls(rawVal);
+        if (!urls.length) { cv.textContent = '—'; return; }
+        const first = urls[0];
+        const trunc = first.length > 28 ? first.slice(0, 27) + '…' : first;
+        const extra = urls.length > 1 ? `<span class="url-link-extra">+${urls.length - 1}</span>` : '';
+        cv.innerHTML = `<span class="url-link"><i class="hgi-stroke hgi-link-03"></i>${esc(trunc)}</span>${extra}`;
+    }
+
+    /* ── Apply change ── */
+    function applyChange(td, drug, target, field, newVal, opts = {}) {
+        const { trackHistory = true, derived = false } = opts;
+        const initialVal = String(td.dataset.initialValue || '');
+        const oldVal = String(td.dataset.value || '');
+        const nextVal = String(newVal || '');
+
+        if (trackHistory && oldVal !== nextVal) {
+            const patch = { td, drug, target, field, from: oldVal, to: nextVal, derived };
+            if (activeTxn) {
+                activeTxn.push(patch);
+            } else {
+                undoStack.push([patch]);
+                redoStack.length = 0;
+                updateHistoryButtons();
+            }
+        }
+
+        const key = cellKey(drug, target, field);
+        if (nextVal === initialVal) {
+            delete changes[key];
+            td.classList.remove('cell-changed');
+            td.classList.remove('cell-derived-changed');
+        } else {
+            changes[key] = { drug, target, field, oldVal: initialVal, newVal: nextVal, derived };
+            td.classList.add('cell-changed');
+            td.classList.toggle('cell-derived-changed', derived);
+        }
+        td.dataset.value = nextVal;
+        const cv = td.querySelector('.cv');
+        if (field === 'ki_is_range') {
+            const isTrue = nextVal.toLowerCase() === 'true';
+            cv.innerHTML = isTrue
+                ? `<span class="bool-chip is-true"><i class="hgi-stroke hgi-checkmark-circle-01"></i>Yes</span>`
+                : `<span class="bool-chip is-false"><i class="hgi-stroke hgi-cancel-circle"></i>No</span>`;
+        } else if (field === 'source_url') {
+            renderSourceUrlCell(td, nextVal);
+        } else if (field === 'evidence_note') {
+            const s = nextVal;
+            cv.textContent = s ? (s.length > 60 ? s.slice(0,59) + '…' : s) : '—';
+            td.title = s;
+        } else {
+            cv.textContent = nextVal || '—';
+        }
+
+        if (!isReplayingHistory) {
+            if (field === 'ki_lower_nm' || field === 'ki_upper_nm') {
+                const tr = td.closest('tr');
+                if (tr) refreshKiRange(tr);
+            }
+            if (field === 'activity') {
+                const tr = td.closest('tr');
+                if (tr) refreshActivityRecoded(tr);
+            }
+        }
+
+        updateSaveBtn();
+    }
+
+    function replayTxn(txn, dir) {
+        isReplayingHistory = true;
+        const patches = dir === 'undo' ? Array.from(txn).reverse() : txn;
+        patches.forEach(p => {
+            applyChange(p.td, p.drug, p.target, p.field, dir === 'undo' ? p.from : p.to, { trackHistory: false, derived: !!p.derived });
+        });
+        isReplayingHistory = false;
+    }
+
+    function undoLastEdit() {
+        cancelActiveEdit();
+        const txn = undoStack.pop();
+        if (!txn) return;
+        replayTxn(txn, 'undo');
+        redoStack.push(txn);
+        updateHistoryButtons();
+    }
+
+    function redoLastEdit() {
+        cancelActiveEdit();
+        const txn = redoStack.pop();
+        if (!txn) return;
+        replayTxn(txn, 'redo');
+        undoStack.push(txn);
+        updateHistoryButtons();
+    }
+
+    /* ── Dropdown ── */
+    const ddPanel  = document.getElementById('dd-panel');
+    const ddSearch = document.getElementById('dd-search');
+    const ddOpts   = document.getElementById('dd-opts');
+
+    function openDropdown(td, drug, target, field) {
+        cancelActiveEdit();
+        ddActiveTd = td;
+        const options = DROPDOWN_OPTIONS[field] || [];
+
+        function render(filter) {
+            const q = filter.trim().toLowerCase();
+            const filtered = options.filter(o => !q || String(o).toLowerCase().includes(q));
+            ddOpts.innerHTML = filtered.map(opt => {
+                const sel = opt === td.dataset.value;
+                const empty = opt === '';
+                return `<div class="dd-opt${sel?' is-selected':''}${empty?' is-empty-opt':''}" data-value="${esc(opt)}" role="option" aria-selected="${sel}">
+                    <span>${empty ? '<em>— clear —</em>' : esc(opt)}</span>
+                    ${sel ? '<i class="hgi-stroke hgi-checkmark-circle-01 dd-check"></i>' : ''}
+                </div>`;
+            }).join('');
+            ddOpts.querySelectorAll('.dd-opt').forEach(el => {
+                el.addEventListener('click', () => { runUserEdit(() => applyChange(td, drug, target, field, el.dataset.value)); closeDropdown(); });
+            });
+        }
+
+        const rect = td.getBoundingClientRect();
+        const w = Math.max(rect.width, 180);
+        let left = rect.left;
+        if (left + w > window.innerWidth - 10) left = window.innerWidth - w - 10;
+        ddPanel.style.cssText = `display:block;left:${left}px;top:${rect.bottom + 2}px;width:${w}px;`;
+        td.classList.add('cell-active');
+        ddSearch.value = '';
+        render('');
+        ddSearch.focus();
+        ddSearch.oninput = () => render(ddSearch.value);
+        activeEdit = { td, commit: ()=>{}, cancel: closeDropdown };
+    }
+
+    function closeDropdown() {
+        ddPanel.style.display = 'none';
+        if (ddActiveTd) { ddActiveTd.classList.remove('cell-active'); ddActiveTd = null; }
+        activeEdit = null;
+    }
+
+    /* ── Inline input ── */
+    const cellInput = document.getElementById('cell-input-overlay');
+
+    function openInput(td, drug, target, field, type) {
+        cancelActiveEdit();
+        const rect = td.getBoundingClientRect();
+        cellInput.type = type === 'number' ? 'number' : type === 'date' ? 'date' : 'text';
+        if (type === 'number') { cellInput.step = 'any'; cellInput.min = ''; }
+        cellInput.value = td.dataset.value;
+        cellInput.style.cssText = `display:block;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;`;
+        cellInput.classList.remove('is-invalid');
+        td.classList.add('cell-active');
+
+        function commit() {
+            const v = cellInput.value.trim();
+            if (type === 'number' && v !== '' && (isNaN(parseFloat(v)) || !isFinite(parseFloat(v)))) {
+                cellInput.classList.add('is-invalid'); cellInput.focus(); return;
+            }
+            runUserEdit(() => applyChange(td, drug, target, field, v));
+            closeInput();
+        }
+        cellInput.onkeydown = e => {
+            if (e.key === 'Enter')  { e.preventDefault(); commit(); }
+            if (e.key === 'Escape') { closeInput(); }
+            if (e.key === 'Tab')    { commit(); }
+        };
+        cellInput.onblur = commit;
+        cellInput.focus(); cellInput.select();
+        activeEdit = { td, commit, cancel: closeInput };
+    }
+
+    function closeInput() {
+        cellInput.onblur = null;
+        cellInput.style.display = 'none';
+        cellInput.classList.remove('is-invalid');
+        if (activeEdit?.td) activeEdit.td.classList.remove('cell-active');
+        activeEdit = null;
+    }
+
+    /* ── Textarea popup ── */
+    const taPopup  = document.getElementById('textarea-popup');
+    const taEdit   = document.getElementById('textarea-edit');
+
+    function openTextarea(td, drug, target, field) {
+        cancelActiveEdit();
+        const rect = td.getBoundingClientRect();
+        const w = 380;
+        let left = rect.left, top = rect.bottom + 4;
+        if (left + w > window.innerWidth - 10) left = window.innerWidth - w - 10;
+        if (top + 220 > window.innerHeight - 10) top = rect.top - 224;
+        taPopup.style.cssText = `display:block;left:${left}px;top:${top}px;width:${w}px;`;
+        taEdit.value = td.dataset.value;
+        td.classList.add('cell-active');
+        taEdit.focus();
+
+        function commit() { runUserEdit(() => applyChange(td, drug, target, field, taEdit.value.trim())); closeTextarea(); }
+        document.getElementById('ta-ok').onclick     = commit;
+        document.getElementById('ta-cancel').onclick = closeTextarea;
+        taEdit.onkeydown = e => {
+            if (e.key === 'Escape') closeTextarea();
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) commit();
+        };
+        activeEdit = { td, commit, cancel: closeTextarea };
+    }
+
+    function closeTextarea() {
+        taPopup.style.display = 'none';
+        document.getElementById('ta-ok').onclick = null;
+        document.getElementById('ta-cancel').onclick = null;
+        if (activeEdit?.td) activeEdit.td.classList.remove('cell-active');
+        activeEdit = null;
+    }
+
+    function cancelActiveEdit() { if (activeEdit?.cancel) activeEdit.cancel(); }
+
+    /* ── Source URL modal ── */
+    const urlModal = document.getElementById('url-modal');
+    const urlUrlList = document.getElementById('url-url-list');
+    const urlAddRowBtn = document.getElementById('url-add-row');
+    let urlModalCtx = null;
+
+    function addUrlRow(value = '') {
+        const row = document.createElement('div');
+        row.className = 'url-row';
+
+        const input = document.createElement('input');
+        input.type = 'url';
+        input.className = 'url-row-input';
+        input.placeholder = 'https://example.com/source';
+        input.value = value;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'url-row-remove';
+        removeBtn.setAttribute('aria-label', 'Remove URL row');
+        removeBtn.innerHTML = '<i class="hgi-stroke hgi-cancel-01"></i>';
+        removeBtn.addEventListener('click', () => {
+            row.remove();
+            if (!urlUrlList.querySelector('.url-row')) addUrlRow('');
+            const first = urlUrlList.querySelector('.url-row-input');
+            if (first) first.focus();
+        });
+
+        row.appendChild(input);
+        row.appendChild(removeBtn);
+        urlUrlList.appendChild(row);
+        return input;
+    }
+
+    function getUrlModalValue() {
+        return Array.from(urlUrlList.querySelectorAll('.url-row-input'))
+            .map(el => (el.value || '').trim())
+            .filter(Boolean)
+            .join('\n');
+    }
+
+    function openUrlModal(td, drug, target, field) {
+        cancelActiveEdit();
+        urlModalCtx = { td, drug, target, field };
+        urlUrlList.innerHTML = '';
+        const urls = parseSourceUrls(td.dataset.value);
+        if (urls.length) urls.forEach(u => addUrlRow(u));
+        else addUrlRow('');
+        urlModal.classList.add('is-open');
+        const first = urlUrlList.querySelector('.url-row-input');
+        if (first) { first.focus(); first.select(); }
+        activeEdit = { td, commit: applyUrlModal, cancel: closeUrlModal };
+    }
+
+    function applyUrlModal() {
+        if (!urlModalCtx) return;
+        const cleaned = getUrlModalValue();
+        const { td, drug, target, field } = urlModalCtx;
+        runUserEdit(() => applyChange(td, drug, target, field, cleaned));
+        closeUrlModal();
+    }
+
+    function closeUrlModal() {
+        urlModal.classList.remove('is-open');
+        urlModalCtx = null;
+        activeEdit = null;
+    }
+
+    urlAddRowBtn.addEventListener('click', () => {
+        const input = addUrlRow('');
+        input.focus();
+    });
+    document.getElementById('url-modal-apply').addEventListener('click', applyUrlModal);
+    document.getElementById('url-modal-cancel').addEventListener('click', closeUrlModal);
+    document.getElementById('url-modal-close').addEventListener('click', closeUrlModal);
+    urlModal.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { e.preventDefault(); closeUrlModal(); }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); applyUrlModal(); }
+    });
+
+    /* ── Header help tooltips ── */
+    const helpTip = document.getElementById('field-help-tip');
+    function openHelp(btn) {
+        if (!helpTip || !btn) return;
+        activeHelpBtn = btn;
+        helpTip.textContent = btn.dataset.help || '';
+        helpTip.setAttribute('aria-hidden', 'false');
+        helpTip.classList.add('is-open');
+        const rect = btn.getBoundingClientRect();
+        const tipRect = helpTip.getBoundingClientRect();
+        let left = rect.left + (rect.width / 2) - (tipRect.width / 2);
+        let top = rect.bottom + 8;
+        if (left < 8) left = 8;
+        if (left + tipRect.width > window.innerWidth - 8) left = window.innerWidth - tipRect.width - 8;
+        if (top + tipRect.height > window.innerHeight - 8) top = rect.top - tipRect.height - 8;
+        helpTip.style.left = `${left}px`;
+        helpTip.style.top = `${top}px`;
+    }
+    function closeHelp() {
+        if (!helpTip) return;
+        helpTip.classList.remove('is-open');
+        helpTip.setAttribute('aria-hidden', 'true');
+        activeHelpBtn = null;
+    }
+    document.querySelectorAll('.th-info-btn').forEach(btn => {
+        btn.addEventListener('mouseenter', () => openHelp(btn));
+        btn.addEventListener('mouseleave', () => closeHelp());
+        btn.addEventListener('focus', () => openHelp(btn));
+        btn.addEventListener('blur', () => closeHelp());
+        btn.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (activeHelpBtn === btn) closeHelp();
+            else openHelp(btn);
+        });
+    });
+    document.addEventListener('scroll', closeHelp, true);
+    window.addEventListener('resize', closeHelp);
+
+    /* ── Drug header search ── */
+    const drugSearchBtn = document.getElementById('drug-search-btn');
+    const drugSearchPanel = document.getElementById('drug-search-panel');
+    const drugSearchInput = document.getElementById('drug-search-input');
+    const drugSearchOptions = document.getElementById('drug-search-options');
+    const drugNames = Array.from(new Set(Array.from(document.querySelectorAll('#sheet-tbody .sheet-row')).map(tr => tr.dataset.drug))).sort();
+
+    function applyDrugFilter(query) {
+        const q = String(query || '').trim().toLowerCase();
+        drugFilterQuery = q;
+        document.querySelectorAll('#sheet-tbody .sheet-row').forEach(tr => {
+            tr.classList.toggle('row-hidden', q !== '' && !tr.dataset.drug.toLowerCase().includes(q));
+        });
+    }
+
+    function renderDrugOptions(query) {
+        const q = String(query || '').trim().toLowerCase();
+        const opts = drugNames.filter(d => !q || d.toLowerCase().includes(q));
+        const allSel = q === '';
+        let html = `<div class="drug-search-opt${allSel ? ' is-selected' : ''}" data-drug=""><span>All drugs</span>${allSel ? '<i class="hgi-stroke hgi-checkmark-circle-01 dd-check"></i>' : ''}</div>`;
+        html += opts.map(d => `<div class="drug-search-opt${drugFilterQuery === d.toLowerCase() ? ' is-selected' : ''}" data-drug="${esc(d)}"><span>${esc(d)}</span></div>`).join('');
+        if (!opts.length && q) html += '<div class="drug-search-empty">No matching drugs.</div>';
+        drugSearchOptions.innerHTML = html;
+        drugSearchOptions.querySelectorAll('.drug-search-opt').forEach(el => {
+            el.addEventListener('click', () => {
+                const d = el.dataset.drug || '';
+                drugSearchInput.value = d;
+                applyDrugFilter(d);
+                renderDrugOptions(d);
+                closeDrugSearch();
+            });
+        });
+    }
+
+    function openDrugSearch() {
+        const rect = drugSearchBtn.getBoundingClientRect();
+        const width = 240;
+        let left = rect.left;
+        if (left + width > window.innerWidth - 10) left = window.innerWidth - width - 10;
+        drugSearchPanel.style.cssText = `display:block;left:${left}px;top:${rect.bottom + 6}px;width:${width}px;`;
+        drugSearchBtn.classList.add('is-open');
+        renderDrugOptions(drugSearchInput.value);
+        drugSearchInput.focus();
+        drugSearchInput.select();
+    }
+
+    function closeDrugSearch() {
+        drugSearchPanel.style.display = 'none';
+        drugSearchBtn.classList.remove('is-open');
+    }
+
+    drugSearchBtn.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (drugSearchPanel.style.display === 'block') closeDrugSearch();
+        else openDrugSearch();
+    });
+    drugSearchInput.addEventListener('input', () => {
+        applyDrugFilter(drugSearchInput.value);
+        renderDrugOptions(drugSearchInput.value);
+    });
+
+    /* ── Cell click dispatch ── */
+    document.getElementById('sheet-table').addEventListener('click', e => {
+        const td = e.target.closest('td.cell-editable');
+        if (!td) return;
+        const tr = td.closest('tr');
+        const drug = tr.dataset.drug, target = tr.dataset.target;
+        const field = td.dataset.field, type = td.dataset.type;
+
+        if (type === 'boolean') {
+            const cur = td.dataset.value;
+            runUserEdit(() => applyChange(td, drug, target, field, (cur === 'True' || cur === 'true') ? 'False' : 'True'));
+            return;
+        }
+        if (field === 'source_url') { openUrlModal(td, drug, target, field); return; }
+        if (type === 'select')   { openDropdown(td, drug, target, field); return; }
+        if (type === 'textarea') { openTextarea(td, drug, target, field); return; }
+        openInput(td, drug, target, field, type);
+    });
+
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.th-info-btn')) closeHelp();
+        if (drugSearchPanel.style.display === 'block' &&
+            !drugSearchPanel.contains(e.target) && !e.target.closest('#drug-search-btn')) closeDrugSearch();
+        if (ddPanel.style.display !== 'none' &&
+            !ddPanel.contains(e.target) && !ddActiveTd?.contains(e.target)) closeDropdown();
+        if (taPopup.style.display !== 'none' &&
+            !taPopup.contains(e.target) && !e.target.closest('td.cell-editable')) closeTextarea();
+        if (urlModal.classList.contains('is-open') && e.target === urlModal) closeUrlModal();
+    });
+
+    document.getElementById('sheet-scroll').addEventListener('scroll', () => {
+        if (cellInput.style.display !== 'none') closeInput();
+        if (ddPanel.style.display !== 'none')   closeDropdown();
+        if (taPopup.style.display !== 'none')   closeTextarea();
+        if (drugSearchPanel.style.display === 'block') closeDrugSearch();
+    });
+
+    /* ── Save modal ── */
+    document.getElementById('save-btn').addEventListener('click', openSaveModal);
+    document.getElementById('modal-close').addEventListener('click', closeSaveModal);
+    document.getElementById('modal-cancel').addEventListener('click', closeSaveModal);
+    document.getElementById('save-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeSaveModal(); });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && document.getElementById('save-modal').classList.contains('is-open')) closeSaveModal();
+    });
+    document.getElementById('undo-btn').addEventListener('click', undoLastEdit);
+    document.getElementById('redo-btn').addEventListener('click', redoLastEdit);
+    document.addEventListener('keydown', e => {
+        if (!(e.ctrlKey || e.metaKey)) return;
+        const k = e.key.toLowerCase();
+        if (!e.shiftKey && k === 'z') {
+            e.preventDefault();
+            undoLastEdit();
+            return;
+        }
+        if (k === 'y' || (e.shiftKey && k === 'z')) {
+            e.preventDefault();
+            redoLastEdit();
+        }
+    });
+
+    function openSaveModal() {
+        const list = Object.values(changes);
+        if (!list.length) return;
+        cancelActiveEdit();
+        document.getElementById('diff-tbody').innerHTML = list.map(c => `
+            <tr>
+                <td class="diff-drug">${esc(c.drug)}</td>
+                <td class="diff-target">${esc(c.target)}</td>
+                <td class="diff-field">${esc(FIELD_LABELS[c.field] || c.field)}</td>
+                <td class="diff-old">${esc(c.oldVal || '—')}</td>
+                <td style="color:#b0b8d8;padding:0 0.1rem">→</td>
+                <td class="diff-new">${esc(c.newVal || '—')}</td>
+            </tr>`).join('');
+        const n = list.length;
+        document.getElementById('modal-change-note').textContent = `${n} field${n===1?'':'s'} will be updated`;
+        document.getElementById('save-modal').classList.add('is-open');
+    }
+
+    function closeSaveModal() { document.getElementById('save-modal').classList.remove('is-open'); }
+
+    function applyServerUpdatedRows(rows) {
+        if (!Array.isArray(rows)) return;
+        rows.forEach(u => {
+            const tr = Array.from(document.querySelectorAll('#sheet-tbody .sheet-row'))
+                .find(r => r.dataset.drug === String(u.drug || '') && r.dataset.target === String(u.target || ''));
+            if (!tr) return;
+            const td = tr.querySelector('td[data-field="last_verified_at"]');
+            if (td) {
+                const v = String(u.last_verified_at || '');
+                td.dataset.value = v;
+                const cv = td.querySelector('.cv');
+                if (cv) cv.textContent = v || '—';
+            }
+            const recodedTd = tr.querySelector('td.col-act-recoded');
+            if (recodedTd && Object.prototype.hasOwnProperty.call(u, 'activity_recoded')) {
+                const rv = String(u.activity_recoded || '');
+                recodedTd.dataset.value = rv;
+                const rcv = recodedTd.querySelector('.cv');
+                if (rcv) rcv.textContent = rv || '—';
+            }
+        });
+    }
+
+    document.getElementById('modal-confirm').addEventListener('click', async () => {
+        const list = Object.values(changes).filter(c => !NON_SUBMIT_CHANGE_FIELDS.has(c.field));
+        const btn = document.getElementById('modal-confirm');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="hgi-stroke hgi-loading-01" style="animation:spin 0.8s linear infinite"></i> Saving…';
+        try {
+            const resp = await fetch("{% url 'editor_save' %}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+                body: JSON.stringify({ changes: list }),
+            });
+            const data = await resp.json();
+            if (resp.ok && data.success) {
+                applyServerUpdatedRows(data.updated_rows);
+                Object.keys(changes).forEach(k => delete changes[k]);
+                document.querySelectorAll('.cell-changed').forEach(el => el.classList.remove('cell-changed'));
+                document.querySelectorAll('.cell-derived-changed').forEach(el => el.classList.remove('cell-derived-changed'));
+                rebaseCellBaselines();
+                undoStack.length = 0;
+                redoStack.length = 0;
+                updateHistoryButtons();
+                updateSaveBtn();
+                closeSaveModal();
+                auditLoaded = false;
+                showToast(`${data.applied} change${data.applied===1?'':'s'} saved.`, 'success');
+            } else {
+                showToast((data.error || 'Save failed.') + (data.details ? ' ' + data.details.join('; ') : ''), 'error');
+            }
+        } catch { showToast('Network error — please try again.', 'error'); }
+        finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="hgi-stroke hgi-floppy-disk"></i> Confirm &amp; Save';
+        }
+    });
+
+    /* ── Audit drawer ── */
+    document.getElementById('audit-btn').addEventListener('click', () => {
+        document.getElementById('audit-drawer').classList.add('is-open');
+        if (!auditLoaded) loadAudit();
+    });
+    document.getElementById('audit-close').addEventListener('click', () => {
+        document.getElementById('audit-drawer').classList.remove('is-open');
+    });
+
+    async function loadAudit() {
+        const body = document.getElementById('audit-body');
+        body.innerHTML = '<p class="audit-empty"><i class="hgi-stroke hgi-loading-01" style="animation:spin 0.8s linear infinite"></i> Loading…</p>';
+        try {
+            const resp = await fetch("{% url 'editor_audit' %}");
+            const data = await resp.json();
+            auditLoaded = true;
+            const recs = data.records || [];
+            const grouped = [];
+            const bySession = new Map();
+            recs.forEach(r => {
+                const sid = String(r.session || '');
+                if (!bySession.has(sid)) {
+                    const g = { session: sid, at: r.at, by: r.by, items: [] };
+                    bySession.set(sid, g);
+                    grouped.push(g);
+                }
+                bySession.get(sid).items.push(r);
+            });
+            document.getElementById('audit-count-badge').textContent = `(${grouped.length} sessions, ${recs.length} changes)`;
+            if (!recs.length) { body.innerHTML = '<p class="audit-empty">No edits recorded yet.</p>'; return; }
+            body.innerHTML = `<div class="audit-groups">${grouped.map((g, idx) => `<details class="audit-group"${idx===0?' open':''}>
+                <summary class="audit-group-summary">
+                    <span class="audit-group-meta">
+                        <span class="audit-group-when">${esc(g.at)}</span>
+                        <span class="audit-group-by">${esc(g.by)}</span>
+                        <span class="audit-session">${esc(g.session)}</span>
+                    </span>
+                    <span class="audit-group-count">${g.items.length} change${g.items.length===1?'':'s'}</span>
+                </summary>
+                <div class="audit-group-body">
+                    <table class="audit-table"><thead><tr>
+                        <th>Drug</th><th>Target</th><th>Field</th><th>Before</th><th>After</th>
+                    </tr></thead><tbody>${g.items.map(r => `<tr>
+                        <td style="font-weight:700;color:#1a2240">${esc(r.drug)}</td>
+                        <td style="color:#485283">${esc(r.target)}</td>
+                        <td><span class="audit-field-tag">${esc(r.field)}</span></td>
+                        <td style="color:#c04040;text-decoration:line-through">${esc(r.old||'—')}</td>
+                        <td style="color:#1a7040;font-weight:700">${esc(r.new||'—')}</td>
+                    </tr>`).join('')}</tbody></table>
+                </div>
+            </details>`).join('')}</div>`;
+        } catch { body.innerHTML = '<p class="audit-empty">Failed to load audit log.</p>'; }
+    }
+
+    /* ── Load animation ── */
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduceMotion) {
+        Array.from(document.querySelectorAll('#sheet-tbody .sheet-row')).slice(0, 40).forEach((tr, i) => {
+            tr.style.opacity = '0';
+            tr.style.transform = 'translateY(3px)';
+            setTimeout(() => {
+                tr.style.transition = 'opacity 200ms ease, transform 200ms cubic-bezier(0.22,1,0.36,1)';
+                tr.style.opacity = '1';
+                tr.style.transform = 'translateY(0)';
+            }, 24 + i * 7);
+        });
+    }
+
+    initCellBaselines();
+    document.querySelectorAll('td[data-field="source_url"]').forEach(td => renderSourceUrlCell(td, td.dataset.value));
+    updateHistoryButtons();
+    syncStickyColumns();
+    window.addEventListener('resize', syncStickyColumns);
+    if (document.fonts?.ready) document.fonts.ready.then(syncStickyColumns);
+}());
+</script>
+</body>
+</html>

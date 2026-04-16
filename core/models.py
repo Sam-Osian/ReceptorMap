@@ -65,3 +65,31 @@ class DatasetEditProposal(models.Model):
 
     def __str__(self) -> str:
         return f"{self.get_action_display()} {self.drug} / {self.target} [{self.get_status_display()}]"
+
+
+class CsvEditRecord(models.Model):
+    """Immutable audit record for every field change made via the direct CSV editor."""
+
+    session_id = models.CharField(max_length=64, db_index=True)
+    drug = models.CharField(max_length=255)
+    target = models.CharField(max_length=255)
+    field_name = models.CharField(max_length=64)
+    old_value = models.TextField(blank=True)
+    new_value = models.TextField(blank=True)
+    edited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="csv_edits",
+    )
+    edited_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-edited_at"]
+        permissions = [
+            ("can_edit_csv", "Can directly edit the CSV dataset via the spreadsheet editor"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.drug}/{self.target}/{self.field_name}: {self.old_value!r} → {self.new_value!r}"
