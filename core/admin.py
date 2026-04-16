@@ -47,7 +47,7 @@ NEW_CHOICE_VALUE = "__new__"
 
 
 def _dataset_path() -> Path:
-    return settings.BASE_DIR / "data" / "interim_data" / "antidepressants_binding_affinities.csv"
+    return settings.BASE_DIR / "data" / "antidepressants_binding_affinities.csv"
 
 
 def _to_float(value: object) -> float | None:

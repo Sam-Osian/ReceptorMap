@@ -28,7 +28,7 @@ CSV_COLUMNS = [
 
 
 def _dataset_path() -> Path:
-    return settings.BASE_DIR / "data" / "interim_data" / "antidepressants_binding_affinities.csv"
+    return settings.BASE_DIR / "data" / "antidepressants_binding_affinities.csv"
 
 
 def _derive_activity_recoded(proposal: DatasetEditProposal) -> str:
@@ -133,6 +133,7 @@ class Command(BaseCommand):
         missing_columns = [col for col in CSV_COLUMNS if col not in df.columns]
         if missing_columns:
             raise CommandError(f"Dataset missing required columns: {', '.join(missing_columns)}")
+        extra_columns = [col for col in df.columns if col not in CSV_COLUMNS]
 
         proposals_qs = DatasetEditProposal.objects.filter(
             status=DatasetEditProposal.Status.APPROVED,
@@ -170,7 +171,9 @@ class Command(BaseCommand):
                             raise CommandError(
                                 f"Proposal {proposal.id}: cannot add, row already exists for ({proposal.drug}, {proposal.target})."
                             )
-                        df = pd.concat([df, pd.DataFrame([row_values])], ignore_index=True)
+                        row_with_optional_columns = {column: "" for column in extra_columns}
+                        row_with_optional_columns.update(row_values)
+                        df = pd.concat([df, pd.DataFrame([row_with_optional_columns])], ignore_index=True)
                         changed_df = True
 
                     elif proposal.action == DatasetEditProposal.Action.UPDATE:
@@ -238,7 +241,8 @@ class Command(BaseCommand):
                 return
 
             if changed_df:
-                df = df[CSV_COLUMNS]
+                output_columns = CSV_COLUMNS + [col for col in df.columns if col not in CSV_COLUMNS]
+                df = df[output_columns]
                 df.to_csv(dataset_path, index=False)
 
         self.stdout.write(

@@ -13,7 +13,7 @@ from django.urls import reverse
 from django.utils.html import escape
 
 
-DATA_PATH = settings.BASE_DIR / "data" / "interim_data" / "antidepressants_binding_affinities.csv"
+DATA_PATH = settings.BASE_DIR / "data" / "antidepressants_binding_affinities.csv"
 ABOUT_MD_PATH = settings.BASE_DIR / "core" / "content" / "about.md"
 
 # Keep only binary functional direction for the 2D axis.
@@ -37,19 +37,51 @@ ACTIVITY_COLORS = {
     "Unknown": "#6b7280",
 }
 
+ACTIVITY_TO_DIRECTION = {
+    "agonist": "Agonist",
+    "full agonist": "Agonist",
+    "partial agonist": "Agonist",
+    "antagonist": "Antagonist",
+    "inverse agonist": "Antagonist",
+    "inhibitor": "Antagonist",
+    "inhibition": "Antagonist",
+    "blocker": "Antagonist",
+}
+
+
+def _normalise_direction(value: object) -> str | None:
+    text = str(value or "").strip().lower()
+    if text == "agonist":
+        return "Agonist"
+    if text == "antagonist":
+        return "Antagonist"
+    return None
+
+
+def _derive_direction(activity_recoded: object, activity: object) -> str | None:
+    recoded = _normalise_direction(activity_recoded)
+    if recoded:
+        return recoded
+    return ACTIVITY_TO_DIRECTION.get(str(activity or "").strip().lower())
+
 
 @lru_cache(maxsize=4)
 def _load_affinity_data_cached(dataset_mtime_ns: int) -> pd.DataFrame:
     # `dataset_mtime_ns` is only used as a cache key to invalidate on file changes.
     _ = dataset_mtime_ns
     df = pd.read_csv(DATA_PATH)
-    df["activity_recoded"] = df["activity_recoded"].fillna("Unknown").astype(str)
+    df["activity"] = df["activity"].fillna("").astype(str).str.strip()
+    df["activity_recoded"] = df["activity_recoded"].fillna("").astype(str).str.strip()
+    df["direction"] = [
+        _derive_direction(recoded, activity)
+        for recoded, activity in zip(df["activity_recoded"], df["activity"])
+    ]
     df["modelled_ki_nm"] = pd.to_numeric(df["modelled_ki_nm"], errors="coerce")
     df["pKi"] = pd.to_numeric(df["pKi"], errors="coerce")
     valid_ki = df["modelled_ki_nm"] > 0
     valid_pki = df["pKi"].notna()
     df = df.loc[valid_ki & valid_pki].copy()
-    df = df.loc[df["activity_recoded"].isin(DIRECTION_SIDE)].copy()
+    df = df.loc[df["direction"].isin(DIRECTION_SIDE)].copy()
 
     # Use source pKi from the dataset as the plotted affinity metric.
     df["pKi_modelled"] = df["pKi"].astype(float)
@@ -98,9 +130,11 @@ def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor:
 
     if not receptor_df.empty:
         for row in receptor_df.itertuples(index=False):
-            original_activity = str(row.activity).strip() if pd.notna(row.activity) else "Unknown"
+            original_activity = str(row.activity).strip() if pd.notna(row.activity) else ""
+            if not original_activity:
+                original_activity = "Unknown"
             activity_values.add(original_activity)
-            x, y = _compass_xy(row.activity_recoded, row.pKi_modelled)
+            x, y = _compass_xy(row.direction, row.pKi_modelled)
             is_reference = bool(selected_drug) and row.drug == selected_drug
             points.append(
                 {
@@ -108,7 +142,7 @@ def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor:
                     "y": y,
                     "drug": row.drug,
                     "receptor": row.target,
-                    "direction": row.activity_recoded,
+                    "direction": row.direction,
                     "activity": original_activity,
                     "pki_modelled": round(float(row.pKi_modelled), 2),
                     "is_reference": is_reference,
