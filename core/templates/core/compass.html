@@ -1,4 +1,5 @@
 {% extends "core/base.html" %}
+{% load humanize %}
 
 {% block title %}ReceptorMap | Home{% endblock %}
 
@@ -6,129 +7,105 @@
 <style>
     .page-content {
         overflow: hidden;
+        padding: 24px 32px;
     }
 
     .home-dashboard {
         display: grid;
-        gap: 0.7rem;
+        gap: 16px;
     }
 
-    .page-head {
-        margin-bottom: 0;
-        padding: 0.1rem 0.2rem;
-    }
-
-    .kicker-row {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.78rem;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: #8c91a3;
-        font-weight: 700;
-    }
-
-    .kicker-dot {
-        width: 0.38rem;
-        height: 0.38rem;
-        border-radius: 999px;
-        background: #6f7ca3;
-    }
-
+    /* ── Workspace: filters + plot ── */
     .workspace {
         display: grid;
-        gap: 1rem;
-        grid-template-columns: 340px minmax(0, 1fr);
+        gap: 16px;
+        grid-template-columns: 320px minmax(0, 1fr);
         align-items: start;
     }
 
+    /* ── Shared card ── */
     .card {
-        border: 1px solid var(--line);
-        border-radius: 1.2rem;
-        background: linear-gradient(180deg, #ffffff, #f8f9fc);
-        box-shadow: var(--shadow-panel);
-        padding: 0.95rem;
-        will-change: transform;
+        border: 1px solid var(--rm-line);
+        border-radius: var(--rm-radius-3);
+        background: var(--rm-surface);
+        box-shadow: var(--rm-shadow-1);
+        padding: 20px;
     }
 
-    .card h2 {
-        margin: 0 0 0.75rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.42rem;
-        font-family: "Outfit", "Manrope", sans-serif;
-        font-size: 1.14rem;
-        letter-spacing: -0.01em;
-    }
-
+    /* ── Filters card ── */
     .filters-head {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 0.5rem;
-        margin-bottom: 0.75rem;
+        margin-bottom: 16px;
     }
 
-    .filters-head h2 {
-        margin-bottom: 0;
+    .filters-title {
+        margin: 0;
+        font-family: var(--rm-font-sans);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        color: var(--rm-ink);
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
-    .icon {
-        font-size: 1rem;
-        color: #3a4361;
+    .filters-count {
+        font-family: var(--rm-font-mono);
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--rm-muted);
+        letter-spacing: 0.1em;
     }
 
+    /* Reset button */
     .reset-wrap {
         position: relative;
     }
 
     .reset-btn {
-        width: 1.85rem;
-        height: 1.85rem;
-        border-radius: 999px;
-        border: 1px solid #d3dcef;
-        background: #f8faff;
-        color: #3a4567;
+        width: 30px;
+        height: 30px;
+        border-radius: var(--rm-radius-pill);
+        border: 1px solid var(--rm-line-2);
+        background: var(--rm-surface);
+        color: var(--rm-ink-3);
         display: inline-flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
-        position: relative;
-        overflow: hidden;
+        font-size: 14px;
+        transition: transform var(--rm-dur-1) ease, border-color var(--rm-dur-1) ease, box-shadow var(--rm-dur-1) ease;
     }
 
     .reset-btn:hover {
         transform: translateY(-1px);
-        border-color: #b9c7e9;
-        box-shadow: 0 6px 14px rgba(42, 58, 99, 0.14);
+        border-color: var(--rm-line-2);
+        box-shadow: var(--rm-shadow-2);
     }
 
     .reset-btn:disabled {
         cursor: not-allowed;
         transform: none;
-        border-color: #d8deea;
-        background: #f4f6fb;
-        color: #a2acc2;
+        border-color: var(--rm-line);
+        color: var(--rm-muted-2);
         box-shadow: none;
+        opacity: 0.6;
     }
 
     .reset-btn.is-armed {
-        border-color: #9fb2de;
-        background: #edf3ff;
-        box-shadow: 0 6px 14px rgba(42, 58, 99, 0.18);
-    }
-
-    .reset-btn .icon {
-        font-size: 0.9rem;
-        color: inherit;
+        border-color: var(--rm-antag-line);
+        background: var(--rm-antag-wash);
+        color: var(--rm-antag-ink);
     }
 
     .reset-icon-swap {
         position: relative;
-        width: 1rem;
-        height: 1rem;
+        width: 14px;
+        height: 14px;
     }
 
     .reset-icon-main,
@@ -146,27 +123,14 @@
     }
 
     .reset-icon-check {
-        transform: translate(-50%, -50%) rotate(-95deg) scale(0.65);
+        transform: translate(-50%, -50%) rotate(-90deg) scale(0.65);
         opacity: 0;
-    }
-
-    .reset-icon-checkmark {
-        width: 0.86rem;
-        height: 0.86rem;
-        display: block;
-        color: #334b8f;
-        font-size: 0.92rem;
-        font-weight: 900;
-        line-height: 0.86rem;
-        text-align: center;
-    }
-
-    .reset-icon-checkmark::before {
-        content: "\2713";
+        font-size: 12px;
+        color: var(--rm-antag-ink);
     }
 
     .reset-btn.is-armed .reset-icon-main {
-        transform: translate(-50%, -50%) rotate(95deg) scale(0.65);
+        transform: translate(-50%, -50%) rotate(90deg) scale(0.65);
         opacity: 0;
     }
 
@@ -177,173 +141,112 @@
 
     .reset-hover-tip {
         position: absolute;
-        right: 0;
-        top: calc(100% + 0.35rem);
-        transform: translate(-50%, -132%) scale(0.98);
         left: 50%;
-        top: -0.18rem;
+        top: -0.2rem;
+        transform: translate(-50%, -115%) scale(0.96);
         width: max-content;
-        max-width: 10.8rem;
-        border-radius: 0.68rem;
-        border: 1px solid rgba(155, 176, 216, 0.45);
-        background: rgba(18, 25, 43, 0.97);
-        box-shadow: 0 10px 22px rgba(14, 23, 42, 0.32);
-        padding: 0.34rem 0.52rem;
+        border-radius: var(--rm-radius-pill);
+        border: 1px solid var(--rm-line-2);
+        background: var(--rm-ink);
+        box-shadow: var(--rm-shadow-2);
+        padding: 4px 10px;
         z-index: 24;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 140ms ease, transform 160ms ease;
-        font-size: 0.72rem;
-        font-weight: 700;
-        color: #ebf1ff;
-        letter-spacing: 0.01em;
-    }
-
-    .reset-hover-tip::after {
-        content: "";
-        position: absolute;
-        left: 50%;
-        bottom: -6px;
-        width: 9px;
-        height: 9px;
-        transform: translateX(-50%) rotate(45deg);
-        background: rgba(18, 25, 43, 0.97);
-        border-right: 1px solid rgba(155, 176, 216, 0.45);
-        border-bottom: 1px solid rgba(155, 176, 216, 0.45);
+        transition: opacity 120ms ease, transform 140ms ease;
+        font-family: var(--rm-font-sans);
+        font-size: 11px;
+        font-weight: 600;
+        color: #fff;
+        white-space: nowrap;
     }
 
     .reset-wrap:hover .reset-hover-tip,
-    .reset-btn:focus-visible + .reset-hover-tip {
+    .reset-btn:focus-visible ~ .reset-hover-tip {
         opacity: 1;
-        transform: translate(-50%, -145%) scale(1);
+        transform: translate(-50%, -130%) scale(1);
     }
 
-    .reset-btn:disabled + .reset-hover-tip {
+    .reset-btn:disabled ~ .reset-hover-tip {
         display: none;
     }
 
+    /* ── Control groups ── */
     .control-group {
-        display: grid;
-        gap: 0.36rem;
-        margin-bottom: 0.8rem;
+        margin-bottom: 16px;
     }
 
     .control-group:last-child {
         margin-bottom: 0;
     }
 
-    .label-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 0.45rem;
+    .field-label {
+        display: block;
+        font-family: var(--rm-font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--rm-muted);
+        margin-bottom: 6px;
     }
 
-    .label-title {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.45rem;
-        font-size: 0.93rem;
-        font-weight: 700;
-        color: #2e3753;
-    }
-
-    .target-actions {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.28rem;
-    }
-
-    .clear-targets-btn,
-    .all-targets-btn {
-        border: 0;
-        background: transparent;
-        color: #65769b;
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-        padding: 0.08rem 0.1rem;
-        cursor: pointer;
-        border-radius: 0.3rem;
-    }
-
-    .clear-targets-btn:hover,
-    .all-targets-btn:hover {
-        color: #2e4fae;
-        background: #eef3ff;
-    }
-
-    .clear-targets-btn[hidden],
-    .all-targets-btn[hidden] {
-        display: none;
-    }
-
-    .step-badge {
-        width: 1.24rem;
-        height: 1.24rem;
-        border-radius: 999px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.7rem;
-        font-weight: 800;
-        color: #1f2c4c;
-        background: #edf2ff;
-        border: 1px solid #c9d4f1;
-    }
-
+    /* Search input */
     .search-wrap {
         position: relative;
+        margin-bottom: 6px;
     }
 
-    .search-wrap .icon {
+    .search-wrap .search-icon {
         position: absolute;
-        left: 0.62rem;
+        left: 10px;
         top: 50%;
         transform: translateY(-50%);
-        color: #808aa5;
-        font-size: 0.92rem;
+        color: var(--rm-muted-2);
+        font-size: 14px;
         pointer-events: none;
     }
 
     input[type="search"] {
         width: 100%;
-        border: 1px solid var(--line-strong);
-        border-radius: 0.75rem;
-        background: #fff;
-        color: var(--ink);
-        padding: 0.55rem 0.6rem 0.55rem 1.95rem;
-        font-size: 0.91rem;
-        transition: border-color 150ms ease, box-shadow 160ms ease;
+        border: 1px solid var(--rm-line-2);
+        border-radius: var(--rm-radius-2);
+        background: var(--rm-surface);
+        color: var(--rm-ink);
+        padding: 8px 10px 8px 32px;
+        font-family: var(--rm-font-sans);
+        font-size: 14px;
+        transition: border-color var(--rm-dur-1) ease, box-shadow var(--rm-dur-1) ease;
     }
 
     input[type="search"]::placeholder {
-        color: #8a93ab;
+        color: var(--rm-muted-2);
     }
 
     input[type="search"]:focus {
         outline: none;
-        border-color: #9eb0e0;
-        box-shadow: 0 0 0 3px rgba(107, 125, 182, 0.15);
+        border-color: var(--rm-antag);
+        box-shadow: 0 0 0 3px rgba(107, 76, 255, 0.14);
     }
 
+    /* Picker list */
     .picker {
-        border: 1px solid var(--line-strong);
-        border-radius: 0.88rem;
-        background: #fbfcff;
+        border: 1px solid var(--rm-line);
+        border-radius: var(--rm-radius-2);
+        background: var(--rm-surface-2);
         overflow: hidden;
     }
 
     .picker-scroll {
-        max-height: clamp(11.2rem, 24vh, 14.8rem);
+        max-height: clamp(10rem, 22vh, 14rem);
     }
 
     .option-list {
         list-style: none;
         margin: 0;
-        padding: 0.34rem;
+        padding: 4px;
         display: grid;
-        gap: 0.2rem;
+        gap: 2px;
     }
 
     .option-item {
@@ -355,79 +258,48 @@
         width: 100%;
         border: 1px solid transparent;
         background: transparent;
-        color: #25304d;
+        color: var(--rm-ink-2);
         text-align: left;
-        border-radius: 0.68rem;
-        padding: 0.42rem 0.5rem;
-        font-size: 0.92rem;
+        border-radius: var(--rm-radius-1);
+        padding: 7px 9px;
+        font-family: var(--rm-font-sans);
+        font-size: 13px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 0.42rem;
+        gap: 8px;
         cursor: pointer;
-        transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+        transition: background var(--rm-dur-1) ease, border-color var(--rm-dur-1) ease;
     }
 
     .option-btn:hover {
-        background: #f1f4ff;
-        border-color: #d4ddf4;
+        background: var(--rm-surface-3);
+        border-color: var(--rm-line);
     }
 
     .option-btn.is-selected {
-        background: #e9efff;
-        border-color: #c2cfee;
-        color: #17274f;
-        font-weight: 700;
+        background: var(--rm-antag-wash);
+        border-color: var(--rm-antag-line);
+        color: var(--rm-antag-ink);
+        font-weight: 600;
     }
 
     .check-icon {
         opacity: 0;
-        color: #3a5cc8;
-        font-size: 0.9rem;
+        font-size: 13px;
+        flex-shrink: 0;
+        color: var(--rm-antag-ink);
     }
 
     .option-btn.is-selected .check-icon {
         opacity: 1;
     }
 
-    .panel-footer {
-        margin-top: 0.6rem;
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 0.55rem;
-    }
-
-    .hint {
-        margin: 0;
-        color: #6f7790;
-        font-size: 0.84rem;
-    }
-
-    .btn {
-        border: 0;
-        border-radius: 0.75rem;
-        background: linear-gradient(120deg, #111a33, #27355d);
-        color: #fff;
-        font-size: 0.88rem;
-        font-weight: 800;
-        letter-spacing: 0.01em;
-        padding: 0.55rem 0.85rem;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        transition: transform 140ms ease, box-shadow 160ms ease;
-    }
-
-    .btn .icon {
-        color: #fff;
-        font-size: 0.9rem;
-    }
-
-    .btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 10px 20px rgba(25, 35, 68, 0.26);
+    .collapsed-note {
+        display: none;
+        margin: 6px 0 0;
+        color: var(--rm-muted);
+        font-size: 12px;
     }
 
     .control-group.is-collapsed .search-wrap,
@@ -435,129 +307,296 @@
         display: none;
     }
 
-    .collapsed-note {
-        display: none;
-        margin: 0.25rem 0 0;
-        color: #79829b;
-        font-size: 0.83rem;
-    }
-
     .control-group.is-collapsed .collapsed-note {
         display: block;
     }
 
+    /* ── Plot shell ── */
     .plot-shell {
         display: grid;
-        gap: 0.65rem;
+        gap: 12px;
     }
 
-    .plot-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        gap: 0.8rem;
-        flex-wrap: wrap;
-    }
-
-    .plot-head h2 {
-        margin-bottom: 0;
-    }
-
-    .plot-inline-meta {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.55rem;
-        flex-wrap: wrap;
-        font-size: 0.8rem;
-        color: #63708f;
-        font-weight: 700;
-    }
-
-    .plot-inline-chip {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 999px;
-        background: #eff3fc;
-        border: 1px solid #d8e0f1;
-        padding: 0.14rem 0.48rem;
-    }
-
-    .stage {
-        border: 1px solid var(--line);
-        border-radius: 1rem;
-        background: linear-gradient(180deg, #ffffff, #f8faff);
-        padding: 0.5rem;
+    /* ── Hero narrative card ── */
+    .hero-card {
+        border: 1px solid var(--rm-line);
+        border-radius: var(--rm-radius-3);
+        background: var(--rm-surface);
+        padding: 20px 22px;
         position: relative;
-        min-height: 0;
+        overflow: hidden;
+    }
+
+    .hero-card[hidden] {
+        display: none;
+    }
+
+    .hero-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: var(--rm-radius-pill);
+        background: var(--rm-antag-wash);
+        color: var(--rm-antag-ink);
+        font-family: var(--rm-font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+
+    .hero-tag-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--rm-antag-ink);
+        flex-shrink: 0;
+    }
+
+    .hero-heading {
+        margin: 0;
+        font-family: var(--rm-font-sans);
+        font-size: clamp(18px, 2vw, 24px);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+        color: var(--rm-ink);
+    }
+
+    .hero-heading .hero-accent {
+        color: var(--rm-antag);
+    }
+
+    .hero-heading .hero-highlight {
+        background: var(--rm-agon-chip);
+        padding: 0 0.08em;
+        border-radius: 4px;
+    }
+
+    .hero-lead {
+        margin: 8px 0 0;
+        font-size: 14px;
+        color: var(--rm-ink-3);
+        line-height: 1.55;
+        max-width: 56ch;
+    }
+
+    /* ── Axis stage ── */
+    .stage {
+        border: 1px solid var(--rm-line);
+        border-radius: var(--rm-radius-3);
+        background: var(--rm-surface);
+        padding: 12px 8px;
+        position: relative;
+    }
+
+    .stage[hidden] {
+        display: none;
     }
 
     .stage svg {
-        height: clamp(235px, 37vh, 330px);
+        height: clamp(220px, 34vh, 300px);
     }
 
     .axis-placeholder {
-        border: 1px dashed #c9d5ec;
-        border-radius: 1rem;
-        background: linear-gradient(180deg, #fbfcff, #f6f9ff);
+        border: 1px dashed var(--rm-line-2);
+        border-radius: var(--rm-radius-3);
+        background: var(--rm-surface-2);
         padding: 1rem;
-        min-height: clamp(235px, 37vh, 330px);
+        min-height: clamp(220px, 34vh, 300px);
         display: flex;
         align-items: center;
         justify-content: center;
         text-align: center;
-        color: #5c6a88;
-        font-size: 0.92rem;
-        line-height: 1.45;
-        font-weight: 600;
+        color: var(--rm-muted);
+        font-size: 14px;
+        line-height: 1.5;
+        font-weight: 500;
     }
 
     .axis-placeholder[hidden] {
         display: none;
     }
 
+    /* ── Landing banner ── */
+    .landing-hero {
+        border: 1px solid var(--rm-line);
+        border-radius: var(--rm-radius-3);
+        background: var(--rm-surface);
+        overflow: hidden;
+    }
+
+    .landing-top {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 18px 22px 16px;
+    }
+
+    .landing-headline {
+        margin: 0 0 4px;
+        font-family: var(--rm-font-sans);
+        font-size: clamp(1.1rem, 1.8vw, 1.45rem);
+        font-weight: 800;
+        letter-spacing: -0.035em;
+        line-height: 1.1;
+        color: var(--rm-ink);
+    }
+
+    .landing-headline .hl-lime {
+        background: #C6F26E;
+        padding: 0 0.08em;
+        border-radius: 3px;
+    }
+
+    .landing-blurb {
+        margin: 0;
+        font-size: 13px;
+        color: var(--rm-muted);
+        line-height: 1.5;
+        max-width: 56ch;
+    }
+
+    /* collapsible instructions */
+    .landing-details {
+        border-top: 1px solid var(--rm-line);
+    }
+
+    .landing-summary {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 22px;
+        cursor: pointer;
+        font-family: var(--rm-font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--rm-muted);
+        user-select: none;
+        transition: color 120ms ease;
+    }
+
+    .landing-summary::-webkit-details-marker { display: none; }
+
+    .landing-summary:hover { color: var(--rm-ink-3); }
+
+    .landing-summary-chevron {
+        font-size: 12px;
+        transition: transform 200ms cubic-bezier(0.22,1,0.36,1);
+        margin-left: auto;
+    }
+
+    .landing-details[open] .landing-summary-chevron {
+        transform: rotate(180deg);
+    }
+
+    .landing-steps {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+        align-items: start;
+        padding: 4px 14px 14px;
+        gap: 0;
+    }
+
+    .landing-step {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 6px 8px;
+    }
+
+    .landing-step-num {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--rm-antag-wash);
+        border: 1px solid var(--rm-antag-line);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--rm-font-mono);
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--rm-antag-ink);
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
+    .landing-step-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--rm-ink);
+        margin: 0 0 2px;
+        letter-spacing: -0.01em;
+    }
+
+    .landing-step-desc {
+        font-size: 12px;
+        color: var(--rm-muted);
+        margin: 0;
+        line-height: 1.45;
+    }
+
+    .landing-step-divider {
+        width: 1px;
+        background: var(--rm-line);
+        align-self: stretch;
+        margin: 6px 0;
+    }
+
+    @media (max-width: 900px) {
+        .landing-steps {
+            grid-template-columns: 1fr 1fr;
+        }
+        .landing-step-divider { display: none; }
+        .landing-step { border-bottom: 1px solid var(--rm-line); padding: 10px 8px; }
+        .landing-step:nth-last-child(-n+2) { border-bottom: 0; }
+    }
+
+    /* ── Axis points ── */
     .axis-point {
-        transition: filter 160ms ease;
+        transition: filter var(--rm-dur-1) ease;
         cursor: default;
     }
 
-    .axis-point:hover {
-        filter: brightness(1.08);
-    }
-
+    .axis-point:hover,
     .axis-point.is-hovered {
-        filter: brightness(1.14);
+        filter: brightness(1.1);
     }
 
     .axis-point.is-reference {
-        stroke-width: 2.3;
-        filter: drop-shadow(0 0 5px rgba(15, 23, 42, 0.22)) drop-shadow(0 0 10px rgba(15, 23, 42, 0.18));
+        stroke-width: 2;
+        filter: drop-shadow(0 0 6px rgba(17, 18, 22, 0.25));
         animation: referencePulse 2400ms ease-in-out infinite;
     }
 
     @keyframes referencePulse {
-        0%, 100% {
-            filter: drop-shadow(0 0 4px rgba(15, 23, 42, 0.2)) drop-shadow(0 0 8px rgba(15, 23, 42, 0.15));
-        }
-        50% {
-            filter: drop-shadow(0 0 6px rgba(15, 23, 42, 0.28)) drop-shadow(0 0 12px rgba(15, 23, 42, 0.22));
-        }
+        0%, 100% { filter: drop-shadow(0 0 4px rgba(17, 18, 22, 0.2)); }
+        50%       { filter: drop-shadow(0 0 8px rgba(17, 18, 22, 0.32)); }
     }
 
+    /* ── Axis tooltip ── */
     .axis-tooltip {
         position: absolute;
         left: 0;
         top: 0;
-        transform: translate(-50%, -130%) scale(0.98);
+        transform: translate(-50%, -130%) scale(0.97);
         pointer-events: none;
         opacity: 0;
-        background: rgba(18, 25, 43, 0.96);
-        color: #f8fbff;
-        border: 1px solid rgba(158, 175, 214, 0.45);
-        border-radius: 0.72rem;
-        padding: 0.52rem 0.6rem;
-        min-width: 12rem;
-        box-shadow: 0 12px 24px rgba(8, 15, 29, 0.38);
-        transition: opacity 140ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+        background: var(--rm-ink);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--rm-radius-3);
+        padding: 10px 12px;
+        min-width: 11rem;
+        box-shadow: var(--rm-shadow-3);
+        transition: opacity 120ms ease, transform 160ms var(--rm-ease);
         z-index: 4;
     }
 
@@ -570,35 +609,48 @@
         content: "";
         position: absolute;
         left: 50%;
-        bottom: -7px;
+        bottom: -6px;
         width: 10px;
         height: 10px;
         transform: translateX(-50%) rotate(45deg);
-        background: rgba(18, 25, 43, 0.96);
-        border-right: 1px solid rgba(158, 175, 214, 0.45);
-        border-bottom: 1px solid rgba(158, 175, 214, 0.45);
+        background: var(--rm-ink);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .axis-tooltip-target {
-        font-size: 0.85rem;
+        font-size: 13px;
         font-weight: 700;
-        letter-spacing: 0.01em;
-        margin-bottom: 0.22rem;
+        letter-spacing: -0.01em;
+        margin-bottom: 4px;
+        color: #fff;
     }
 
     .axis-tooltip-meta {
         display: flex;
-        gap: 0.38rem;
+        gap: 6px;
         align-items: center;
         flex-wrap: wrap;
-        font-size: 0.75rem;
-        color: #d2dcf2;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.72);
+        font-family: var(--rm-font-mono);
+    }
+
+    .axis-tooltip-chip {
+        border-radius: var(--rm-radius-pill);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        padding: 1px 7px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.1);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
     }
 
     .axis-tooltip-note {
-        margin-top: 0.26rem;
-        font-size: 0.71rem;
-        color: #afbfdf;
+        margin-top: 4px;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.5);
         display: none;
     }
 
@@ -606,97 +658,76 @@
         display: block;
     }
 
-    .axis-tooltip-chip {
-        border-radius: 999px;
-        border: 1px solid rgba(179, 198, 234, 0.42);
-        padding: 0.1rem 0.4rem;
-        font-weight: 700;
-        color: #edf2ff;
-        background: rgba(119, 143, 194, 0.16);
-    }
-
-    .empty {
-        margin: 0;
-        padding: 0.48rem 0.58rem;
-        border: 1px dashed #ced8ec;
-        border-radius: 0.65rem;
-        color: #4f607f;
-        background: #f9fbff;
-        font-size: 0.86rem;
-    }
-
+    /* ── Legend ── */
     .legend {
         display: flex;
-        gap: 0.42rem;
+        gap: 6px;
         flex-wrap: wrap;
     }
 
     .pill {
         display: inline-flex;
         align-items: center;
-        gap: 0.32rem;
-        border-radius: 999px;
-        border: 1px solid #dbe2f0;
-        background: #fff;
-        color: #344261;
-        font-size: 0.8rem;
-        padding: 0.19rem 0.52rem;
+        gap: 5px;
+        border-radius: var(--rm-radius-pill);
+        border: 1px solid var(--rm-line);
+        background: var(--rm-surface);
+        color: var(--rm-ink-3);
+        font-family: var(--rm-font-sans);
+        font-size: 12px;
+        font-weight: 500;
+        padding: 3px 9px;
     }
 
     .pill-dot {
-        width: 0.52rem;
-        height: 0.52rem;
+        width: 7px;
+        height: 7px;
         border-radius: 50%;
+        flex-shrink: 0;
     }
 
-    .top-strip {
-        display: grid;
-        gap: 0.86rem;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .mini-metric {
-        border: 1px solid var(--line);
-        border-radius: 1rem;
-        padding: 0.82rem 0.9rem;
-        background: linear-gradient(180deg, #ffffff, #fbfcff);
-    }
-
-    .mini-metric h3 {
-        margin: 0;
-        font-size: 0.98rem;
-        font-family: "Outfit", "Manrope", sans-serif;
-    }
-
-    .mini-value {
-        margin-top: 0.28rem;
-        font-size: 1.55rem;
-        font-weight: 800;
-        letter-spacing: -0.02em;
-    }
-
-    .mini-note {
-        margin-top: 0.2rem;
-        font-size: 0.8rem;
-        color: #7e8599;
-    }
-
-    .table-wrap {
-        margin-top: 0.4rem;
-        border: 1px solid var(--line);
-        border-radius: 0.84rem;
+    /* ── Comparison table ── */
+    .table-card {
+        border: 1px solid var(--rm-line);
+        border-radius: var(--rm-radius-3);
         overflow: hidden;
+        background: var(--rm-surface);
+    }
+
+    .table-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--rm-line);
+    }
+
+    .table-head-title {
+        margin: 0;
+        font-family: var(--rm-font-sans);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        color: var(--rm-ink);
+    }
+
+    .table-head-count {
+        font-family: var(--rm-font-mono);
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--rm-muted);
+        letter-spacing: 0.12em;
     }
 
     .table-scroll {
-        max-height: clamp(220px, 36vh, 360px);
+        max-height: clamp(200px, 32vh, 340px);
     }
 
     table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 0.89rem;
-        background: #fff;
+        font-family: var(--rm-font-sans);
+        font-size: 13px;
     }
 
     thead th {
@@ -704,29 +735,47 @@
         top: 0;
         z-index: 1;
         text-align: left;
-        padding: 0.5rem 0.6rem;
-        border-bottom: 1px solid var(--line);
-        background: #f3f6ff;
-        color: #2c3c58;
-        font-weight: 800;
+        padding: 9px 20px;
+        border-bottom: 1px solid var(--rm-line);
+        background: var(--rm-surface-2);
+        color: var(--rm-muted);
+        font-family: var(--rm-font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
     }
 
     tbody td {
-        padding: 0.48rem 0.6rem;
-        border-bottom: 1px solid #edf2fa;
+        padding: 11px 20px;
+        border-bottom: 1px solid var(--rm-surface-3);
+        color: var(--rm-ink-2);
         white-space: nowrap;
     }
 
+    tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    td.num {
+        font-family: var(--rm-font-mono);
+        font-weight: 500;
+        color: var(--rm-ink);
+    }
+
     .direction-badge {
-        display: inline-block;
-        border-radius: 999px;
-        padding: 0.15rem 0.45rem;
-        font-size: 0.75rem;
-        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        border-radius: var(--rm-radius-pill);
+        padding: 3px 9px;
+        font-family: var(--rm-font-sans);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
         border: 1px solid transparent;
     }
 
-    @media (max-width: 1250px) {
+    @media (max-width: 1100px) {
         .workspace {
             grid-template-columns: 1fr;
         }
@@ -736,194 +785,265 @@
 
 {% block content %}
 <div class="home-dashboard">
-    <section class="page-head" data-reveal>
-        <h1 class="page-title">ReceptorMap</h1>
-        <p class="page-subtitle">Start with a drug, choose a receptor, then compare which other drugs differ most on that receptor.</p>
-    </section>
 
-    <section class="workspace" data-reveal>
-    <aside class="card" id="filters-card">
-        <div class="filters-head">
-            <h2><i class="hgi-stroke hgi-filter icon" aria-hidden="true"></i>Filters</h2>
-            <div class="reset-wrap">
-                <button id="reset-filters-btn" class="reset-btn" type="button" aria-label="Reset filters">
-                    <span class="reset-icon-swap" aria-hidden="true">
-                        <i class="hgi-stroke hgi-refresh icon reset-icon-main"></i>
-                        <span class="reset-icon-check reset-icon-checkmark"></span>
-                    </span>
-                </button>
-                <div id="reset-hover-tip" class="reset-hover-tip" aria-hidden="true">Reset filters</div>
+    <!-- ── Permanent banner ── -->
+    <div class="landing-hero">
+        <div class="landing-top">
+            <div>
+                <h2 class="landing-headline">Pharmacology you can <span class="hl-lime">actually</span> see.</h2>
+                <p class="landing-blurb">Select a receptor to plot binding affinities across all drugs. Optionally add an index drug to rank by Δ pKi.</p>
             </div>
         </div>
-        <form method="get" id="filters-form">
-            <div class="control-group">
-                <div class="label-row">
-                    <label for="target-search" class="label-title"><span class="step-badge">1</span>Receptor</label>
-                </div>
-                <div class="search-wrap">
-                    <i class="hgi-stroke hgi-searching icon" aria-hidden="true"></i>
-                    <input type="search" id="target-search" placeholder="Search receptors..." autocomplete="off">
-                </div>
-                <div class="picker">
-                    <div class="picker-scroll" data-simplebar data-simplebar-auto-hide="false">
-                        <ul id="target-list" class="option-list" role="listbox" aria-label="Receptor options">
-                            {% for target in available_receptors %}
-                                <li class="option-item" data-label="{{ target|lower }}">
-                                    <button
-                                        type="button"
-                                        class="option-btn {% if target == selected_receptor %}is-selected{% endif %}"
-                                        data-value="{{ target }}"
-                                        data-kind="target"
-                                    >
-                                        <span>{{ target }}</span>
-                                        <i class="hgi-stroke hgi-check check-icon" aria-hidden="true"></i>
-                                    </button>
-                                </li>
-                            {% endfor %}
-                        </ul>
+        <details class="landing-details">
+            <summary class="landing-summary">
+                How to use
+                <i class="hgi-stroke hgi-arrow-down-01 landing-summary-chevron"></i>
+            </summary>
+            <div class="landing-steps">
+                <div class="landing-step">
+                    <div class="landing-step-num">1</div>
+                    <div>
+                        <p class="landing-step-title">Pick a receptor</p>
+                        <p class="landing-step-desc">Search or scroll the receptor list and select one to load the axis.</p>
                     </div>
                 </div>
-                <input type="hidden" id="receptor-input" name="receptor" value="{{ selected_receptor }}">
-            </div>
-
-            <div id="drug-group" class="control-group {% if not selected_receptor %}is-collapsed{% endif %}">
-                <div class="label-row">
-                    <label for="drug-search" class="label-title"><span class="step-badge">2</span>Index Drug (Optional)</label>
-                </div>
-                <div class="search-wrap">
-                    <i class="hgi-stroke hgi-searching icon" aria-hidden="true"></i>
-                    <input type="search" id="drug-search" placeholder="Search index drugs..." autocomplete="off">
-                </div>
-                <div class="picker">
-                    <div class="picker-scroll" data-simplebar data-simplebar-auto-hide="false">
-                        <ul id="drug-list" class="option-list" role="listbox" aria-label="Drug options">
-                            {% for drug in drugs %}
-                                <li class="option-item" data-label="{{ drug|lower }}">
-                                    <button
-                                        type="button"
-                                        class="option-btn {% if drug == selected_drug %}is-selected{% endif %}"
-                                        data-value="{{ drug }}"
-                                        data-kind="drug"
-                                    >
-                                        <span>{{ drug }}</span>
-                                        <i class="hgi-stroke hgi-check check-icon" aria-hidden="true"></i>
-                                    </button>
-                                </li>
-                            {% endfor %}
-                        </ul>
+                <div class="landing-step-divider"></div>
+                <div class="landing-step">
+                    <div class="landing-step-num">2</div>
+                    <div>
+                        <p class="landing-step-title">Read the axis</p>
+                        <p class="landing-step-desc">Each dot is a drug — violet for antagonists, lime for agonists — positioned by pKi.</p>
                     </div>
                 </div>
-                <input type="hidden" id="drug-input" name="drug" value="{{ selected_drug }}">
-                <p class="collapsed-note">Select a receptor to enable index-drug ranking.</p>
-            </div>
-
-        </form>
-    </aside>
-
-    <section class="card plot-shell" id="plot-card">
-        <div class="plot-head">
-            <h2><i class="hgi-stroke hgi-chart-line-data-01 icon" aria-hidden="true"></i>Axis Plot</h2>
-            <div class="plot-inline-meta">
-                <span id="graph-active-drug" class="plot-inline-chip">Drug: {% if selected_drug %}{{ selected_drug }}{% else %}-{% endif %}</span>
-                <span id="graph-target-count" class="plot-inline-chip">Receptor: {% if selected_receptor %}{{ selected_receptor }}{% else %}-{% endif %}</span>
-            </div>
-        </div>
-
-        <div id="axis-stage-wrap" class="stage" {% if not selected_receptor %}hidden{% endif %}>
-            <svg viewBox="0 0 920 330" width="100%" aria-label="Agonist antagonist axis plot">
-                <line x1="40" y1="162" x2="880" y2="162" stroke="#25324c" stroke-width="2.2"/>
-                <line x1="460" y1="146" x2="460" y2="178" stroke="#171f35" stroke-width="2.8"/>
-                <line x1="250" y1="150" x2="250" y2="174" stroke="#aebbd5" stroke-width="1.4"/>
-                <line x1="670" y1="150" x2="670" y2="174" stroke="#aebbd5" stroke-width="1.4"/>
-                <line x1="40" y1="150" x2="40" y2="174" stroke="#aebbd5" stroke-width="1.4"/>
-                <line x1="880" y1="150" x2="880" y2="174" stroke="#aebbd5" stroke-width="1.4"/>
-
-                <text x="40" y="129" text-anchor="start" fill="#4f6fe0" font-size="19" font-weight="700">Antagonist</text>
-                <text x="880" y="129" text-anchor="end" fill="#2f9d68" font-size="19" font-weight="700">Agonist</text>
-
-                <g id="axis-points-layer">
-                    {% for point in points %}
-                        <circle
-                            class="axis-point {% if point.is_reference %}is-reference{% endif %}"
-                            cx="{{ point.x }}"
-                            cy="{{ point.y }}"
-                            r="6.4"
-                            fill="{{ point.color }}"
-                            fill-opacity="0.88"
-                            stroke="#ffffff"
-                            stroke-width="1.8"
-                            data-drug="{{ point.drug }}"
-                            data-pki="{{ point.pki_modelled }}"
-                            data-direction="{{ point.direction }}"
-                            data-activity="{{ point.activity }}"
-                            data-receptor="{{ point.receptor }}"
-                            data-is-reference="{% if point.is_reference %}1{% else %}0{% endif %}"
-                        ></circle>
-                    {% endfor %}
-                </g>
-            </svg>
-            <div id="axis-tooltip" class="axis-tooltip" role="status" aria-live="polite">
-                <div id="axis-tooltip-target" class="axis-tooltip-target"></div>
-                <div class="axis-tooltip-meta">
-                    <span id="axis-tooltip-direction" class="axis-tooltip-chip"></span>
-                    <span id="axis-tooltip-pki"></span>
+                <div class="landing-step-divider"></div>
+                <div class="landing-step">
+                    <div class="landing-step-num">3</div>
+                    <div>
+                        <p class="landing-step-title">Add an index drug</p>
+                        <p class="landing-step-desc">Optional. Re-sorts the table by Δ pKi and highlights your reference on the axis.</p>
+                    </div>
                 </div>
-                <div id="axis-tooltip-note" class="axis-tooltip-note"></div>
+                <div class="landing-step-divider"></div>
+                <div class="landing-step">
+                    <div class="landing-step-num">4</div>
+                    <div>
+                        <p class="landing-step-title">Hover any point</p>
+                        <p class="landing-step-desc">Tooltip shows drug name, activity class, and exact pKi for that receptor.</p>
+                    </div>
+                </div>
             </div>
-        </div>
+        </details>
+    </div>
 
-        <div id="axis-placeholder" class="axis-placeholder" {% if selected_receptor %}hidden{% endif %}>
-            Select a receptor to explore all drugs. Add an index drug to rank differences.
-        </div>
+    <section class="workspace">
+        <aside class="card" id="filters-card">
+            <div class="filters-head">
+                <h2 class="filters-title">
+                    Filters
+                    <span class="filters-count" id="filters-count">0/2</span>
+                </h2>
+                <div class="reset-wrap">
+                    <button id="reset-filters-btn" class="reset-btn" type="button" aria-label="Reset filters" disabled>
+                        <span class="reset-icon-swap" aria-hidden="true">
+                            <i class="hgi-stroke hgi-refresh reset-icon-main"></i>
+                            <i class="hgi-stroke hgi-check reset-icon-check"></i>
+                        </span>
+                    </button>
+                    <div id="reset-hover-tip" class="reset-hover-tip" aria-hidden="true">Reset filters</div>
+                </div>
+            </div>
+            <form method="get" id="filters-form">
+                <div class="control-group">
+                    <label class="field-label" for="target-search">01 · Receptor</label>
+                    <div class="search-wrap">
+                        <i class="hgi-stroke hgi-searching search-icon" aria-hidden="true"></i>
+                        <input type="search" id="target-search" placeholder="Search receptors…" autocomplete="off">
+                    </div>
+                    <div class="picker">
+                        <div class="picker-scroll" data-simplebar data-simplebar-auto-hide="false">
+                            <ul id="target-list" class="option-list" role="listbox" aria-label="Receptor options">
+                                {% for target in available_receptors %}
+                                    <li class="option-item" data-label="{{ target|lower }}">
+                                        <button
+                                            type="button"
+                                            class="option-btn {% if target == selected_receptor %}is-selected{% endif %}"
+                                            data-value="{{ target }}"
+                                            data-kind="target"
+                                        >
+                                            <span>{{ target }}</span>
+                                            <i class="hgi-stroke hgi-check check-icon" aria-hidden="true"></i>
+                                        </button>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <input type="hidden" id="receptor-input" name="receptor" value="{{ selected_receptor }}">
+                </div>
 
-        <div class="legend" id="activity-legend">
-            {% for item in activity_legend %}
-                <span class="pill"><span class="pill-dot" style="background: {{ item.color }}"></span>{{ item.label }}</span>
-            {% endfor %}
-        </div>
+                <div id="drug-group" class="control-group {% if not selected_receptor %}is-collapsed{% endif %}">
+                    <label class="field-label" for="drug-search">02 · Index Drug (Optional)</label>
+                    <div class="search-wrap">
+                        <i class="hgi-stroke hgi-searching search-icon" aria-hidden="true"></i>
+                        <input type="search" id="drug-search" placeholder="Search index drugs…" autocomplete="off">
+                    </div>
+                    <div class="picker">
+                        <div class="picker-scroll" data-simplebar data-simplebar-auto-hide="false">
+                            <ul id="drug-list" class="option-list" role="listbox" aria-label="Drug options">
+                                {% for drug in drugs %}
+                                    <li class="option-item" data-label="{{ drug|lower }}">
+                                        <button
+                                            type="button"
+                                            class="option-btn {% if drug == selected_drug %}is-selected{% endif %}"
+                                            data-value="{{ drug }}"
+                                            data-kind="drug"
+                                        >
+                                            <span>{{ drug }}</span>
+                                            <i class="hgi-stroke hgi-check check-icon" aria-hidden="true"></i>
+                                        </button>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <input type="hidden" id="drug-input" name="drug" value="{{ selected_drug }}">
+                    <p class="collapsed-note">Select a receptor to enable index-drug ranking.</p>
+                </div>
+            </form>
+        </aside>
 
-        <h2 id="top-targets-title" style="margin-top: 0.45rem;">
-            <i class="hgi-stroke hgi-data-table icon" aria-hidden="true"></i>
-            {% if selected_receptor and selected_drug %}
-                Most Different Drugs on {{ selected_receptor }}
-            {% elif selected_receptor %}
-                All Drugs on {{ selected_receptor }}
-            {% else %}
-                Receptor Comparison Table
-            {% endif %}
-        </h2>
+        <section class="plot-shell" id="plot-card">
 
-        <div class="table-wrap">
-            <div class="table-scroll" data-simplebar data-simplebar-auto-hide="false">
-                <table>
-                    <thead>
+            <!-- Hero narrative card -->
+            <div id="hero-card" class="hero-card" {% if not selected_receptor %}hidden{% endif %}>
+                <div class="hero-tag">
+                    <span class="hero-tag-dot"></span>
+                    <span id="hero-tag-label">Explore</span>
+                </div>
+                <h3 class="hero-heading" id="hero-heading">
+                    {% if selected_receptor %}
+                        <span id="hero-count">{{ points|length }}</span> drugs mapped on <span class="hero-accent">{{ selected_receptor }}</span>.
+                    {% endif %}
+                </h3>
+                <p class="hero-lead" id="hero-lead">
+                    {% if selected_receptor and selected_drug %}
+                        {{ selected_drug }} is {% for p in points %}{% if p.is_reference %}{{ p.direction|lower }} at {{ selected_receptor }}{% endif %}{% endfor %}. Here's where the rest of your list falls relative to it.
+                    {% elif selected_receptor %}
+                        Add an index drug above to rank which drugs differ most from it on this receptor.
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- Axis stage -->
+            <div id="axis-stage-wrap" class="stage" {% if not selected_receptor %}hidden{% endif %}>
+                <svg viewBox="0 0 920 300" width="100%" aria-label="Agonist antagonist axis plot">
+                    <!-- Axis line -->
+                    <line x1="40" y1="160" x2="880" y2="160" stroke="#1F2126" stroke-width="1.6"/>
+                    <!-- Centre tick -->
+                    <line x1="460" y1="148" x2="460" y2="172" stroke="#1F2126" stroke-width="2"/>
+                    <!-- Quarter ticks -->
+                    <line x1="250" y1="154" x2="250" y2="166" stroke="#A09EA6" stroke-width="1.2"/>
+                    <line x1="670" y1="154" x2="670" y2="166" stroke="#A09EA6" stroke-width="1.2"/>
+                    <line x1="40"  y1="154" x2="40"  y2="166" stroke="#A09EA6" stroke-width="1.2"/>
+                    <line x1="880" y1="154" x2="880" y2="166" stroke="#A09EA6" stroke-width="1.2"/>
+
+                    <!-- ANTAGONIST pill label -->
+                    <rect x="28" y="122" width="124" height="22" rx="11" fill="#EFEBFF"/>
+                    <text x="90" y="137" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="1.8" fill="#3E26CC" font-weight="600">ANTAGONIST</text>
+
+                    <!-- AGONIST pill label -->
+                    <rect x="768" y="122" width="108" height="22" rx="11" fill="#C6F26E"/>
+                    <text x="822" y="137" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="1.8" fill="#3E6600" font-weight="600">AGONIST</text>
+
+                    <g id="axis-points-layer">
+                        {% for point in points %}
+                            <circle
+                                class="axis-point {% if point.is_reference %}is-reference{% endif %}"
+                                cx="{{ point.x }}"
+                                cy="{{ point.y }}"
+                                r="7"
+                                fill="{{ point.color }}"
+                                fill-opacity="0.9"
+                                stroke="#ffffff"
+                                stroke-width="1.8"
+                                data-drug="{{ point.drug }}"
+                                data-pki="{{ point.pki_modelled }}"
+                                data-direction="{{ point.direction }}"
+                                data-activity="{{ point.activity }}"
+                                data-receptor="{{ point.receptor }}"
+                                data-is-reference="{% if point.is_reference %}1{% else %}0{% endif %}"
+                            ></circle>
+                        {% endfor %}
+                    </g>
+                </svg>
+                <div id="axis-tooltip" class="axis-tooltip" role="status" aria-live="polite">
+                    <div id="axis-tooltip-target" class="axis-tooltip-target"></div>
+                    <div class="axis-tooltip-meta">
+                        <span id="axis-tooltip-direction" class="axis-tooltip-chip"></span>
+                        <span id="axis-tooltip-pki" style="font-family: var(--rm-font-mono);"></span>
+                    </div>
+                    <div id="axis-tooltip-note" class="axis-tooltip-note"></div>
+                </div>
+            </div>
+
+            <div id="axis-placeholder" class="axis-placeholder" hidden></div>
+
+            <div class="legend" id="activity-legend">
+                {% for item in activity_legend %}
+                    <span class="pill"><span class="pill-dot" style="background: {{ item.color }}"></span>{{ item.label }}</span>
+                {% endfor %}
+            </div>
+
+            <!-- Comparison table -->
+            <div class="table-card">
+                <div class="table-head">
+                    <h4 class="table-head-title" id="top-targets-title">
+                        {% if selected_receptor and selected_drug %}
+                            Most different drugs · {{ selected_receptor }}
+                        {% elif selected_receptor %}
+                            All drugs · {{ selected_receptor }}
+                        {% else %}
+                            Receptor comparison
+                        {% endif %}
+                    </h4>
+                    <span class="table-head-count" id="table-count"></span>
+                </div>
+                <div class="table-scroll" data-simplebar data-simplebar-auto-hide="false">
+                    <table>
+                        <thead>
                             <tr>
                                 <th>Drug</th>
                                 <th>Activity</th>
                                 <th>pKi</th>
+                                {% if selected_drug %}<th style="text-align:right;">Δ vs index</th>{% endif %}
                             </tr>
-                    </thead>
-                    <tbody id="top-targets-body">
-                        {% for row in comparison_rows %}
-                            <tr>
-                                <td>{{ row.drug }}</td>
-                                <td>
-                                    <span class="direction-badge" style="color: {{ row.activity_color }}; border-color: {{ row.activity_color }}55; background: {{ row.activity_color }}1a;">
-                                        {{ row.activity }}
-                                    </span>
-                                </td>
-                                <td>{{ row.pKi_modelled }}</td>
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="3">No comparison drugs available for this receptor.</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody id="top-targets-body">
+                            {% for row in comparison_rows %}
+                                <tr>
+                                    <td>{{ row.drug }}</td>
+                                    <td>
+                                        <span class="direction-badge" style="color: {{ row.activity_color }}; border-color: {{ row.activity_color }}44; background: {{ row.activity_color }}18;">
+                                            {{ row.activity }}
+                                        </span>
+                                    </td>
+                                    <td class="num">{{ row.pKi_modelled }}</td>
+                                    {% if row.delta_pki is not None %}
+                                        <td class="num" style="text-align:right; color:{% if row.delta_pki >= 0 %}var(--rm-agon-ink){% else %}var(--rm-muted){% endif %}">
+                                            {% if row.delta_pki >= 0 %}+{% endif %}{{ row.delta_pki }}
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" style="color: var(--rm-muted); font-style: italic;">No comparison drugs available for this receptor.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
     </section>
 </div>
 
@@ -957,9 +1077,12 @@
     const axisPlaceholder = document.getElementById("axis-placeholder");
     const legend = document.getElementById("activity-legend");
     const topTargetsTitle = document.getElementById("top-targets-title");
+    const tableCount = document.getElementById("table-count");
     const topTargetsBody = document.getElementById("top-targets-body");
-    const graphReceptor = document.getElementById("graph-target-count");
-    const graphActiveDrug = document.getElementById("graph-active-drug");
+    const heroCard = document.getElementById("hero-card");
+    const heroHeading = document.getElementById("hero-heading");
+    const heroLead = document.getElementById("hero-lead");
+    const filtersCount = document.getElementById("filters-count");
     const resetWrap = document.querySelector(".reset-wrap");
     const resetFiltersBtn = document.getElementById("reset-filters-btn");
     const resetHoverTip = document.getElementById("reset-hover-tip");
@@ -976,25 +1099,16 @@
 
     function pointKeyFromData(point) {
         return pointKeyFromValues(
-            point.drug,
-            point.receptor,
-            String(point.pki_modelled),
-            point.direction,
-            point.activity,
-            String(point.x),
-            String(point.y)
+            point.drug, point.receptor, String(point.pki_modelled),
+            point.direction, point.activity, String(point.x), String(point.y)
         );
     }
 
     function pointKeyFromElement(pointEl) {
         return pointKeyFromValues(
-            pointEl.dataset.drug,
-            pointEl.dataset.receptor,
-            pointEl.dataset.pki,
-            pointEl.dataset.direction,
-            pointEl.dataset.activity,
-            pointEl.getAttribute("cx"),
-            pointEl.getAttribute("cy")
+            pointEl.dataset.drug, pointEl.dataset.receptor, pointEl.dataset.pki,
+            pointEl.dataset.direction, pointEl.dataset.activity,
+            pointEl.getAttribute("cx"), pointEl.getAttribute("cy")
         );
     }
 
@@ -1011,28 +1125,23 @@
 
     function recalcSimpleBar(element) {
         const instance = getSimpleBarInstance(element);
-        if (instance && typeof instance.recalculate === "function") {
-            instance.recalculate();
-        }
+        if (instance && typeof instance.recalculate === "function") instance.recalculate();
     }
 
     function createOptionItem(value, kind) {
         const li = document.createElement("li");
         li.className = "option-item";
         li.dataset.label = String(value).toLowerCase();
-
         const button = document.createElement("button");
         button.type = "button";
         button.className = "option-btn";
         button.dataset.value = value;
         button.dataset.kind = kind;
-
         const text = document.createElement("span");
         text.textContent = value;
         const icon = document.createElement("i");
         icon.className = "hgi-stroke hgi-check check-icon";
         icon.setAttribute("aria-hidden", "true");
-
         button.appendChild(text);
         button.appendChild(icon);
         li.appendChild(button);
@@ -1072,56 +1181,41 @@
         drugList.innerHTML = "";
         drugs.forEach((drug) => {
             const option = createOptionItem(drug, "drug");
-            if (drug === selectedDrug) {
-                option.querySelector(".option-btn")?.classList.add("is-selected");
-            }
+            if (drug === selectedDrug) option.querySelector(".option-btn")?.classList.add("is-selected");
             drugList.appendChild(option);
         });
         if (drugInput) drugInput.value = selectedDrug;
         applySearchFilter("drug-search", "drug-list");
-        updateDrugMetric();
+        updateFiltersCount();
         recalcSimpleBar(drugList.closest(".picker-scroll"));
     }
 
     function restoreHomeState() {
         const raw = window.sessionStorage.getItem(HOME_STATE_KEY);
         if (!raw) return false;
-
         let parsed;
-        try {
-            parsed = JSON.parse(raw);
-        } catch {
-            return false;
-        }
-
+        try { parsed = JSON.parse(raw); } catch { return false; }
         const savedDrug = typeof parsed.drug === "string" ? parsed.drug : "";
         const savedReceptor = typeof parsed.receptor === "string" ? parsed.receptor : "";
         const savedDrugSearch = typeof parsed.drugSearch === "string" ? parsed.drugSearch : "";
         const savedReceptorSearch = typeof parsed.receptorSearch === "string" ? parsed.receptorSearch : "";
-
         const hasReceptor = savedReceptor && Object.prototype.hasOwnProperty.call(receptorDrugsMap, savedReceptor);
         const validReceptor = hasReceptor ? savedReceptor : "";
         const allowedDrugs = Array.isArray(receptorDrugsMap[validReceptor]) ? receptorDrugsMap[validReceptor] : [];
         const validDrug = allowedDrugs.includes(savedDrug) ? savedDrug : "";
-
-        document.querySelectorAll("#target-list .option-btn.is-selected").forEach((el) => {
-            el.classList.remove("is-selected");
-        });
+        document.querySelectorAll("#target-list .option-btn.is-selected").forEach((el) => el.classList.remove("is-selected"));
         if (validReceptor) {
             const receptorBtn = document.querySelector(`#target-list .option-btn[data-value="${selectorEscape(validReceptor)}"]`);
             if (receptorBtn) receptorBtn.classList.add("is-selected");
         }
         if (receptorInput) receptorInput.value = validReceptor;
-
         rebuildDrugListForReceptor(validReceptor, validDrug);
         setDrugsCollapsed(!validReceptor, true);
-
         if (drugSearch) drugSearch.value = savedDrugSearch;
         if (receptorSearch) receptorSearch.value = savedReceptorSearch;
         applySearchFilter("target-search", "target-list");
         applySearchFilter("drug-search", "drug-list");
-        updateReceptorMetric();
-        updateDrugMetric();
+        updateFiltersCount();
         recalcSimpleBar(receptorList ? receptorList.closest(".picker-scroll") : null);
         recalcSimpleBar(drugList ? drugList.closest(".picker-scroll") : null);
         return true;
@@ -1129,19 +1223,11 @@
 
     function animateEntry() {
         if (reduceMotion) return;
-        const nodes = Array.from(document.querySelectorAll("[data-reveal], .card"));
+        const nodes = Array.from(document.querySelectorAll(".card, .hero-card, .table-card, .stage, .axis-placeholder"));
         nodes.forEach((node, index) => {
             node.animate(
-                [
-                    { opacity: 0, transform: "translateY(12px) scale(0.995)" },
-                    { opacity: 1, transform: "translateY(0px) scale(1)" },
-                ],
-                {
-                    duration: 460,
-                    delay: index * 70,
-                    easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-                    fill: "both",
-                }
+                [{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "translateY(0px)" }],
+                { duration: 420, delay: index * 50, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "both" }
             );
         });
     }
@@ -1156,38 +1242,17 @@
         points.forEach((point, index) => {
             const finalX = Number(point.getAttribute("cx"));
             point.setAttribute("cx", String(centerX));
-            point.setAttribute("opacity", "0.2");
-            const start = performance.now() + index * 20;
-            const duration = 580;
-
+            point.setAttribute("opacity", "0.15");
+            const start = performance.now() + index * 18;
+            const duration = 520;
             function tick(now) {
                 const t = Math.max(0, Math.min(1, (now - start) / duration));
                 const eased = 1 - Math.pow(1 - t, 3);
-                const x = centerX + ((finalX - centerX) * eased);
-                point.setAttribute("cx", x.toFixed(2));
-                point.setAttribute("opacity", (0.2 + (0.8 * eased)).toFixed(2));
+                point.setAttribute("cx", (centerX + (finalX - centerX) * eased).toFixed(2));
+                point.setAttribute("opacity", (0.15 + 0.85 * eased).toFixed(2));
                 if (t < 1) requestAnimationFrame(tick);
             }
-
             requestAnimationFrame(tick);
-        });
-    }
-
-    function wireCardMotion() {
-        if (reduceMotion) return;
-        const cards = Array.from(document.querySelectorAll("#filters-card, #plot-card"));
-        cards.forEach((card) => {
-            card.addEventListener("mousemove", (event) => {
-                const rect = card.getBoundingClientRect();
-                const px = (event.clientX - rect.left) / rect.width;
-                const py = (event.clientY - rect.top) / rect.height;
-                const rotateY = (px - 0.5) * 2.3;
-                const rotateX = (0.5 - py) * 2.1;
-                card.style.transform = `perspective(900px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg)`;
-            });
-            card.addEventListener("mouseleave", () => {
-                card.style.transform = "perspective(900px) rotateX(0deg) rotateY(0deg)";
-            });
         });
     }
 
@@ -1212,36 +1277,62 @@
         });
     }
 
-    function renderTopTargets(rows) {
+    function updateHeroCard(selectedReceptor, selectedDrug, points) {
+        if (!heroCard) return;
+        if (!selectedReceptor) {
+            heroCard.hidden = true;
+            return;
+        }
+        heroCard.hidden = false;
+        const totalDrugs = points.length;
+        if (heroHeading) heroHeading.innerHTML = `${totalDrugs} drugs mapped on <span class="hero-accent">${selectedReceptor}</span>.`;
+        if (selectedDrug) {
+            const refPoint = points.find((p) => p.is_reference);
+            const dir = refPoint ? (refPoint.direction || "").toLowerCase() : "";
+            const article = /^[aeiou]/i.test(dir) ? "an" : "a";
+            if (heroLead) heroLead.innerHTML = `${selectedDrug} is ${article} ${dir} at <strong>${selectedReceptor}</strong>. Here's where the rest of your list falls relative to it.`;
+        } else {
+            if (heroLead) heroLead.textContent = "Add an index drug above to rank which drugs differ most from it on this receptor.";
+        }
+    }
+
+    function renderTopTargets(rows, selectedDrug) {
         if (!topTargetsBody) return;
         topTargetsBody.innerHTML = "";
         if (!rows.length) {
             const tr = document.createElement("tr");
-            tr.innerHTML = '<td colspan="3">No comparison drugs available for this receptor.</td>';
+            tr.innerHTML = '<td colspan="4" style="color: var(--rm-muted); font-style: italic;">No comparison drugs available for this receptor.</td>';
             topTargetsBody.appendChild(tr);
+            if (tableCount) tableCount.textContent = "";
             return;
         }
-
+        if (tableCount) tableCount.textContent = rows.length + " drugs";
         rows.forEach((row) => {
             const tr = document.createElement("tr");
             const tdDrug = document.createElement("td");
             tdDrug.textContent = row.drug;
-
             const tdActivity = document.createElement("td");
             const badge = document.createElement("span");
             badge.className = "direction-badge";
             badge.style.color = row.activity_color;
-            badge.style.borderColor = colorWithAlpha(row.activity_color, "55");
-            badge.style.background = colorWithAlpha(row.activity_color, "1a");
+            badge.style.borderColor = colorWithAlpha(row.activity_color, "44");
+            badge.style.background = colorWithAlpha(row.activity_color, "18");
             badge.textContent = row.activity;
             tdActivity.appendChild(badge);
-
             const tdPki = document.createElement("td");
+            tdPki.className = "num";
             tdPki.textContent = String(row.pKi_modelled);
-
             tr.appendChild(tdDrug);
             tr.appendChild(tdActivity);
             tr.appendChild(tdPki);
+            if (row.delta_pki !== null && row.delta_pki !== undefined && selectedDrug) {
+                const tdDelta = document.createElement("td");
+                tdDelta.className = "num";
+                tdDelta.style.textAlign = "right";
+                tdDelta.style.color = row.delta_pki >= 0 ? "var(--rm-agon-ink)" : "var(--rm-muted)";
+                tdDelta.textContent = (row.delta_pki >= 0 ? "+" : "") + row.delta_pki;
+                tr.appendChild(tdDelta);
+            }
             topTargetsBody.appendChild(tr);
         });
     }
@@ -1252,20 +1343,18 @@
         const nextKeys = new Set();
         pointsLayer.innerHTML = "";
         if (tooltip) tooltip.classList.remove("is-visible");
-
         const orderedPoints = Array.isArray(points)
             ? [...points].sort((a, b) => Number(Boolean(a.is_reference)) - Number(Boolean(b.is_reference)))
             : [];
-
         orderedPoints.forEach((point) => {
             const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             const isReference = Boolean(point.is_reference);
             circle.setAttribute("class", isReference ? "axis-point is-reference" : "axis-point");
             circle.setAttribute("cx", String(point.x));
             circle.setAttribute("cy", String(point.y));
-            circle.setAttribute("r", "6.4");
+            circle.setAttribute("r", "7");
             circle.setAttribute("fill", point.color);
-            circle.setAttribute("fill-opacity", "0.88");
+            circle.setAttribute("fill-opacity", "0.9");
             circle.setAttribute("stroke", "#ffffff");
             circle.setAttribute("stroke-width", "1.8");
             circle.dataset.drug = point.drug;
@@ -1290,19 +1379,13 @@
         if (!stage || !tooltip) return;
         const points = Array.from(document.querySelectorAll(".axis-point"));
         if (!points.length) return;
-
         const svg = stage.querySelector("svg");
         if (!svg) return;
-
         const clearHover = () => {
             points.forEach((pt) => pt.classList.remove("is-hovered"));
             tooltip.classList.remove("is-visible");
-            if (tooltipNote) {
-                tooltipNote.textContent = "";
-                tooltipNote.classList.remove("is-visible");
-            }
+            if (tooltipNote) { tooltipNote.textContent = ""; tooltipNote.classList.remove("is-visible"); }
         };
-
         points.forEach((point) => {
             const show = () => {
                 points.forEach((pt) => pt.classList.remove("is-hovered"));
@@ -1315,25 +1398,18 @@
                     tooltipNote.textContent = receptor ? `Receptor: ${receptor}` : "";
                     tooltipNote.classList.toggle("is-visible", Boolean(receptor));
                 }
-
                 const pointBox = point.getBoundingClientRect();
                 const stageBox = stage.getBoundingClientRect();
                 let left = pointBox.left + (pointBox.width / 2) - stageBox.left;
                 const top = pointBox.top - stageBox.top;
                 left = Math.max(30, Math.min(left, stageBox.width - 30));
-
                 tooltip.style.left = `${left}px`;
                 tooltip.style.top = `${top}px`;
                 tooltip.classList.add("is-visible");
             };
-
             point.addEventListener("mouseenter", show);
-            point.addEventListener("click", (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-            });
+            point.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); });
         });
-
         if (!svg.dataset.hoverBound) {
             svg.addEventListener("mouseleave", clearHover);
             svg.dataset.hoverBound = "1";
@@ -1343,10 +1419,7 @@
             axisScrollClearBound = true;
         }
         if (!axisClickClearBound) {
-            document.addEventListener("click", (event) => {
-                if (event.target.closest(".axis-point")) return;
-                clearHover();
-            });
+            document.addEventListener("click", (e) => { if (e.target.closest(".axis-point")) return; clearHover(); });
             axisClickClearBound = true;
         }
     }
@@ -1355,7 +1428,6 @@
         if (!drugGroup) return;
         const isCollapsed = drugGroup.classList.contains("is-collapsed");
         if (collapsed === isCollapsed && !immediate) return;
-
         const animatedNodes = Array.from(drugGroup.querySelectorAll(".search-wrap, .picker"));
         if (collapsed) {
             const finalizeCollapse = () => {
@@ -1364,78 +1436,52 @@
                 if (drugSearch) drugSearch.value = "";
                 if (drugInput) drugInput.value = "";
                 document.querySelectorAll("#drug-list .option-btn.is-selected").forEach((el) => el.classList.remove("is-selected"));
-                updateDrugMetric();
+                updateFiltersCount();
             };
-            if (reduceMotion || immediate) {
-                finalizeCollapse();
-                return;
-            }
+            if (reduceMotion || immediate) { finalizeCollapse(); return; }
             animatedNodes.forEach((node, index) => {
                 node.animate(
-                    [
-                        { opacity: 1, transform: "translateY(0px)" },
-                        { opacity: 0, transform: "translateY(-8px)" },
-                    ],
-                    {
-                        duration: 170,
-                        delay: index * 20,
-                        easing: "cubic-bezier(0.4, 0, 1, 1)",
-                        fill: "forwards",
-                    }
+                    [{ opacity: 1, transform: "translateY(0px)" }, { opacity: 0, transform: "translateY(-6px)" }],
+                    { duration: 160, delay: index * 20, easing: "cubic-bezier(0.4, 0, 1, 1)", fill: "forwards" }
                 );
             });
-            window.setTimeout(finalizeCollapse, 220);
+            window.setTimeout(finalizeCollapse, 200);
             return;
         }
-
         drugGroup.classList.remove("is-collapsed");
         if (drugSearch) drugSearch.disabled = false;
         if (reduceMotion || immediate) return;
         animatedNodes.forEach((node, index) => {
             node.animate(
-                [
-                    { opacity: 0, transform: "translateY(-10px)" },
-                    { opacity: 1, transform: "translateY(0px)" },
-                ],
-                {
-                    duration: 260,
-                    delay: index * 30,
-                    easing: "cubic-bezier(0.22, 1, 0.36, 1)",
-                    fill: "both",
-                }
+                [{ opacity: 0, transform: "translateY(-8px)" }, { opacity: 1, transform: "translateY(0px)" }],
+                { duration: 240, delay: index * 30, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "both" }
             );
         });
     }
 
-    function updateReceptorMetric() {
-        const selectedReceptor = getSelectedReceptor();
-        if (receptorInput) receptorInput.value = selectedReceptor;
-        if (graphReceptor) graphReceptor.textContent = `Receptor: ${selectedReceptor || "-"}`;
-        updateResetAvailability();
-    }
-
-    function updateDrugMetric() {
-        const selectedDrug = drugInput ? drugInput.value : "";
-        if (graphActiveDrug) graphActiveDrug.textContent = `Drug: ${selectedDrug || "-"}`;
+    function updateFiltersCount() {
+        const hasReceptor = Boolean(receptorInput && receptorInput.value);
+        const hasDrug = Boolean(drugInput && drugInput.value);
+        const count = (hasReceptor ? 1 : 0) + (hasDrug ? 1 : 0);
+        if (filtersCount) filtersCount.textContent = `${count}/2`;
         updateResetAvailability();
     }
 
     function setAxisVisibility(selectedReceptor) {
         const showAxis = Boolean(selectedReceptor);
         if (axisStageWrap) axisStageWrap.hidden = !showAxis;
-        if (axisPlaceholder) axisPlaceholder.hidden = showAxis;
         if (!showAxis && tooltip) tooltip.classList.remove("is-visible");
     }
 
     function updateComparisonTitle(selectedReceptor, selectedDrug, rankingActive) {
         if (!topTargetsTitle) return;
-        let label = "Receptor Comparison Table";
+        let label = "Receptor comparison";
         if (selectedReceptor && rankingActive && selectedDrug) {
-            label = `Most Different Drugs on ${selectedReceptor}`;
+            label = `Most different drugs · ${selectedReceptor}`;
         } else if (selectedReceptor) {
-            label = `All Drugs on ${selectedReceptor}`;
+            label = `All drugs · ${selectedReceptor}`;
         }
-        topTargetsTitle.innerHTML = `<i class="hgi-stroke hgi-data-table icon" aria-hidden="true"></i>${label}`;
+        topTargetsTitle.textContent = label;
     }
 
     function wireOptionClicks() {
@@ -1443,18 +1489,12 @@
             const btn = event.target.closest(".option-btn");
             if (!btn) return;
             const kind = btn.dataset.kind;
-
             if (!reduceMotion) {
                 btn.animate(
-                    [
-                        { transform: "scale(1)" },
-                        { transform: "scale(0.985)" },
-                        { transform: "scale(1)" },
-                    ],
-                    { duration: 150, easing: "ease-out" }
+                    [{ transform: "scale(1)" }, { transform: "scale(0.97)" }, { transform: "scale(1)" }],
+                    { duration: 120, easing: "ease-out" }
                 );
             }
-
             if (kind === "target") {
                 const wasSelected = btn.classList.contains("is-selected");
                 document.querySelectorAll("#target-list .option-btn.is-selected").forEach((el) => el.classList.remove("is-selected"));
@@ -1467,12 +1507,12 @@
                     rebuildDrugListForReceptor("");
                     setDrugsCollapsed(true);
                 }
-                updateReceptorMetric();
+                if (receptorInput) receptorInput.value = selectedReceptor;
+                updateFiltersCount();
                 saveHomeState();
                 fetchAndRenderAxisData();
                 return;
             }
-
             if (kind === "drug") {
                 const wasSelected = btn.classList.contains("is-selected");
                 document.querySelectorAll("#drug-list .option-btn.is-selected").forEach((el) => el.classList.remove("is-selected"));
@@ -1482,7 +1522,7 @@
                 } else if (drugInput) {
                     drugInput.value = "";
                 }
-                updateDrugMetric();
+                updateFiltersCount();
                 saveHomeState();
                 fetchAndRenderAxisData();
             }
@@ -1492,10 +1532,7 @@
     function wireSearch(searchId, listId) {
         const search = document.getElementById(searchId);
         if (!search) return;
-        search.addEventListener("input", () => {
-            applySearchFilter(searchId, listId);
-            saveHomeState();
-        });
+        search.addEventListener("input", () => { applySearchFilter(searchId, listId); saveHomeState(); });
     }
 
     function setResetArmed(armed) {
@@ -1514,16 +1551,7 @@
         const hasReceptor = Boolean(receptorInput && receptorInput.value);
         const shouldEnable = hasDrug || hasReceptor;
         resetFiltersBtn.disabled = !shouldEnable;
-        if (!shouldEnable) {
-            setResetArmed(false);
-            if (resetHoverTip) {
-                resetHoverTip.textContent = "";
-                resetHoverTip.setAttribute("aria-hidden", "true");
-            }
-        } else if (resetHoverTip) {
-            resetHoverTip.textContent = resetArmed ? "Confirm?" : "Reset filters";
-            resetHoverTip.setAttribute("aria-hidden", "false");
-        }
+        if (!shouldEnable) { setResetArmed(false); }
     }
 
     async function resetFiltersDynamically() {
@@ -1535,8 +1563,7 @@
         if (receptorSearch) receptorSearch.value = "";
         rebuildDrugListForReceptor("");
         setDrugsCollapsed(true);
-        updateDrugMetric();
-        updateReceptorMetric();
+        updateFiltersCount();
         applySearchFilter("drug-search", "drug-list");
         applySearchFilter("target-search", "target-list");
         recalcSimpleBar(drugList ? drugList.closest(".picker-scroll") : null);
@@ -1551,31 +1578,21 @@
             event.preventDefault();
             event.stopPropagation();
             if (resetFiltersBtn.disabled) return;
-            if (!resetArmed) {
-                setResetArmed(true);
-                return;
-            }
+            if (!resetArmed) { setResetArmed(true); return; }
             setResetArmed(false);
             await resetFiltersDynamically();
         });
-
         document.addEventListener("mousemove", (event) => {
             if (!resetArmed || !resetFiltersBtn) return;
             const rect = resetFiltersBtn.getBoundingClientRect();
-            const cx = rect.left + (rect.width / 2);
-            const cy = rect.top + (rect.height / 2);
-            if (Math.hypot(event.clientX - cx, event.clientY - cy) > 115) setResetArmed(false);
+            if (Math.hypot(event.clientX - (rect.left + rect.width / 2), event.clientY - (rect.top + rect.height / 2)) > 110) setResetArmed(false);
         });
-
         document.addEventListener("click", (event) => {
             if (!resetArmed || !resetFiltersBtn) return;
             if (event.target.closest("#reset-filters-btn")) return;
             setResetArmed(false);
         });
-
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "Escape") setResetArmed(false);
-        });
+        document.addEventListener("keydown", (event) => { if (event.key === "Escape") setResetArmed(false); });
     }
 
     async function fetchAndRenderAxisData() {
@@ -1584,25 +1601,22 @@
         const params = new URLSearchParams();
         if (selectedDrug) params.set("drug", selectedDrug);
         if (selectedReceptor) params.set("receptor", selectedReceptor);
-
         const response = await fetch(`/api/axis-data/?${params.toString()}`, {
             method: "GET",
             headers: { "Accept": "application/json" },
         });
         if (!response.ok) return;
         const data = await response.json();
-
-        renderAxisPoints(Array.isArray(data.points) ? data.points : []);
+        const points = Array.isArray(data.points) ? data.points : [];
+        renderAxisPoints(points);
         renderLegend(Array.isArray(data.activity_legend) ? data.activity_legend : []);
-        renderTopTargets(Array.isArray(data.comparison_rows) ? data.comparison_rows : []);
-
+        renderTopTargets(Array.isArray(data.comparison_rows) ? data.comparison_rows : [], data.selected_drug || "");
         if (receptorInput) receptorInput.value = data.selected_receptor || "";
         if (drugInput) drugInput.value = data.selected_drug || "";
         setAxisVisibility(data.selected_receptor || "");
         updateComparisonTitle(data.selected_receptor || "", data.selected_drug || "", Boolean(data.ranking_active));
-        if (graphReceptor) graphReceptor.textContent = `Receptor: ${data.selected_receptor || "-"}`;
-        if (graphActiveDrug) graphActiveDrug.textContent = `Drug: ${data.selected_drug || "-"}`;
-
+        updateHeroCard(data.selected_receptor || "", data.selected_drug || "", points);
+        updateFiltersCount();
         saveHomeState();
     }
 
@@ -1616,8 +1630,7 @@
         applySearchFilter("target-search", "target-list");
         applySearchFilter("drug-search", "drug-list");
         setDrugsCollapsed(!(receptorInput && receptorInput.value), true);
-        updateReceptorMetric();
-        updateDrugMetric();
+        updateFiltersCount();
         setAxisVisibility(receptorInput ? receptorInput.value : "");
         recalcSimpleBar(receptorList ? receptorList.closest(".picker-scroll") : null);
         recalcSimpleBar(drugList ? drugList.closest(".picker-scroll") : null);
@@ -1631,14 +1644,11 @@
         animateAxisPoints();
         wireAxisHoverTooltip();
     }
-    wireCardMotion();
     wireResetControl();
     window.addEventListener("beforeunload", saveHomeState);
 
     if (form) {
-        form.addEventListener("submit", (event) => {
-            event.preventDefault();
-        });
+        form.addEventListener("submit", (event) => { event.preventDefault(); });
     }
 </script>
 {% endblock %}

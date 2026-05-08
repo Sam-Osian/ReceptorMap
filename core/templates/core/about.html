@@ -1,127 +1,418 @@
 {% extends "core/base.html" %}
+{% load humanize %}
 
 {% block title %}ReceptorMap | About{% endblock %}
 
 {% block extra_head %}
 <style>
     .about-shell {
-        width: 100%;
-        border-radius: 1.05rem;
-        border: 1px solid #d8dfed;
-        background: linear-gradient(180deg, #ffffff, #fbfcff 60%, #f8faff);
-        box-shadow: 0 14px 30px rgba(17, 24, 39, 0.06);
-        padding: clamp(1rem, 2.2vw, 1.8rem);
+        display: grid;
+        gap: 0;
     }
 
-    .about-prose {
-        width: 100%;
-        color: #55607b;
-        line-height: 1.56;
-        font-size: 0.98rem;
+    .about-prose-col {
+        max-width: 72ch;
     }
 
-    .about-prose h1,
-    .about-prose h2,
-    .about-prose h3 {
-        margin: 1.05rem 0 0.4rem;
-        color: #1f2740;
-        letter-spacing: -0.01em;
-        font-family: "Outfit", "Manrope", sans-serif;
-        line-height: 1.2;
+    /* ── Hero ── */
+    .about-hero {
+        padding-bottom: 32px;
+        border-bottom: 1px solid var(--rm-line);
+        margin-bottom: 32px;
     }
 
-    .about-prose h1 {
-        margin-top: 0;
-        font-size: clamp(1.8rem, 3vw, 2.35rem);
-        letter-spacing: -0.02em;
+    .about-eyebrow {
+        font-family: var(--rm-font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--rm-muted);
+        margin: 0 0 12px;
     }
 
-    .about-prose h2 {
-        font-size: clamp(1.12rem, 1.6vw, 1.35rem);
-        padding-top: 0.65rem;
-        border-top: 1px solid #e6ebf5;
+    .about-headline {
+        margin: 0 0 16px;
+        font-family: var(--rm-font-sans);
+        font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1.05;
+        color: var(--rm-ink);
     }
 
-    .about-prose h3 {
-        font-size: 1rem;
+    .about-headline .hl-lime {
+        background: #C6F26E;
+        padding: 0.01em 0.12em;
+        border-radius: 5px;
+        color: var(--rm-ink);
     }
 
-    .about-prose p {
-        margin: 0.32rem 0 0.7rem;
-    }
-
-    .about-prose ul,
-    .about-prose ol {
-        margin: 0.3rem 0 0.82rem;
-        padding-left: 1.1rem;
-    }
-
-    .about-prose li {
-        margin: 0.3rem 0;
-    }
-
-    .about-prose code {
-        border: 1px solid #d6def1;
-        background: #f3f7ff;
-        color: #2e3a5a;
-        border-radius: 0.35rem;
-        padding: 0.05rem 0.28rem;
-        font-size: 0.87em;
-    }
-
-    .about-prose a {
-        color: #3f5fc8;
-        text-decoration: none;
-        border-bottom: 1px solid #b8c7ec;
-    }
-
-    .about-prose a:hover {
-        color: #2d4db8;
-        border-bottom-color: #2d4db8;
-    }
-
-    .about-prose hr {
-        border: 0;
-        border-top: 1px solid #e1e7f3;
-        margin: 1rem 0;
-    }
-
-    .about-prose blockquote {
-        margin: 0.8rem 0;
-        padding: 0.55rem 0.72rem;
-        border-left: 3px solid #8da2dc;
-        background: #f5f8ff;
-        border-radius: 0 0.45rem 0.45rem 0;
-        color: #445070;
-    }
-
-    .about-prose blockquote p {
+    .about-lede {
+        font-size: 15px;
+        color: var(--rm-ink-3);
+        line-height: 1.65;
+        max-width: 58ch;
         margin: 0;
     }
 
-    .about-prose pre {
-        margin: 0.72rem 0 1rem;
-        border: 1px solid #d6deef;
-        border-radius: 0.65rem;
-        background: #f7f9ff;
-        padding: 0.65rem 0.75rem;
-        overflow: auto;
+    /* ── Stats row ── */
+    .about-stats {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 32px;
     }
 
-    .about-prose pre code {
-        border: 0;
-        background: transparent;
-        padding: 0;
-        font-size: 0.88rem;
-        color: #2f3b5b;
+    .about-stat {
+        flex: 1;
+        min-width: 110px;
+        border: 1px solid var(--rm-line);
+        border-radius: var(--rm-radius-2);
+        background: var(--rm-surface-2);
+        padding: 14px 16px;
+    }
+
+    .about-stat.accent {
+        background: var(--rm-antag-wash);
+        border-color: var(--rm-antag-line);
+    }
+
+    .about-stat-label {
+        font-family: var(--rm-font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--rm-muted);
+        margin: 0 0 5px;
+    }
+
+    .about-stat.accent .about-stat-label {
+        color: var(--rm-antag-ink);
+        opacity: 0.75;
+    }
+
+    .about-stat-value {
+        font-family: var(--rm-font-sans);
+        font-size: clamp(1.4rem, 2.2vw, 1.9rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        color: var(--rm-ink);
+        line-height: 1;
+        margin: 0;
+    }
+
+    .about-stat.accent .about-stat-value {
+        color: var(--rm-antag);
+    }
+
+    /* ── Feature grid ── */
+    .about-features {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 32px;
+    }
+
+    .about-feature {
+        border: 1px solid var(--rm-line);
+        border-radius: var(--rm-radius-3);
+        background: var(--rm-surface);
+        padding: 18px 20px;
+    }
+
+    .about-feature-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--rm-radius-2);
+        background: var(--rm-surface-3);
+        border: 1px solid var(--rm-line);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        color: var(--rm-muted);
+        margin-bottom: 10px;
+    }
+
+    .about-feature-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--rm-ink);
+        margin: 0 0 5px;
+        letter-spacing: -0.01em;
+    }
+
+    .about-feature-desc {
+        font-size: 13px;
+        color: var(--rm-muted);
+        line-height: 1.55;
+        margin: 0;
+    }
+
+    /* ── Axis explainer ── */
+    .about-axis-card {
+        border: 1px solid var(--rm-line);
+        border-radius: var(--rm-radius-3);
+        background: var(--rm-surface);
+        overflow: hidden;
+        margin-bottom: 32px;
+    }
+
+    .about-axis-head {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--rm-line);
+        background: var(--rm-surface-2);
+    }
+
+    .about-axis-eyebrow {
+        font-family: var(--rm-font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--rm-muted);
+        margin: 0 0 3px;
+    }
+
+    .about-axis-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--rm-ink);
+        margin: 0;
+        letter-spacing: -0.01em;
+    }
+
+    .about-axis-body {
+        padding: 16px 20px 20px;
+    }
+
+    .about-axis-svg-wrap {
+        margin-bottom: 14px;
+    }
+
+    .about-axis-desc {
+        font-size: 13px;
+        color: var(--rm-ink-3);
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .about-axis-legend {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+
+    .about-axis-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 9px;
+        border-radius: var(--rm-radius-pill);
+        font-size: 11px;
+        font-weight: 600;
+        border: 1px solid;
+    }
+
+    .about-axis-pill-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+    }
+
+    /* ── Limitations card ── */
+    .about-limits-card {
+        border: 1px solid var(--rm-line);
+        border-radius: var(--rm-radius-3);
+        background: var(--rm-surface-2);
+        padding: 16px 20px;
+        margin-bottom: 32px;
+        display: flex;
+        gap: 12px;
+    }
+
+    .about-limits-icon {
+        color: var(--rm-muted-2);
+        font-size: 16px;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .about-limits-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--rm-ink-2);
+        margin: 0 0 5px;
+        letter-spacing: -0.01em;
+    }
+
+    .about-limits-text {
+        font-size: 13px;
+        color: var(--rm-muted);
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* ── Data source note ── */
+    .about-source-card {
+        border: 1px solid var(--rm-antag-line);
+        border-radius: var(--rm-radius-3);
+        background: var(--rm-antag-wash);
+        padding: 16px 20px;
+        display: flex;
+        gap: 12px;
+    }
+
+    .about-source-icon {
+        color: var(--rm-antag-ink);
+        font-size: 16px;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .about-source-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--rm-antag-ink);
+        margin: 0 0 4px;
+        letter-spacing: -0.01em;
+    }
+
+    .about-source-text {
+        font-size: 13px;
+        color: var(--rm-antag-ink);
+        opacity: 0.8;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    @media (max-width: 900px) {
+        .about-features { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 500px) {
+        .about-features { grid-template-columns: 1fr; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="about-shell" data-reveal>
-    <article class="about-prose" aria-label="About ReceptorMap">
-        {{ about_html|safe }}
-    </article>
-</section>
+<div class="about-shell">
+
+    <!-- ── Hero ── -->
+    <section class="about-hero about-prose-col">
+        <p class="about-eyebrow">About · ReceptorMap</p>
+        <h1 class="about-headline">Receptor binding affinity, <br><span class="hl-lime">across agents</span>.</h1>
+        <p class="about-lede">ReceptorMap is an internal reference tool for exploring receptor-level binding affinity data across antidepressant and related psychotropic agents. It is intended to support pharmacological reasoning, not to replace it.</p>
+    </section>
+
+    <!-- ── Stats ── -->
+    <div class="about-stats">
+        <div class="about-stat">
+            <p class="about-stat-label">Drugs</p>
+            <p class="about-stat-value">{{ drug_count }}</p>
+        </div>
+        <div class="about-stat">
+            <p class="about-stat-label">Receptors / targets</p>
+            <p class="about-stat-value">{{ receptor_count }}</p>
+        </div>
+        <div class="about-stat accent">
+            <p class="about-stat-label">Drug–receptor pairs</p>
+            <p class="about-stat-value">{{ total_rows|intcomma }}</p>
+        </div>
+    </div>
+
+    <!-- ── Features ── -->
+    <div class="about-features">
+        <div class="about-feature">
+            <div class="about-feature-icon"><i class="hgi-stroke hgi-target-02"></i></div>
+            <p class="about-feature-title">Affinity axis</p>
+            <p class="about-feature-desc">All agents with available data for a receptor plotted on a single axis. Horizontal position encodes pKi; left/right encodes pharmacological direction where annotated.</p>
+        </div>
+        <div class="about-feature">
+            <div class="about-feature-icon"><i class="hgi-stroke hgi-compare"></i></div>
+            <p class="about-feature-title">Δ pKi ranking</p>
+            <p class="about-feature-desc">Select an index drug to re-sort the table by absolute difference in pKi. Useful for identifying agents with similar or dissimilar receptor profiles.</p>
+        </div>
+        <div class="about-feature">
+            <div class="about-feature-icon"><i class="hgi-stroke hgi-table-01"></i></div>
+            <p class="about-feature-title">Tabular view</p>
+            <p class="about-feature-desc">Activity class and pKi for every agent at the selected receptor, always in sync with the plot. Sortable, scrollable, exportable.</p>
+        </div>
+        <div class="about-feature">
+            <div class="about-feature-icon"><i class="hgi-stroke hgi-database-01"></i></div>
+            <p class="about-feature-title">Raw data access</p>
+            <p class="about-feature-desc">The underlying dataset — including Ki bounds, source URLs, and evidence notes — is available as a CSV download from the Dataset page.</p>
+        </div>
+    </div>
+
+    <!-- ── Axis explainer ── -->
+    <div class="about-axis-card">
+        <div class="about-axis-head">
+            <p class="about-axis-eyebrow">Methodology</p>
+            <p class="about-axis-title">How pKi is calculated and plotted</p>
+        </div>
+        <div class="about-axis-body">
+            <div class="about-axis-svg-wrap">
+                <svg viewBox="0 0 640 80" width="100%" style="display:block;">
+                    <line x1="30" y1="48" x2="610" y2="48" stroke="#1F2126" stroke-width="1.4"/>
+                    <line x1="320" y1="38" x2="320" y2="58" stroke="#1F2126" stroke-width="2"/>
+                    <line x1="30"  y1="42" x2="30"  y2="54" stroke="#A09EA6" stroke-width="1"/>
+                    <line x1="610" y1="42" x2="610" y2="54" stroke="#A09EA6" stroke-width="1"/>
+                    <rect x="18" y="20" width="92" height="18" rx="9" fill="#EFEBFF"/>
+                    <text x="64" y="33" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="1.4" fill="#3E26CC" font-weight="600">ANTAGONIST</text>
+                    <rect x="530" y="20" width="82" height="18" rx="9" fill="#C6F26E"/>
+                    <text x="571" y="33" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" letter-spacing="1.4" fill="#3E6600" font-weight="600">AGONIST</text>
+                    <circle cx="120" cy="48" r="6" fill="#6B4CFF" fill-opacity="0.9" stroke="#fff" stroke-width="1.4"/>
+                    <circle cx="190" cy="48" r="6" fill="#6B4CFF" fill-opacity="0.9" stroke="#fff" stroke-width="1.4"/>
+                    <circle cx="280" cy="48" r="6" fill="#6C6A72" fill-opacity="0.9" stroke="#fff" stroke-width="1.4"/>
+                    <circle cx="430" cy="48" r="6" fill="#8FCC2B" fill-opacity="0.9" stroke="#fff" stroke-width="1.4"/>
+                    <circle cx="520" cy="48" r="6" fill="#8FCC2B" fill-opacity="0.9" stroke="#fff" stroke-width="1.4"/>
+                    <circle cx="160" cy="48" r="7" fill="#111216" fill-opacity="0.9" stroke="#fff" stroke-width="2"/>
+                    <text x="160" y="73" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#6C6A72" font-weight="600">index drug</text>
+                    <text x="320" y="68" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#A09EA6">pKi 7.0</text>
+                    <text x="30"  y="68" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#A09EA6">4.0</text>
+                    <text x="610" y="68" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8" fill="#A09EA6">10.0</text>
+                </svg>
+            </div>
+            <p class="about-axis-desc">pKi = 9 − log₁₀(Ki), where Ki is the equilibrium inhibition constant in nM. Higher pKi indicates stronger binding. Where only a Ki range is available, the geometric mean of the lower and upper bounds is used. Pharmacological direction (left/right) is drawn from activity annotations where present; unannotated entries are plotted as "unknown" and do not imply a specific direction.</p>
+            <div class="about-axis-legend">
+                <span class="about-axis-pill" style="background:#EFEBFF; border-color:#CBBFFF; color:#3E26CC;">
+                    <span class="about-axis-pill-dot" style="background:#6B4CFF;"></span> Antagonist / inhibitor
+                </span>
+                <span class="about-axis-pill" style="background:#EEF7D7; border-color:#CFE597; color:#3E6600;">
+                    <span class="about-axis-pill-dot" style="background:#8FCC2B;"></span> Agonist
+                </span>
+                <span class="about-axis-pill" style="background:var(--rm-surface-3); border-color:var(--rm-line); color:var(--rm-ink-3);">
+                    <span class="about-axis-pill-dot" style="background:#111216;"></span> Index drug
+                </span>
+                <span class="about-axis-pill" style="background:var(--rm-surface-3); border-color:var(--rm-line); color:var(--rm-muted);">
+                    <span class="about-axis-pill-dot" style="background:#6C6A72;"></span> Activity unknown
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Limitations ── -->
+    <div class="about-limits-card">
+        <i class="hgi-stroke hgi-information-circle about-limits-icon"></i>
+        <div>
+            <p class="about-limits-title">Limitations and caveats</p>
+            <p class="about-limits-text">Activity direction (agonist/antagonist) is annotated for a minority of entries; the remainder show binding affinity only. Ki values are drawn from published literature and curated databases — they reflect in-vitro binding, not in-vivo efficacy or clinical effect. Coverage is uneven across drug–receptor pairs. pKi should be interpreted in the context of receptor reserve, tissue distribution, and competing pharmacology. This tool is not a substitute for primary literature review or clinical judgement.</p>
+        </div>
+    </div>
+
+    <!-- ── Data source ── -->
+    <div class="about-source-card">
+        <i class="hgi-stroke hgi-database-sync about-source-icon"></i>
+        <div>
+            <p class="about-source-title">Data sources</p>
+            <p class="about-source-text">Ki values are drawn primarily from the <strong>Guide to Pharmacology (GtoPdb)</strong> and supplementary literature sources. Source URLs and evidence notes are attached where available — these can be inspected in the raw dataset on the <a href="{% url 'dataset' %}" style="color:var(--rm-antag-ink); font-weight:600;">Dataset page</a>. Drug scope is currently limited to antidepressants and selected related agents (antipsychotics, agomelatine). Coverage of additional drug classes is planned.</p>
+        </div>
+    </div>
+
+</div>
 {% endblock %}

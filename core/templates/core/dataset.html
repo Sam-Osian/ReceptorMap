@@ -1,125 +1,488 @@
 {% extends "core/base.html" %}
+{% load humanize %}
 
 {% block title %}ReceptorMap | Dataset{% endblock %}
 
 {% block extra_head %}
 <style>
     .dataset-page {
-        width: 100%;
-        border-radius: 1.05rem;
-        border: 1px solid #d8dfed;
-        background: linear-gradient(180deg, #ffffff, #fbfcff 60%, #f8faff);
-        box-shadow: 0 14px 30px rgba(17, 24, 39, 0.06);
-        padding: clamp(1rem, 2.2vw, 1.4rem);
         display: grid;
-        gap: 0.85rem;
+        gap: 20px;
     }
 
-    .dataset-page h1 {
-        margin: 0;
-        font-family: "Outfit", "Manrope", sans-serif;
-        color: #1f2740;
-        letter-spacing: -0.01em;
-        font-size: clamp(1.4rem, 2vw, 1.8rem);
-    }
-
-    .dataset-meta {
-        margin: 0;
-        color: #5e6781;
-        font-size: 0.93rem;
-    }
-
-    .dataset-grid {
+    .dataset-main-cols {
         display: grid;
-        gap: 0.55rem;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+        gap: 16px;
+        align-items: start;
     }
 
-    .dataset-card {
-        border: 1px solid #d7e0f3;
-        border-radius: 0.75rem;
-        background: #fff;
+    @media (max-width: 900px) {
+        .dataset-main-cols { grid-template-columns: 1fr; }
+    }
+
+    /* ── Header ── */
+    .dataset-header {
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--rm-line);
+    }
+
+    .dataset-eyebrow {
+        font-family: var(--rm-font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--rm-muted);
+        margin: 0 0 10px;
+    }
+
+    .dataset-title {
+        margin: 0 0 8px;
+        font-family: var(--rm-font-sans);
+        font-size: clamp(1.2rem, 2vw, 1.6rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: var(--rm-ink);
+    }
+
+    .dataset-desc {
+        font-size: 14px;
+        color: var(--rm-ink-3);
+        line-height: 1.6;
+        margin: 0 0 16px;
+    }
+
+    /* ── Stats row ── */
+    .dataset-stats {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .dataset-stat {
+        flex: 1;
+        min-width: 90px;
+        border: 1px solid var(--rm-line);
+        border-radius: var(--rm-radius-2);
+        background: var(--rm-surface-2);
+        padding: 10px 12px;
+    }
+
+    .dataset-stat.accent {
+        background: var(--rm-antag-wash);
+        border-color: var(--rm-antag-line);
+    }
+
+    .dataset-stat-label {
+        font-family: var(--rm-font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--rm-muted);
+        margin: 0 0 3px;
+    }
+
+    .dataset-stat.accent .dataset-stat-label {
+        color: var(--rm-antag-ink);
+        opacity: 0.75;
+    }
+
+    .dataset-stat-value {
+        font-family: var(--rm-font-sans);
+        font-size: clamp(1.1rem, 1.8vw, 1.4rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: var(--rm-ink);
+        line-height: 1;
+        margin: 0;
+    }
+
+    .dataset-stat.accent .dataset-stat-value {
+        color: var(--rm-antag);
+    }
+
+    /* ── Download card ── */
+    .dataset-download-card {
+        border: 1px solid var(--rm-line);
+        border-radius: var(--rm-radius-3);
+        background: var(--rm-surface);
         overflow: hidden;
     }
 
-    .dataset-card-head {
-        padding: 0.42rem 0.55rem;
-        border-bottom: 1px solid #e4eaf8;
+    .dataset-download-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--rm-line);
+        background: var(--rm-surface-2);
+    }
+
+    .dataset-download-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+
+    .dataset-download-name {
+        font-family: var(--rm-font-mono);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--rm-ink-2);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .dataset-download-hint {
+        font-size: 11px;
+        color: var(--rm-muted);
+    }
+
+    .dataset-download-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 14px;
+        height: 32px;
+        border: none;
+        border-radius: var(--rm-radius-pill);
+        background: var(--rm-antag);
+        color: #fff;
+        font-family: var(--rm-font-sans);
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: background 120ms ease, transform 110ms ease;
+    }
+
+    .dataset-download-btn:hover {
+        background: var(--rm-antag-ink);
+        transform: translateY(-1px);
+    }
+
+    .dataset-endpoint-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--rm-line);
+    }
+
+    .dataset-endpoint-label {
+        font-family: var(--rm-font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--rm-muted);
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .dataset-endpoint-url {
+        font-family: var(--rm-font-mono);
+        font-size: 12px;
+        color: var(--rm-antag-ink);
+        background: var(--rm-antag-wash);
+        border: 1px solid var(--rm-antag-line);
+        border-radius: var(--rm-radius-1);
+        padding: 3px 8px;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* ── Code snippets ── */
+    .dataset-snippets-head {
+        padding: 12px 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .dataset-snippets-label {
+        font-family: var(--rm-font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--rm-muted);
+    }
+
+    .dataset-snippet {
+        border-top: 1px solid var(--rm-line);
+    }
+
+    .dataset-snippet-head {
+        padding: 8px 14px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 0.5rem;
-        background: #f3f7ff;
+        gap: 8px;
+        background: var(--rm-surface-3);
+        border-bottom: 1px solid var(--rm-line);
     }
 
-    .dataset-shell {
-        font-size: 0.74rem;
-        letter-spacing: 0.03em;
+    .dataset-shell-label {
+        font-family: var(--rm-font-mono);
+        font-size: 10px;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
-        font-weight: 800;
-        color: #3b4f7d;
+        font-weight: 600;
+        color: var(--rm-ink-2);
     }
 
     .dataset-copy-btn {
-        border: 1px solid #c9d5ef;
-        border-radius: 0.5rem;
-        background: #fff;
-        color: #2b3e66;
-        font-size: 0.74rem;
-        font-weight: 700;
-        padding: 0.12rem 0.4rem;
+        border: 1px solid var(--rm-line-2);
+        border-radius: var(--rm-radius-pill);
+        background: var(--rm-surface);
+        color: var(--rm-ink-3);
+        font-family: var(--rm-font-sans);
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 10px;
         cursor: pointer;
+        transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+    }
+
+    .dataset-copy-btn:hover {
+        background: var(--rm-surface-3);
     }
 
     .dataset-copy-btn.is-copied {
-        border-color: #9ec6b0;
-        color: #1f6444;
-        background: #effaf4;
+        border-color: var(--rm-agon-line);
+        color: var(--rm-agon-ink);
+        background: var(--rm-agon-wash);
     }
 
     .dataset-command {
         margin: 0;
-        padding: 0.56rem 0.62rem;
-        font-size: 0.82rem;
-        line-height: 1.4;
-        color: #212d4b;
+        padding: 12px 16px;
+        font-family: var(--rm-font-mono);
+        font-size: 12px;
+        line-height: 1.55;
+        color: var(--rm-ink-2);
         white-space: pre-wrap;
-        word-break: break-word;
+        word-break: break-all;
+    }
+
+    /* ── Schema card ── */
+    .dataset-schema-card {
+        border: 1px solid var(--rm-line);
+        border-radius: var(--rm-radius-3);
+        background: var(--rm-surface);
+        overflow: hidden;
+    }
+
+    .dataset-schema-head {
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--rm-line);
+        background: var(--rm-surface-2);
+    }
+
+    .dataset-schema-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--rm-ink);
+        margin: 0;
+        letter-spacing: -0.01em;
+    }
+
+    .dataset-schema-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+
+    .dataset-schema-table thead th {
+        padding: 8px 16px;
+        background: var(--rm-surface-3);
+        border-bottom: 1px solid var(--rm-line);
+        font-family: var(--rm-font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--rm-muted);
+        text-align: left;
+    }
+
+    .dataset-schema-table tbody tr {
+        border-bottom: 1px solid var(--rm-surface-3);
+    }
+
+    .dataset-schema-table tbody tr:last-child {
+        border-bottom: 0;
+    }
+
+    .dataset-schema-table tbody td {
+        padding: 9px 16px;
+        color: var(--rm-ink-2);
+        vertical-align: middle;
+    }
+
+    .schema-field-name {
+        font-family: var(--rm-font-mono);
+        font-size: 12px;
+        color: var(--rm-antag-ink);
+        background: var(--rm-antag-wash);
+        border: 1px solid var(--rm-antag-line);
+        border-radius: var(--rm-radius-1);
+        padding: 1px 6px;
+    }
+
+    .schema-type-tag {
+        font-family: var(--rm-font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--rm-muted);
+        background: var(--rm-surface-3);
+        border: 1px solid var(--rm-line);
+        border-radius: var(--rm-radius-1);
+        padding: 1px 6px;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="dataset-page">
-    <h1>Dataset Download</h1>
-    <p class="dataset-meta">File: <code>{{ dataset_filename }}</code></p>
-    <p class="dataset-meta">API endpoint: <code>{{ dataset_download_url }}</code></p>
+<div class="dataset-page">
 
-    <div class="dataset-grid">
-        <article class="dataset-card">
-            <div class="dataset-card-head">
-                <span class="dataset-shell">Python</span>
+    <!-- ── Header ── -->
+    <header class="dataset-header">
+        <p class="dataset-eyebrow">Dataset · ReceptorMap</p>
+        <h1 class="dataset-title">{{ dataset_filename }}</h1>
+        <p class="dataset-desc">Full binding affinity dataset — drug × receptor × pKi. Download directly or fetch via the API endpoint.</p>
+        <div class="dataset-stats">
+            <div class="dataset-stat">
+                <p class="dataset-stat-label">Drugs</p>
+                <p class="dataset-stat-value">{{ drug_count }}</p>
+            </div>
+            <div class="dataset-stat">
+                <p class="dataset-stat-label">Receptors</p>
+                <p class="dataset-stat-value">{{ receptor_count }}</p>
+            </div>
+            <div class="dataset-stat accent">
+                <p class="dataset-stat-label">Rows</p>
+                <p class="dataset-stat-value">{{ total_rows|intcomma }}</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="dataset-main-cols">
+    <!-- ── Download card ── -->
+    <div class="dataset-download-card">
+        <div class="dataset-download-head">
+            <div class="dataset-download-meta">
+                <span class="dataset-download-name">{{ dataset_filename }}</span>
+                <span class="dataset-download-hint">CSV · updated periodically</span>
+            </div>
+            <a href="{{ dataset_download_url }}" class="dataset-download-btn" download>
+                <i class="hgi-stroke hgi-download-02"></i> Download CSV
+            </a>
+        </div>
+
+        <div class="dataset-endpoint-row">
+            <span class="dataset-endpoint-label">API endpoint</span>
+            <code class="dataset-endpoint-url">{{ dataset_download_url }}</code>
+        </div>
+
+        <div class="dataset-snippets-head">
+            <span class="dataset-snippets-label">Fetch with</span>
+        </div>
+
+        <div class="dataset-snippet">
+            <div class="dataset-snippet-head">
+                <span class="dataset-shell-label">Python</span>
                 <button type="button" class="dataset-copy-btn" data-copy-command-id="dataset-cmd-python">Copy</button>
             </div>
             <pre id="dataset-cmd-python" class="dataset-command">python -c "import urllib.request; urllib.request.urlretrieve('{{ dataset_download_url }}', '{{ dataset_filename }}')"</pre>
-        </article>
+        </div>
 
-        <article class="dataset-card">
-            <div class="dataset-card-head">
-                <span class="dataset-shell">bash / zsh</span>
+        <div class="dataset-snippet">
+            <div class="dataset-snippet-head">
+                <span class="dataset-shell-label">bash / zsh</span>
                 <button type="button" class="dataset-copy-btn" data-copy-command-id="dataset-cmd-bash">Copy</button>
             </div>
             <pre id="dataset-cmd-bash" class="dataset-command">curl -fsSL '{{ dataset_download_url }}' -o '{{ dataset_filename }}'</pre>
-        </article>
+        </div>
 
-        <article class="dataset-card">
-            <div class="dataset-card-head">
-                <span class="dataset-shell">PowerShell</span>
+        <div class="dataset-snippet">
+            <div class="dataset-snippet-head">
+                <span class="dataset-shell-label">PowerShell</span>
                 <button type="button" class="dataset-copy-btn" data-copy-command-id="dataset-cmd-powershell">Copy</button>
             </div>
             <pre id="dataset-cmd-powershell" class="dataset-command">Invoke-WebRequest -Uri '{{ dataset_download_url }}' -OutFile '{{ dataset_filename }}'</pre>
-        </article>
+        </div>
     </div>
-</section>
+
+    <!-- ── Schema ── -->
+    <div class="dataset-schema-card" style="align-self: start;">
+        <div class="dataset-schema-head">
+            <p class="dataset-schema-title">Column schema</p>
+        </div>
+        <table class="dataset-schema-table">
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code class="schema-field-name">drug</code></td>
+                    <td><span class="schema-type-tag">string</span></td>
+                    <td>Drug / compound name</td>
+                </tr>
+                <tr>
+                    <td><code class="schema-field-name">drug_class</code></td>
+                    <td><span class="schema-type-tag">string</span></td>
+                    <td>Drug class (e.g. antipsychotic, antidepressant)</td>
+                </tr>
+                <tr>
+                    <td><code class="schema-field-name">target</code></td>
+                    <td><span class="schema-type-tag">string</span></td>
+                    <td>Receptor / target identifier</td>
+                </tr>
+                <tr>
+                    <td><code class="schema-field-name">activity</code></td>
+                    <td><span class="schema-type-tag">string</span></td>
+                    <td>Activity class (Agonist, Antagonist, Partial agonist…)</td>
+                </tr>
+                <tr>
+                    <td><code class="schema-field-name">pKi</code></td>
+                    <td><span class="schema-type-tag">float</span></td>
+                    <td>Binding affinity as −log₁₀(Ki); higher = stronger binding</td>
+                </tr>
+                <tr>
+                    <td><code class="schema-field-name">ki_lower_nm</code></td>
+                    <td><span class="schema-type-tag">float</span></td>
+                    <td>Ki lower bound in nM</td>
+                </tr>
+                <tr>
+                    <td><code class="schema-field-name">ki_upper_nm</code></td>
+                    <td><span class="schema-type-tag">float</span></td>
+                    <td>Ki upper bound in nM</td>
+                </tr>
+                <tr>
+                    <td><code class="schema-field-name">source_url</code></td>
+                    <td><span class="schema-type-tag">url</span></td>
+                    <td>Primary source reference</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    </div><!-- end .dataset-main-cols -->
+
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -139,9 +502,7 @@
                         button.classList.remove("is-copied");
                         button.textContent = "Copy";
                     }, 1200);
-                } catch (e) {
-                    /* no-op */
-                }
+                } catch (e) { /* no-op */ }
             });
         });
     }());

@@ -34,18 +34,18 @@ DIRECTION_SIDE = {
 }
 
 DIRECTION_COLORS = {
-    "Agonist": "#0f766e",
-    "Antagonist": "#1d4ed8",
+    "Agonist": "#6FA317",
+    "Antagonist": "#6B4CFF",
 }
 
 ACTIVITY_COLORS = {
-    "Agonist": "#0f766e",
-    "Partial agonist": "#14b8a6",
-    "Antagonist": "#1d4ed8",
-    "Inhibitor": "#7c3aed",
-    "Blocker": "#334155",
-    "Ligand": "#b45309",
-    "Unknown": "#6b7280",
+    "Agonist": "#6FA317",
+    "Partial agonist": "#8FCC2B",
+    "Antagonist": "#6B4CFF",
+    "Inhibitor": "#6B4CFF",
+    "Blocker": "#6C6A72",
+    "Ligand": "#E38A2B",
+    "Unknown": "#A09EA6",
 }
 
 ACTIVITY_TO_DIRECTION = {
@@ -161,7 +161,7 @@ def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor:
                     "activity": original_activity,
                     "pki_modelled": round(float(row.pKi_modelled), 2),
                     "is_reference": is_reference,
-                    "color": "#0f172a" if is_reference else ACTIVITY_COLORS.get(original_activity, ACTIVITY_COLORS["Unknown"]),
+                    "color": "#111216" if is_reference else ACTIVITY_COLORS.get(original_activity, ACTIVITY_COLORS["Unknown"]),
                 }
             )
 
@@ -199,7 +199,7 @@ def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor:
         for activity in sorted(activity_values)
     ]
     if points and ranking_active:
-        activity_legend.insert(0, {"label": "Selected drug", "color": "#0f172a"})
+        activity_legend.insert(0, {"label": "Selected drug", "color": "#111216"})
 
     return {
         "selected_drug": selected_drug,
@@ -229,6 +229,7 @@ def home(request: HttpRequest) -> HttpResponse:
         "direction_colors": DIRECTION_COLORS,
         "receptor_drugs_map": receptor_drugs_map,
         "current_page": "home",
+        "total_rows": len(df),
         **payload,
     }
     return render(request, "core/compass.html", context)
@@ -241,10 +242,14 @@ def dataset_download(request: HttpRequest) -> FileResponse:
 
 
 def dataset(request: HttpRequest) -> HttpResponse:
+    df = _load_affinity_data()
     context = {
         "current_page": "dataset",
         "dataset_download_url": request.build_absolute_uri(reverse("dataset_download")),
         "dataset_filename": DATA_PATH.name,
+        "total_rows": len(df),
+        "drug_count": df["drug"].nunique(),
+        "receptor_count": df["target"].nunique(),
     }
     return render(request, "core/dataset.html", context)
 
@@ -398,7 +403,14 @@ def about(request: HttpRequest) -> HttpResponse:
     except FileNotFoundError:
         markdown_text = "# About\n\nAbout content file not found."
     about_html = _render_markdown_basic(markdown_text)
-    return render(request, "core/about.html", {"current_page": "about", "about_html": about_html})
+    df = _load_affinity_data()
+    return render(request, "core/about.html", {
+        "current_page": "about",
+        "about_html": about_html,
+        "total_rows": len(df),
+        "drug_count": df["drug"].nunique(),
+        "receptor_count": df["target"].nunique(),
+    })
 
 
 def axis_data(request: HttpRequest) -> JsonResponse:

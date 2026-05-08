@@ -4,71 +4,77 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}ReceptorMap{% endblock %}</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%234760d4'/%3E%3Cstop offset='1' stop-color='%232f9d68'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='8' y='8' width='48' height='48' rx='13' fill='%23f9fbff' stroke='%23ccd5e8' stroke-width='2'/%3E%3Ccircle cx='32' cy='32' r='12.6' fill='none' stroke='%23dbe2f0' stroke-width='2'/%3E%3Cpath d='M18 32H46' stroke='%23202a45' stroke-width='2.6' stroke-linecap='round'/%3E%3Ccircle cx='22' cy='32' r='3.6' fill='%234760d4'/%3E%3Ccircle cx='42' cy='32' r='3.6' fill='%232f9d68'/%3E%3Crect x='29.2' y='29.2' width='5.6' height='5.6' rx='1.4' transform='rotate(45 32 32)' fill='%23202a45'/%3E%3Cpath d='M24 24.8c2.6-2.3 5-3.4 8-3.4s5.4 1.1 8 3.4' fill='none' stroke='url(%23g)' stroke-width='2.1' stroke-linecap='round'/%3E%3C/svg%3E">
-    <script>
-        (function () {
-            try {
-                var key = "receptormap:display-theme:v1";
-                var stored = localStorage.getItem(key);
-                var theme = (stored === "blue" || stored === "green" || stored === "pink" || stored === "off") ? stored : "blue";
-                document.documentElement.setAttribute("data-display-theme", theme);
-            } catch (e) {
-                document.documentElement.setAttribute("data-display-theme", "blue");
-            }
-        }());
-    </script>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FBFAF7'/%3E%3Cpath d='M16 6 C 10 6%2C 7 10%2C 7 16 C 7 22%2C 10 26%2C 16 26 L 16 20 C 13 20%2C 12 18.2%2C 12 16 C 12 13.8%2C 13 12%2C 16 12 Z' fill='%23111216'/%3E%3Ccircle cx='19' cy='16' r='3.2' fill='%236B4CFF'/%3E%3C/svg%3E">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.hugeicons.com/font/hgi-stroke-rounded.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simplebar@6.3.3/dist/simplebar.min.css">
 
     <style>
+        /* ── Signal brand tokens ── */
         :root {
-            --bg-1: #d7d6e0;
-            --bg-2: #c4c2cf;
-            --frame: #f7f8fb;
-            --frame-edge: #d6d8e2;
-            --panel: #fcfcfe;
-            --panel-soft: #f4f5f9;
-            --ink: #181b2a;
-            --muted: #73788b;
-            --line: #e5e8f0;
-            --line-strong: #d5dbe8;
-            --accent: #111b38;
-            --accent-soft: #e9ecf8;
-            --good: #2f9d68;
-            --bad: #4d6ed8;
-            --shadow-outer: 0 30px 70px rgba(18, 22, 37, 0.2);
-            --shadow-panel: 0 10px 28px rgba(17, 24, 39, 0.08);
-            --ambient-a-rgb: 207, 225, 255;
-            --ambient-b-rgb: 184, 206, 246;
-            --ambient-opacity: 0.7;
-        }
+            --rm-surface:       #FFFFFF;
+            --rm-surface-2:     #FBFAF7;
+            --rm-surface-3:     #F4F3EE;
+            --rm-surface-4:     #ECEAE3;
+            --rm-ink:           #111216;
+            --rm-ink-2:         #1F2126;
+            --rm-ink-3:         #3B3D44;
+            --rm-muted:         #6C6A72;
+            --rm-muted-2:       #A09EA6;
+            --rm-line:          #E9E6DF;
+            --rm-line-2:        #D6D2C9;
 
-        html[data-display-theme="blue"] {
-            --ambient-a-rgb: 207, 225, 255;
-            --ambient-b-rgb: 184, 206, 246;
-            --ambient-opacity: 0.7;
-        }
+            --rm-antag:         #6B4CFF;
+            --rm-antag-ink:     #3E26CC;
+            --rm-antag-wash:    #EFEBFF;
+            --rm-antag-line:    #CBBFFF;
 
-        html[data-display-theme="green"] {
-            --ambient-a-rgb: 205, 239, 225;
-            --ambient-b-rgb: 171, 222, 195;
-            --ambient-opacity: 0.7;
-        }
+            --rm-agon:          #8FCC2B;
+            --rm-agon-ink:      #3E6600;
+            --rm-agon-wash:     #EEF7D7;
+            --rm-agon-line:     #CFE597;
+            --rm-agon-chip:     #C6F26E;
 
-        html[data-display-theme="pink"] {
-            --ambient-a-rgb: 246, 212, 236;
-            --ambient-b-rgb: 214, 203, 252;
-            --ambient-opacity: 0.7;
-        }
+            --rm-warn:          #E38A2B;
+            --rm-error:         #D1403A;
+            --rm-focus:         #6B4CFF;
 
-        html[data-display-theme="off"] {
-            --ambient-a-rgb: 207, 225, 255;
-            --ambient-b-rgb: 184, 206, 246;
-            --ambient-opacity: 0;
+            --rm-font-sans:     "Inter", "Söhne", "Aeonik", ui-sans-serif, system-ui, "Helvetica Neue", Arial, sans-serif;
+            --rm-font-mono:     "JetBrains Mono", "Geist Mono", "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+
+            --rm-fs-xs:   0.72rem;
+            --rm-fs-sm:   0.8125rem;
+            --rm-fs-md:   0.9375rem;
+            --rm-fs-lg:   1.0625rem;
+            --rm-fs-xl:   1.375rem;
+            --rm-fs-2xl:  2rem;
+
+            --rm-radius-1: 4px;
+            --rm-radius-2: 8px;
+            --rm-radius-3: 12px;
+            --rm-radius-4: 20px;
+            --rm-radius-pill: 999px;
+
+            --rm-shadow-1: 0 1px 2px rgba(17, 18, 22, 0.05);
+            --rm-shadow-2: 0 1px 2px rgba(17, 18, 22, 0.05), 0 8px 24px rgba(17, 18, 22, 0.06);
+            --rm-shadow-3: 0 1px 2px rgba(17, 18, 22, 0.05), 0 18px 40px rgba(17, 18, 22, 0.08);
+
+            --rm-ease:    cubic-bezier(0.22, 1, 0.36, 1);
+            --rm-dur-1:   120ms;
+            --rm-dur-2:   200ms;
+            --rm-dur-3:   320ms;
+
+            /* Axis plot palette */
+            --rm-axis-line:      #1F2126;
+            --rm-axis-tick:      #A09EA6;
+            --rm-axis-antag:     #6B4CFF;
+            --rm-axis-agon:      #6FA317;
+            --rm-axis-neutral:   #6C6A72;
+            --rm-axis-reference: #111216;
+            --rm-axis-grid:      #E9E6DF;
         }
 
         * { box-sizing: border-box; }
@@ -76,385 +82,183 @@
         html, body {
             margin: 0;
             min-height: 100%;
-            font-family: "Manrope", "Segoe UI", sans-serif;
-            color: var(--ink);
-            background: radial-gradient(120rem 80rem at 10% -20%, #ece9f8 0%, var(--bg-1) 52%, var(--bg-2) 100%);
+            -webkit-font-smoothing: antialiased;
+            font-feature-settings: "ss01", "cv11";
         }
+
+        html { background: var(--rm-surface-2); }
 
         body {
-            padding: 0;
+            font-family: var(--rm-font-sans);
+            font-size: var(--rm-fs-md);
+            line-height: 1.5;
+            color: var(--rm-ink-3);
         }
 
+        /* ── App shell ── */
         .app-shell {
-            position: relative;
-            border-radius: 0;
-            border: 0;
-            background: linear-gradient(180deg, #ffffff, #fafbfe 65%, #f6f7fb);
-            min-height: 100vh;
             display: grid;
-            grid-template-columns: 94px 1fr;
-            overflow: hidden;
+            grid-template-columns: 240px 1fr;
+            min-height: 100vh;
         }
 
-        .app-shell::before {
-            content: "";
-            position: absolute;
-            left: 50%;
-            top: -70px;
-            width: min(1120px, 80vw);
-            height: 400px;
-            transform: translateX(-50%);
-            pointer-events: none;
-            z-index: 0;
-            opacity: var(--ambient-opacity);
-            background:
-                radial-gradient(56% 62% at 50% 44%, rgba(var(--ambient-a-rgb), 0.58) 0%, rgba(var(--ambient-a-rgb), 0.28) 36%, rgba(var(--ambient-a-rgb), 0.09) 62%, rgba(var(--ambient-a-rgb), 0) 100%),
-                radial-gradient(44% 52% at 52% 45%, rgba(var(--ambient-b-rgb), 0.28) 0%, rgba(var(--ambient-b-rgb), 0.11) 48%, rgba(var(--ambient-b-rgb), 0) 100%);
-            filter: blur(10px);
-        }
-
+        /* ── Side rail ── */
         .side-rail {
-            position: relative;
-            z-index: 8;
-            border-right: 1px solid var(--line);
-            background: linear-gradient(180deg, #fcfcff, #f7f8fc);
-            padding: 1rem 0.65rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            background: var(--rm-surface);
+            border-right: 1px solid var(--rm-line);
+            padding: 16px 12px 20px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-            --mx: 50%;
-            --my: 50%;
-        }
-
-        .side-rail::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(130px 130px at var(--mx) var(--my), rgba(118, 133, 191, 0.16), transparent 72%);
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 180ms ease;
-        }
-
-        .side-rail.is-active::after {
-            opacity: 1;
-        }
-
-        .brand {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            padding-bottom: 0.72rem;
-            border-bottom: 1px solid var(--line);
-        }
-
-        .brand-pill {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 3.9rem;
-            height: 3.9rem;
-            border-radius: 1.1rem;
-            background: #fff;
-            border: 1px solid var(--line-strong);
-            box-shadow: 0 6px 14px rgba(50, 64, 104, 0.15);
-            font-size: 1.06rem;
-            color: #233257;
-        }
-
-        .brand-mark {
-            width: 3rem;
-            height: 3rem;
-            display: block;
-        }
-
-        .rail-nav {
-            width: 100%;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: grid;
-            gap: 0.52rem;
-        }
-
-        .rail-spacer {
-            width: 70%;
-            margin: 0.2rem auto;
-            border-top: 1px solid var(--line);
-        }
-
-        .rail-link {
-            position: relative;
-            width: 100%;
-            min-height: 2.55rem;
-            border-radius: 0.84rem;
-            border: 1px solid transparent;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #565f77;
-            text-decoration: none;
-            background: transparent;
-            transition: color 160ms ease, border-color 180ms ease, background 180ms ease, transform 180ms ease;
-            transform: translateY(0);
-            will-change: transform;
-        }
-
-        .rail-link:hover {
-            color: #1d2a4b;
-            border-color: #d8deeb;
-            background: #f8faff;
-            transform: translateY(-1px);
-        }
-
-        .rail-link.is-current {
-            color: #122144;
-            border-color: #ccd6eb;
-            background: linear-gradient(180deg, #f3f6ff, #eef3ff);
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8);
-        }
-
-        .rail-link::after {
-            content: attr(data-label);
-            position: absolute;
-            left: calc(100% + 0.48rem);
-            top: 50%;
-            transform: translate(-3px, -50%);
-            opacity: 0;
-            pointer-events: none;
-            white-space: nowrap;
-            font-size: 0.74rem;
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            color: #f5f8ff;
-            background: rgba(18, 26, 48, 0.95);
-            border: 1px solid rgba(188, 202, 235, 0.45);
-            border-radius: 999px;
-            padding: 0.2rem 0.54rem;
-            transition: opacity 150ms ease, transform 160ms ease;
+            gap: 2px;
             z-index: 20;
         }
 
-        .rail-link:hover::after,
-        .rail-link:focus-visible::after {
-            opacity: 1;
-            transform: translate(0, -50%);
+        .brand-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 8px 16px;
+            border-bottom: 1px solid var(--rm-line);
+            margin-bottom: 6px;
         }
 
-        .rail-icon {
-            font-size: 1.07rem;
+        .brand-favicon {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+            display: block;
         }
 
-        .settings-wrap {
-            position: relative;
-        }
-
-        .settings-popover {
-            position: absolute;
-            left: calc(100% + 0.55rem);
-            top: 50%;
-            transform: translate(-4px, -50%) scale(0.98);
-            min-width: 10.4rem;
-            border-radius: 0.72rem;
-            border: 1px solid #cad5ec;
-            background: #ffffff;
-            box-shadow: 0 14px 28px rgba(23, 33, 58, 0.2);
-            padding: 0.5rem;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 150ms ease, transform 160ms ease;
-            z-index: 60;
-        }
-
-        .settings-popover.is-open {
-            opacity: 1;
-            transform: translate(0, -50%) scale(1);
-            pointer-events: auto;
-        }
-
-        .settings-popover::before {
-            content: "";
-            position: absolute;
-            left: -6px;
-            top: 50%;
-            width: 10px;
-            height: 10px;
-            transform: translateY(-50%) rotate(45deg);
-            background: #fff;
-            border-left: 1px solid #cad5ec;
-            border-bottom: 1px solid #cad5ec;
-        }
-
-        .settings-title {
-            margin: 0 0 0.35rem;
-            font-size: 0.73rem;
+        .brand-name {
+            font-family: var(--rm-font-sans);
             font-weight: 800;
-            letter-spacing: 0.04em;
+            font-size: 15px;
+            letter-spacing: -0.025em;
+            color: var(--rm-ink);
+            text-decoration: none;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 10px;
+            border-radius: var(--rm-radius-2);
+            font-family: var(--rm-font-sans);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--rm-ink-3);
+            text-decoration: none;
+            transition: background var(--rm-dur-1) ease, color var(--rm-dur-1) ease;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            background: var(--rm-surface-3);
+            color: var(--rm-ink-2);
+        }
+
+        .nav-item.is-current {
+            background: var(--rm-antag-wash);
+            color: var(--rm-antag-ink);
+            font-weight: 600;
+        }
+
+        .nav-item .nav-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+            width: 18px;
+            text-align: center;
+        }
+
+        .nav-section-label {
+            font-family: var(--rm-font-mono);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.16em;
             text-transform: uppercase;
-            color: #637092;
+            color: var(--rm-muted);
+            padding: 18px 10px 6px;
         }
 
-        .theme-options {
-            display: grid;
-            gap: 0.28rem;
+        .nav-badge {
+            margin-left: auto;
+            font-family: var(--rm-font-mono);
+            font-size: 10px;
+            font-weight: 600;
+            background: var(--rm-antag);
+            color: #fff;
+            padding: 2px 7px;
+            border-radius: var(--rm-radius-pill);
         }
 
-        .theme-option {
-            border: 1px solid #d6def1;
-            border-radius: 0.48rem;
-            background: #f8faff;
-            color: #33405e;
-            font-size: 0.76rem;
-            font-weight: 700;
-            text-align: left;
-            padding: 0.26rem 0.45rem;
-            cursor: pointer;
+        .nav-spacer {
+            flex: 1;
+        }
+
+        .nav-version {
+            font-family: var(--rm-font-mono);
+            font-size: 11px;
+            color: var(--rm-muted-2);
+            padding: 8px 10px;
+            letter-spacing: 0.04em;
+        }
+
+        /* ── Main layer ── */
+        .main-layer {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            min-width: 0;
+            background: var(--rm-surface-2);
+        }
+
+        /* ── Topbar ── */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 0.4rem;
+            gap: 1rem;
+            padding: 14px 24px;
+            background: var(--rm-surface);
+            border-bottom: 1px solid var(--rm-line);
         }
 
-        .theme-option:hover {
-            border-color: #bccae9;
-            background: #f1f5ff;
-        }
-
-        .theme-option.is-selected {
-            border-color: #9eb1dd;
-            background: #eaf0ff;
-            color: #203259;
-        }
-
-        .theme-dot {
-            width: 0.56rem;
-            height: 0.56rem;
-            border-radius: 50%;
-            border: 1px solid rgba(34, 47, 80, 0.22);
-            flex: 0 0 auto;
-        }
-
-        .theme-dot-blue { background: #9dc2ff; }
-        .theme-dot-green { background: #9dddc4; }
-        .theme-dot-pink { background: #e5b9de; }
-        .theme-dot-off { background: linear-gradient(135deg, #cfd7ea 0%, #e8ecf6 100%); }
-
-        .main-layer {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            min-height: 100vh;
-        }
-
-        .topbar {
-            border-bottom: 1px solid var(--line);
-            padding: 0.92rem 1.3rem;
-            display: grid;
-            grid-template-columns: 1fr auto;
-            align-items: center;
-            gap: 0.9rem;
-        }
-
-        .topbar-meta {
-            justify-self: start;
-            font-size: 0.78rem;
-            color: #8a90a3;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            font-weight: 700;
-        }
-
-        .topbar-prompt {
-            justify-self: center;
-            width: 100%;
-            border-radius: 999px;
-            border: 1px solid #eceff7;
-            background: linear-gradient(90deg, #f8f9ff, #fefeff);
-            color: #8c91a4;
-            font-size: 0.88rem;
-            text-align: center;
-            padding: 0.5rem 0.8rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .topbar-icons {
-            justify-self: end;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .topbar-icon {
-            width: 2rem;
-            height: 2rem;
-            border-radius: 999px;
-            border: 1px solid #e0e5f0;
-            background: #fff;
-            color: #30374a;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.96rem;
-            transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
-        }
-
-        .topbar-icon:hover {
-            transform: translateY(-1px);
-            border-color: #ccd5e8;
-            box-shadow: 0 8px 18px rgba(57, 72, 110, 0.14);
-        }
-
-        .page-content {
-            padding: 1.22rem;
-            flex: 1;
-            min-height: 0;
-            overflow: auto;
-        }
-
-        .page-content[data-simplebar] .simplebar-track.simplebar-horizontal {
-            display: none;
-        }
-
-        .page-title {
+        .topbar-title {
             margin: 0;
-            font-family: "Outfit", "Manrope", sans-serif;
-            font-size: clamp(1.7rem, 2.2vw, 2.1rem);
-            letter-spacing: -0.02em;
+            font-family: var(--rm-font-sans);
+            font-size: 18px;
             font-weight: 700;
-            color: #171d2e;
+            letter-spacing: -0.025em;
+            color: var(--rm-ink);
         }
 
-        .page-subtitle {
-            margin: 0.2rem 0 0;
-            color: #7c8398;
-            font-size: 0.9rem;
-            max-width: 58rem;
+        /* ── Page content ── */
+        .page-content {
+            padding: 24px 32px;
+            flex: 1;
         }
 
-        .glass-card {
-            border: 1px solid var(--line);
-            border-radius: 1.2rem;
-            background: linear-gradient(180deg, #ffffff, #f9fafe);
-            box-shadow: var(--shadow-panel);
-            will-change: transform;
-        }
-
+        /* ── SimpleBar ── */
         .simplebar-track.simplebar-vertical {
             width: 10px;
         }
 
         .simplebar-track.simplebar-vertical .simplebar-scrollbar:before {
-            background: linear-gradient(180deg, rgba(121, 132, 170, 0.55), rgba(73, 84, 119, 0.62));
+            background: rgba(107, 74, 131, 0.22);
             border-radius: 8px;
             left: 2px;
             right: 2px;
         }
 
+        /* ── Responsive: collapse sidebar at ≤1050px ── */
         @media (max-width: 1050px) {
             .app-shell {
                 grid-template-columns: 1fr;
@@ -462,311 +266,127 @@
             }
 
             .side-rail {
-                border-right: 0;
-                border-bottom: 1px solid var(--line);
-                flex-direction: row;
-                justify-content: flex-start;
-                overflow-x: auto;
-                padding: 0.75rem;
-                gap: 0.75rem;
-            }
-
-            .brand {
-                width: auto;
-                border-bottom: 0;
-                padding: 0;
-                margin-right: 0.15rem;
-            }
-
-            .rail-nav {
-                display: flex;
-                gap: 0.5rem;
-                width: auto;
-            }
-
-            .rail-spacer {
-                display: none;
-            }
-
-            .rail-link {
-                width: 2.6rem;
-                min-height: 2.4rem;
-            }
-
-            .rail-link::after {
-                display: none;
-            }
-
-            .settings-popover {
-                left: 0;
-                top: calc(100% + 0.4rem);
-                transform: translateY(-4px) scale(0.98);
-            }
-
-            .settings-popover.is-open {
-                transform: translateY(0) scale(1);
-            }
-
-            .settings-popover::before {
-                left: 0.9rem;
-                top: -6px;
-                transform: rotate(45deg);
-                border-left: 1px solid #cad5ec;
-                border-bottom: 0;
-                border-top: 1px solid #cad5ec;
-                border-right: 1px solid #cad5ec;
-            }
-
-            .topbar {
-                grid-template-columns: 1fr auto;
-                padding: 0.86rem 1rem;
-            }
-
-            .topbar-meta {
-                display: none;
-            }
-
-            .topbar-prompt {
-                text-align: left;
-                padding-left: 0.8rem;
-            }
-
-            .page-content,
-            .page-content[data-simplebar] {
+                position: static;
                 height: auto;
-                max-height: none;
+                border-right: 0;
+                border-bottom: 1px solid var(--rm-line);
+                flex-direction: row;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                overflow-y: hidden;
+                padding: 10px 12px;
+                gap: 4px;
+                align-items: center;
+            }
+
+            .brand-row {
+                border-bottom: 0;
+                margin-bottom: 0;
+                padding: 0 8px 0 4px;
+                margin-right: 4px;
+                border-right: 1px solid var(--rm-line);
+                flex-shrink: 0;
+            }
+
+            .nav-section-label {
+                display: none;
+            }
+
+            .nav-spacer,
+            .nav-version {
+                display: none;
+            }
+
+            .nav-item {
+                flex-shrink: 0;
+                padding: 7px 10px;
+                font-size: 13px;
             }
         }
 
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
                 transition-duration: 0.01ms !important;
-                scroll-behavior: auto !important;
             }
         }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-<div class="app-shell" id="dashboard-shell" data-page="{{ current_page|default:'home' }}">
+<div class="app-shell" id="dashboard-shell">
     <aside class="side-rail" id="side-rail" aria-label="Main navigation">
-        <div class="brand">
-            <span class="brand-pill" aria-label="ReceptorMap">
-                <svg class="brand-mark" viewBox="0 0 64 64" role="img" aria-label="ReceptorMap logo">
-                    <defs>
-                        <linearGradient id="rm-brand-accent" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0" stop-color="#4760d4"></stop>
-                            <stop offset="1" stop-color="#2f9d68"></stop>
-                        </linearGradient>
-                    </defs>
-                    <rect x="8" y="8" width="48" height="48" rx="13" fill="#f9fbff" stroke="#ccd5e8" stroke-width="2"></rect>
-                    <circle cx="32" cy="32" r="12.6" fill="none" stroke="#dbe2f0" stroke-width="2"></circle>
-                    <path d="M18 32H46" stroke="#202a45" stroke-width="2.6" stroke-linecap="round"></path>
-                    <circle cx="22" cy="32" r="3.6" fill="#4760d4"></circle>
-                    <circle cx="42" cy="32" r="3.6" fill="#2f9d68"></circle>
-                    <rect x="29.2" y="29.2" width="5.6" height="5.6" rx="1.4" transform="rotate(45 32 32)" fill="#202a45"></rect>
-                    <path d="M24 24.8c2.6-2.3 5-3.4 8-3.4s5.4 1.1 8 3.4" fill="none" stroke="url(#rm-brand-accent)" stroke-width="2.1" stroke-linecap="round"></path>
-                </svg>
-            </span>
+        <div class="brand-row">
+            <svg class="brand-favicon" viewBox="0 0 32 32" aria-hidden="true">
+                <rect width="32" height="32" rx="8" fill="#FBFAF7"/>
+                <path d="M16 6 C 10 6, 7 10, 7 16 C 7 22, 10 26, 16 26 L 16 20 C 13 20, 12 18.2, 12 16 C 12 13.8, 13 12, 16 12 Z" fill="#111216"/>
+                <circle cx="19" cy="16" r="3.2" fill="#6B4CFF"/>
+            </svg>
+            <span class="brand-name">ReceptorMap</span>
         </div>
 
-        <ul class="rail-nav" role="list">
-            <li>
-                <a href="{% url 'home' %}" class="rail-link {% if current_page == 'home' %}is-current{% endif %}" data-label="Home" aria-label="Home">
-                    <i class="hgi-stroke hgi-chart-line-data-01 rail-icon" aria-hidden="true"></i>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'about' %}" class="rail-link {% if current_page == 'about' %}is-current{% endif %}" data-label="About" aria-label="About">
-                    <i class="hgi-stroke hgi-information-circle rail-icon" aria-hidden="true"></i>
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'dataset' %}" class="rail-link {% if current_page == 'dataset' %}is-current{% endif %}" data-label="Dataset" aria-label="Dataset">
-                    <i class="hgi-stroke hgi-download-05 rail-icon" aria-hidden="true"></i>
-                </a>
-            </li>
-        </ul>
+        <a href="{% url 'home' %}" class="nav-item {% if current_page == 'home' %}is-current{% endif %}" aria-label="Home">
+            <i class="hgi-stroke hgi-chart-line-data-01 nav-icon" aria-hidden="true"></i>
+            Home
+        </a>
+        <a href="{% url 'about' %}" class="nav-item {% if current_page == 'about' %}is-current{% endif %}" aria-label="About">
+            <i class="hgi-stroke hgi-information-circle nav-icon" aria-hidden="true"></i>
+            About
+        </a>
+        <a href="{% url 'dataset' %}" class="nav-item {% if current_page == 'dataset' %}is-current{% endif %}" aria-label="Dataset">
+            <i class="hgi-stroke hgi-download-05 nav-icon" aria-hidden="true"></i>
+            Dataset
+        </a>
 
-        <div class="rail-spacer"></div>
+        {% if request.user.is_authenticated %}
+        <span class="nav-section-label">Editor</span>
+        <a href="{% url 'editor' %}" class="nav-item {% if current_page == 'editor' %}is-current{% endif %}" aria-label="Dataset Editor">
+            <i class="hgi-stroke hgi-task-edit-01 nav-icon" aria-hidden="true"></i>
+            Review queue
+        </a>
+        {% endif %}
 
-        <ul class="rail-nav" role="list" aria-label="Secondary controls">
-            <li>
-                <div class="settings-wrap">
-                    <button id="display-settings-btn" type="button" class="rail-link" data-label="Settings" aria-label="Display settings">
-                        <i class="hgi-stroke hgi-settings-02 rail-icon" aria-hidden="true"></i>
-                    </button>
-                    <div id="display-settings-popover" class="settings-popover" role="dialog" aria-label="Display settings" aria-hidden="true">
-                        <p class="settings-title">Accent</p>
-                        <div class="theme-options">
-                            <button type="button" class="theme-option" data-theme="blue">
-                                Blue <span class="theme-dot theme-dot-blue" aria-hidden="true"></span>
-                            </button>
-                            <button type="button" class="theme-option" data-theme="green">
-                                Green <span class="theme-dot theme-dot-green" aria-hidden="true"></span>
-                            </button>
-                            <button type="button" class="theme-option" data-theme="pink">
-                                Pink <span class="theme-dot theme-dot-pink" aria-hidden="true"></span>
-                            </button>
-                            <button type="button" class="theme-option" data-theme="off">
-                                Off <span class="theme-dot theme-dot-off" aria-hidden="true"></span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </li>
-            <li>
-                <span class="rail-link" data-label="Support" aria-hidden="true">
-                    <i class="hgi-stroke hgi-help-circle rail-icon"></i>
-                </span>
-            </li>
-        </ul>
+        <div class="nav-spacer"></div>
+        <span class="nav-version">v 0.2.0</span>
     </aside>
 
     <div class="main-layer">
         <header class="topbar">
-            <div class="topbar-meta">ReceptorMap</div>
-            <div class="topbar-icons" aria-hidden="true">
-                <span class="topbar-icon"><i class="hgi-stroke hgi-notification-03"></i></span>
-            </div>
+            <h1 class="topbar-title">
+                {% block topbar_title %}
+                {% if current_page == 'home' %}Home
+                {% elif current_page == 'about' %}About
+                {% elif current_page == 'dataset' %}Dataset
+                {% elif current_page == 'editor' %}Dataset Editor
+                {% else %}ReceptorMap{% endif %}
+                {% endblock %}
+            </h1>
+            {% block topbar_right %}{% endblock %}
         </header>
 
-                <div class="page-content">
-                    {% block content %}{% endblock %}
-                </div>
-            </div>
+        <div class="page-content" id="page-content">
+            {% block content %}{% endblock %}
         </div>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/simplebar@6.3.3/dist/simplebar.min.js"></script>
 <script>
     (function () {
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        const displayThemeKey = "receptormap:display-theme:v1";
-        const rail = document.getElementById("side-rail");
         const shell = document.getElementById("dashboard-shell");
-        const settingsBtn = document.getElementById("display-settings-btn");
-        const settingsPopover = document.getElementById("display-settings-popover");
-        const settingsWrap = document.querySelector(".settings-wrap");
-        const settingsOptions = Array.from(document.querySelectorAll(".theme-option[data-theme]"));
-
-        function normalizeTheme(value) {
-            if (value === "green" || value === "pink" || value === "blue" || value === "off") return value;
-            return "blue";
-        }
-
-        function applyDisplayTheme(theme) {
-            const normalized = normalizeTheme(theme);
-            document.documentElement.setAttribute("data-display-theme", normalized);
-            settingsOptions.forEach((btn) => {
-                const selected = btn.dataset.theme === normalized;
-                btn.classList.toggle("is-selected", selected);
-                btn.setAttribute("aria-pressed", selected ? "true" : "false");
-            });
-            try {
-                window.localStorage.setItem(displayThemeKey, normalized);
-            } catch (e) {
-                /* no-op */
-            }
-        }
-
-        function setSettingsPopover(open) {
-            if (!settingsPopover) return;
-            settingsPopover.classList.toggle("is-open", Boolean(open));
-            settingsPopover.setAttribute("aria-hidden", open ? "false" : "true");
-        }
-
-        function wireDisplaySettings() {
-            if (!settingsBtn || !settingsPopover) return;
-
-            settingsBtn.addEventListener("click", (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                setSettingsPopover(!settingsPopover.classList.contains("is-open"));
-            });
-
-            settingsOptions.forEach((btn) => {
-                btn.addEventListener("click", () => {
-                    applyDisplayTheme(btn.dataset.theme || "blue");
-                });
-            });
-
-            document.addEventListener("click", (event) => {
-                if (!settingsPopover.classList.contains("is-open")) return;
-                if (event.target.closest(".settings-wrap")) return;
-                setSettingsPopover(false);
-            });
-
-            document.addEventListener("mousemove", (event) => {
-                if (!settingsPopover.classList.contains("is-open") || !settingsWrap) return;
-                const rect = settingsWrap.getBoundingClientRect();
-                const cx = rect.left + (rect.width / 2);
-                const cy = rect.top + (rect.height / 2);
-                const dx = event.clientX - cx;
-                const dy = event.clientY - cy;
-                const distance = Math.hypot(dx, dy);
-                if (distance > 210) setSettingsPopover(false);
-            });
-
-            document.addEventListener("keydown", (event) => {
-                if (event.key === "Escape") setSettingsPopover(false);
-            });
-
-            let initialTheme = "blue";
-            try {
-                initialTheme = normalizeTheme(window.localStorage.getItem(displayThemeKey) || "blue");
-            } catch (e) {
-                initialTheme = normalizeTheme(document.documentElement.getAttribute("data-display-theme") || "blue");
-            }
-            applyDisplayTheme(initialTheme);
-        }
-
-        function wireSidebarGlow() {
-            if (!rail || reduceMotion) return;
-            rail.addEventListener("mouseenter", () => rail.classList.add("is-active"));
-            rail.addEventListener("mouseleave", () => {
-                rail.classList.remove("is-active");
-                rail.style.setProperty("--mx", "50%");
-                rail.style.setProperty("--my", "50%");
-            });
-            rail.addEventListener("mousemove", (event) => {
-                const rect = rail.getBoundingClientRect();
-                const px = ((event.clientX - rect.left) / rect.width) * 100;
-                const py = ((event.clientY - rect.top) / rect.height) * 100;
-                rail.style.setProperty("--mx", `${px.toFixed(2)}%`);
-                rail.style.setProperty("--my", `${py.toFixed(2)}%`);
-            });
-
-            const links = Array.from(rail.querySelectorAll(".rail-link"));
-            links.forEach((link) => {
-                link.addEventListener("mousemove", (event) => {
-                    const rect = link.getBoundingClientRect();
-                    const x = event.clientX - rect.left;
-                    const y = event.clientY - rect.top;
-                    const dx = ((x / rect.width) - 0.5) * 8;
-                    const dy = ((y / rect.height) - 0.5) * 6;
-                    link.style.transform = `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px)`;
-                });
-                link.addEventListener("mouseleave", () => {
-                    link.style.transform = "translate(0px, 0px)";
-                });
-            });
-        }
 
         function revealShell() {
             if (!shell || reduceMotion) return;
             shell.animate(
                 [
-                    { opacity: 0, transform: "translateY(8px) scale(0.995)" },
-                    { opacity: 1, transform: "translateY(0px) scale(1)" },
+                    { opacity: 0, transform: "translateY(6px)" },
+                    { opacity: 1, transform: "translateY(0px)" },
                 ],
-                { duration: 540, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "both" }
+                { duration: 400, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "both" }
             );
         }
 
-        wireDisplaySettings();
-        wireSidebarGlow();
         revealShell();
     }());
 </script>
