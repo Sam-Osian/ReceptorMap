@@ -312,12 +312,39 @@
             letter-spacing: 0;
             line-height: 1.35;
             text-transform: none;
-            pointer-events: none;
+            pointer-events: auto;
             opacity: 0;
             transform: translateY(4px);
             transition: opacity 120ms ease, transform 120ms ease;
         }
         #field-help-tip.is-open {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #readonly-preview-tip {
+            position: fixed;
+            z-index: 12010;
+            max-width: 360px;
+            max-height: 220px;
+            overflow: auto;
+            padding: 0.5rem 0.6rem;
+            border-radius: 0.5rem;
+            border: 1px solid #cfd8ee;
+            background: #ffffff;
+            box-shadow: 0 10px 28px rgba(16,24,56,0.2);
+            color: #1f2a4a;
+            font-size: 0.72rem;
+            font-weight: 500;
+            line-height: 1.38;
+            white-space: pre-wrap;
+            word-break: break-word;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(4px);
+            transition: opacity 120ms ease, transform 120ms ease;
+        }
+        #readonly-preview-tip.is-open {
             opacity: 1;
             transform: translateY(0);
         }
@@ -331,6 +358,8 @@
         .col-drug-class  { width: 174px; min-width: 174px; }
         .col-activity    { width: 128px; min-width: 128px; }
         .col-act-recoded { width: 130px; min-width: 130px; }
+        .col-plot-activity { width: 140px; min-width: 140px; }
+        .col-plot-basis { width: 170px; min-width: 170px; }
         .col-ki-lo       { width: 108px; min-width: 108px; }
         .col-ki-hi       { width: 108px; min-width: 108px; }
         .col-ki-mod      { width: 128px; min-width: 128px; }
@@ -383,8 +412,8 @@
         td.col-drug .cv  { font-weight: 700; color: #111216; }
         td.col-target .cv { color: #3B3D44; font-weight: 600; }
         td.cell-computed .cv { color: #A09EA6; font-size: 12px; font-family: "JetBrains Mono", monospace; }
-        td.cell-computed { background: #FBFAF7 !important; }
-        td.cell-readonly { background: #FBFAF7 !important; }
+        td.cell-computed { background: #FBFAF7 !important; cursor: pointer; }
+        td.cell-readonly { background: #FBFAF7 !important; cursor: pointer; }
         td.cell-readonly .cv { color: #A09EA6; font-weight: 500; }
         td.cell-readonly.col-drug .cv { color: #111216; font-weight: 700; }
         td.cell-readonly.col-target .cv { color: #111216; font-weight: 700; }
@@ -885,6 +914,8 @@
                         <th class="col-drug-class"><span class="th-label">Drug Class<button class="th-info-btn" type="button" data-help="Pharmacological class grouping for the drug." aria-label="What is Drug Class?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
                         <th class="col-activity"><span class="th-label">Activity<button class="th-info-btn" type="button" data-help="Functional activity label curated from evidence (for example inhibitor, agonist)." aria-label="What is Activity?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
                         <th class="col-act-recoded"><span class="th-label">Act. Recoded<button class="th-info-btn" type="button" data-help="Binary recode used for direction analyses. Read-only." aria-label="What is Act. Recoded?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
+                        <th class="col-plot-activity"><span class="th-label">Plot Activity<button class="th-info-btn" type="button" data-help="Runtime-derived activity used by the compass plot when row activity is blank. Read-only." aria-label="What is Plot Activity?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
+                        <th class="col-plot-basis"><span class="th-label">Plot Basis<button class="th-info-btn" type="button" data-help="Indicates whether plot activity is evidence-backed or inferred. Read-only." aria-label="What is Plot Basis?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
                         <th class="col-ki-lo"><span class="th-label">Ki Lower (nM)<button class="th-info-btn" type="button" data-help="Lower bound of the Ki value in nM when a range is reported." aria-label="What is Ki Lower?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
                         <th class="col-ki-hi"><span class="th-label">Ki Upper (nM)<button class="th-info-btn" type="button" data-help="Upper bound of the Ki value in nM when a range is reported." aria-label="What is Ki Upper?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
                         <th class="col-ki-mod"><span class="th-label">Modelled Ki (nM)<button class="th-info-btn" type="button" data-help="Single Ki value used for computations. Auto-generated and read-only." aria-label="What is Modelled Ki?"><i class="hgi-stroke hgi-information-circle"></i></button></span></th>
@@ -909,6 +940,24 @@
                     </td>
                     <td class="cell-readonly col-act-recoded" data-field="activity_recoded" data-type="computed" data-value="{{ row.activity_recoded }}">
                         <span class="cv">{% if row.activity_recoded %}{{ row.activity_recoded }}{% else %}—{% endif %}</span>
+                    </td>
+                    <td class="cell-readonly col-plot-activity">
+                        <span class="cv">{% if row.plot_activity_derived %}{{ row.plot_activity_derived }}{% else %}—{% endif %}</span>
+                    </td>
+                    <td class="cell-readonly col-plot-basis">
+                        <span class="cv">
+                            {% if row.plot_activity_basis == "evidence" %}
+                                Evidence
+                            {% elif row.plot_activity_basis == "inferred_target_consensus" %}
+                                Inferred · target consensus
+                            {% elif row.plot_activity_basis == "inferred_target_class" %}
+                                Inferred · target class
+                            {% elif row.plot_activity_basis == "undetermined" %}
+                                Undetermined
+                            {% else %}
+                                —
+                            {% endif %}
+                        </span>
                     </td>
                     <td class="cell-editable col-ki-lo" data-field="ki_lower_nm" data-type="number" data-value="{{ row.ki_lower_nm }}">
                         <span class="cv">{% if row.ki_lower_nm %}{{ row.ki_lower_nm }}{% else %}—{% endif %}</span>
@@ -1052,6 +1101,7 @@
     </div>
 </div>
 <div id="field-help-tip" role="tooltip" aria-hidden="true"></div>
+<div id="readonly-preview-tip" role="tooltip" aria-hidden="true"></div>
 <div id="drug-search-panel" role="dialog" aria-label="Filter by drug">
     <input type="text" id="drug-search-input" placeholder="Search drugs…" autocomplete="off" spellcheck="false" aria-label="Search drugs">
     <div id="drug-search-options"></div>
@@ -1504,6 +1554,46 @@
 
     /* ── Header help tooltips ── */
     const helpTip = document.getElementById('field-help-tip');
+    const readonlyPreviewTip = document.getElementById('readonly-preview-tip');
+    let activeReadonlyPreviewTd = null;
+
+    function getReadonlyPreviewText(td) {
+        if (!td) return '';
+        const dataVal = String(td.dataset.value || '').trim();
+        if (dataVal) return dataVal;
+        const cv = td.querySelector('.cv');
+        if (cv) return String(cv.textContent || '').trim();
+        return String(td.textContent || '').trim();
+    }
+
+    function openReadonlyPreview(td) {
+        if (!readonlyPreviewTip || !td) return;
+        const text = getReadonlyPreviewText(td);
+        if (!text || text === '—') return;
+        activeReadonlyPreviewTd = td;
+        readonlyPreviewTip.textContent = text;
+        readonlyPreviewTip.setAttribute('aria-hidden', 'false');
+        readonlyPreviewTip.classList.add('is-open');
+
+        const rect = td.getBoundingClientRect();
+        const tipRect = readonlyPreviewTip.getBoundingClientRect();
+        let left = rect.left + 8;
+        let top = rect.bottom + 8;
+        if (left + tipRect.width > window.innerWidth - 8) left = window.innerWidth - tipRect.width - 8;
+        if (left < 8) left = 8;
+        if (top + tipRect.height > window.innerHeight - 8) top = rect.top - tipRect.height - 8;
+        if (top < 8) top = 8;
+        readonlyPreviewTip.style.left = `${left}px`;
+        readonlyPreviewTip.style.top = `${top}px`;
+    }
+
+    function closeReadonlyPreview() {
+        if (!readonlyPreviewTip) return;
+        readonlyPreviewTip.classList.remove('is-open');
+        readonlyPreviewTip.setAttribute('aria-hidden', 'true');
+        activeReadonlyPreviewTd = null;
+    }
+
     function openHelp(btn) {
         if (!helpTip || !btn) return;
         activeHelpBtn = btn;
@@ -1540,6 +1630,8 @@
     });
     document.addEventListener('scroll', closeHelp, true);
     window.addEventListener('resize', closeHelp);
+    document.addEventListener('scroll', closeReadonlyPreview, true);
+    window.addEventListener('resize', closeReadonlyPreview);
 
     /* ── Drug header search ── */
     const drugSearchBtn = document.getElementById('drug-search-btn');
@@ -1622,8 +1714,25 @@
         openInput(td, drug, target, field, type);
     });
 
+    document.getElementById('sheet-table').addEventListener('click', e => {
+        if (e.target.closest('td.cell-editable')) return;
+        if (e.target.closest('a,button,input,textarea,select,label')) return;
+        const td = e.target.closest('td.cell-readonly, td.cell-computed');
+        if (!td) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (activeReadonlyPreviewTd === td && readonlyPreviewTip?.classList.contains('is-open')) {
+            closeReadonlyPreview();
+            return;
+        }
+        openReadonlyPreview(td);
+    });
+
     document.addEventListener('click', e => {
         if (!e.target.closest('.th-info-btn')) closeHelp();
+        if (readonlyPreviewTip?.classList.contains('is-open') &&
+            !readonlyPreviewTip.contains(e.target) &&
+            !e.target.closest('td.cell-readonly, td.cell-computed')) closeReadonlyPreview();
         if (drugSearchPanel.style.display === 'block' &&
             !drugSearchPanel.contains(e.target) && !e.target.closest('#drug-search-btn')) closeDrugSearch();
         if (ddPanel.style.display !== 'none' &&
@@ -1638,6 +1747,7 @@
         if (ddPanel.style.display !== 'none')   closeDropdown();
         if (taPopup.style.display !== 'none')   closeTextarea();
         if (drugSearchPanel.style.display === 'block') closeDrugSearch();
+        closeReadonlyPreview();
     });
 
     /* ── Save modal ── */
@@ -1646,6 +1756,7 @@
     document.getElementById('modal-cancel').addEventListener('click', closeSaveModal);
     document.getElementById('save-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeSaveModal(); });
     document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeReadonlyPreview();
         if (e.key === 'Escape' && document.getElementById('save-modal').classList.contains('is-open')) closeSaveModal();
     });
     document.getElementById('undo-btn').addEventListener('click', undoLastEdit);

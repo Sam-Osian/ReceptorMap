@@ -13,7 +13,7 @@ ReceptorMap helps you explore how selected drugs interact with receptor targets 
 [Wait for data approach to finalise]
 
 ## Axis interpretation
-The axis separates receptor interactions by pharmacological direction. Points toward the antagonist side indicate antagonistic activity, while points toward the agonist side indicate agonistic activity. Hover any point for exact target and pKi context.
+The axis separates receptor interactions by pharmacological direction. Points toward the antagonist side indicate antagonistic activity, while points toward the agonist side indicate agonistic activity. When row-level activity evidence is missing, ReceptorMap may infer direction only from strong target-level consensus or transporter/channel class rules; otherwise the row remains undetermined and is plotted at the axis centre.
 
 ## Limitations
 The display is constrained by available source data and modelling assumptions. Some targets, drugs, or activity classes may be underrepresented, and plotted values should be interpreted as analytical guidance rather than standalone clinical evidence.

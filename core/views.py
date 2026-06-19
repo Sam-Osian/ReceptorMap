@@ -31,6 +31,7 @@ ABOUT_MD_PATH = settings.BASE_DIR / "core" / "content" / "about.md"
 DIRECTION_SIDE = {
     "Antagonist": -1.0,
     "Agonist": 1.0,
+    "Undetermined": 0.0,
 }
 
 DIRECTION_COLORS = {
@@ -45,6 +46,7 @@ ACTIVITY_COLORS = {
     "Inhibitor": "#6B4CFF",
     "Blocker": "#6C6A72",
     "Ligand": "#E38A2B",
+    "Undetermined": "#A09EA6",
     "Unknown": "#A09EA6",
 }
 
@@ -57,7 +59,14 @@ ACTIVITY_TO_DIRECTION = {
     "inhibitor": "Antagonist",
     "inhibition": "Antagonist",
     "blocker": "Antagonist",
+    "undetermined": "Undetermined",
 }
+
+TRANSPORTER_LIKE_TARGETS = {
+    "SERT", "NET", "DAT",
+    "hERG", "VDCC", "VGSC",
+}
+TARGET_CONSENSUS_MIN_EVIDENCE = 3
 
 
 def _derive_activity_recoded(activity: object) -> str:
@@ -70,6 +79,8 @@ def _normalise_direction(value: object) -> str | None:
         return "Agonist"
     if text == "antagonist":
         return "Antagonist"
+    if text == "undetermined":
+        return "Undetermined"
     return None
 
 
@@ -80,6 +91,62 @@ def _derive_direction(activity_recoded: object, activity: object) -> str | None:
     return _derive_activity_recoded(activity) or None
 
 
+def _build_target_direction_consensus(df: pd.DataFrame) -> dict[str, str]:
+    direction_counts: dict[str, dict[str, int]] = {}
+    for row in df.itertuples(index=False):
+        target = str(getattr(row, "target", "") or "").strip()
+        if not target:
+            continue
+        direction = _derive_direction(getattr(row, "activity_recoded", ""), getattr(row, "activity", ""))
+        if not direction:
+            continue
+        counts = direction_counts.setdefault(target, {"Agonist": 0, "Antagonist": 0})
+        counts[direction] += 1
+
+    consensus: dict[str, str] = {}
+    for target, counts in direction_counts.items():
+        if (counts["Agonist"] + counts["Antagonist"]) < TARGET_CONSENSUS_MIN_EVIDENCE:
+            continue
+        if counts["Agonist"] and counts["Antagonist"]:
+            continue
+        if counts["Agonist"]:
+            consensus[target] = "Agonist"
+        elif counts["Antagonist"]:
+            consensus[target] = "Antagonist"
+    return consensus
+
+
+def _derive_plot_activity(
+    target: object,
+    activity: object,
+    activity_recoded: object,
+    target_direction_consensus: dict[str, str],
+) -> tuple[str, str]:
+    """
+    Return (activity_for_plot, basis):
+    - basis='evidence' when activity annotation exists in the row
+    - basis='inferred_*' when activity is inferred for plotting
+    - basis='undetermined' when evidence is insufficient to infer direction
+    """
+    target_text = str(target or "").strip()
+    activity_text = str(activity or "").strip()
+
+    if activity_text:
+        return activity_text, "evidence"
+
+    consensus_direction = target_direction_consensus.get(target_text)
+    if consensus_direction == "Agonist":
+        return "Agonist", "inferred_target_consensus"
+    if consensus_direction == "Antagonist":
+        if target_text in TRANSPORTER_LIKE_TARGETS:
+            return "Inhibitor", "inferred_target_consensus"
+        return "Antagonist", "inferred_target_consensus"
+
+    if target_text in TRANSPORTER_LIKE_TARGETS:
+        return "Inhibitor", "inferred_target_class"
+    return "Undetermined", "undetermined"
+
+
 @lru_cache(maxsize=4)
 def _load_affinity_data_cached(dataset_mtime_ns: int) -> pd.DataFrame:
     # `dataset_mtime_ns` is only used as a cache key to invalidate on file changes.
@@ -87,9 +154,16 @@ def _load_affinity_data_cached(dataset_mtime_ns: int) -> pd.DataFrame:
     df = pd.read_csv(DATA_PATH)
     df["activity"] = df["activity"].fillna("").astype(str).str.strip()
     df["activity_recoded"] = df["activity_recoded"].fillna("").astype(str).str.strip()
+    target_direction_consensus = _build_target_direction_consensus(df)
+    inferred_pairs = [
+        _derive_plot_activity(target, activity, recoded, target_direction_consensus)
+        for target, activity, recoded in zip(df["target"], df["activity"], df["activity_recoded"])
+    ]
+    df["plot_activity"] = [pair[0] for pair in inferred_pairs]
+    df["plot_activity_basis"] = [pair[1] for pair in inferred_pairs]
     df["direction"] = [
-        _derive_direction(recoded, activity)
-        for recoded, activity in zip(df["activity_recoded"], df["activity"])
+        _derive_direction("", plot_activity)
+        for plot_activity in df["plot_activity"]
     ]
     df["modelled_ki_nm"] = pd.to_numeric(df["modelled_ki_nm"], errors="coerce")
     df["pKi"] = pd.to_numeric(df["pKi"], errors="coerce")
@@ -114,7 +188,7 @@ def _compass_xy(direction: str, pki: float) -> tuple[float, float]:
     distance = 30 + ((pki_clamped - 4.0) / 6.0) * 390.0
     x = 460 + side * distance
     # Straight-line 2D axis: no vertical encoding.
-    y = 162
+    y = 160
     return round(x, 2), round(y, 2)
 
 
@@ -145,10 +219,12 @@ def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor:
 
     if not receptor_df.empty:
         for row in receptor_df.itertuples(index=False):
-            original_activity = str(row.activity).strip() if pd.notna(row.activity) else ""
-            if not original_activity:
-                original_activity = "Unknown"
-            activity_values.add(original_activity)
+            plot_activity = str(row.plot_activity).strip() if pd.notna(row.plot_activity) else ""
+            if not plot_activity:
+                plot_activity = "Unknown"
+            plot_activity_basis = str(row.plot_activity_basis).strip() if pd.notna(row.plot_activity_basis) else "undetermined"
+            display_activity = plot_activity
+            activity_values.add(display_activity)
             x, y = _compass_xy(row.direction, row.pKi_modelled)
             is_reference = bool(selected_drug) and row.drug == selected_drug
             points.append(
@@ -158,10 +234,11 @@ def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor:
                     "drug": row.drug,
                     "receptor": row.target,
                     "direction": row.direction,
-                    "activity": original_activity,
+                    "activity": display_activity,
+                    "activity_basis": plot_activity_basis,
                     "pki_modelled": round(float(row.pKi_modelled), 2),
                     "is_reference": is_reference,
-                    "color": "#111216" if is_reference else ACTIVITY_COLORS.get(original_activity, ACTIVITY_COLORS["Unknown"]),
+                    "color": "#111216" if is_reference else ACTIVITY_COLORS.get(plot_activity, ACTIVITY_COLORS["Unknown"]),
                 }
             )
 
@@ -171,8 +248,9 @@ def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor:
                 rows.append(
                     {
                         "drug": row.drug,
-                        "activity": original_activity,
-                        "activity_color": ACTIVITY_COLORS.get(original_activity, ACTIVITY_COLORS["Unknown"]),
+                        "activity": display_activity,
+                        "activity_basis": plot_activity_basis,
+                        "activity_color": ACTIVITY_COLORS.get(plot_activity, ACTIVITY_COLORS["Unknown"]),
                         "pKi_modelled": round(other_pki, 2),
                         "delta_pki": round(delta_pki, 2),
                     }
@@ -181,8 +259,9 @@ def _build_view_payload(df: pd.DataFrame, selected_drug: str, selected_receptor:
                 rows.append(
                     {
                         "drug": row.drug,
-                        "activity": original_activity,
-                        "activity_color": ACTIVITY_COLORS.get(original_activity, ACTIVITY_COLORS["Unknown"]),
+                        "activity": display_activity,
+                        "activity_basis": plot_activity_basis,
+                        "activity_color": ACTIVITY_COLORS.get(plot_activity, ACTIVITY_COLORS["Unknown"]),
                         "pKi_modelled": round(float(row.pKi_modelled), 2),
                         "delta_pki": None,
                     }
@@ -508,6 +587,36 @@ def _get_drug_class_options() -> list[str]:
     return [""] + sorted(classes)
 
 
+def _annotate_editor_rows_with_plot_activity(rows: list[dict]) -> list[dict]:
+    """
+    Attach read-only, runtime-only inference metadata for the editor table.
+    This does not modify CSV schema or persisted fields.
+    """
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return rows
+
+    # Ensure expected columns exist for helper reuse.
+    for col in ("target", "activity", "activity_recoded"):
+        if col not in df.columns:
+            df[col] = ""
+
+    target_direction_consensus = _build_target_direction_consensus(df)
+    annotated: list[dict] = []
+    for row in rows:
+        plot_activity, basis = _derive_plot_activity(
+            row.get("target", ""),
+            row.get("activity", ""),
+            row.get("activity_recoded", ""),
+            target_direction_consensus,
+        )
+        enriched = dict(row)
+        enriched["plot_activity_derived"] = plot_activity
+        enriched["plot_activity_basis"] = basis
+        annotated.append(enriched)
+    return annotated
+
+
 def _invalidate_caches() -> None:
     _load_affinity_data_cached.cache_clear()
     try:
@@ -523,6 +632,7 @@ def editor_view(request: HttpRequest) -> HttpResponse:
         return render(request, "core/editor_access_denied.html", status=403)
 
     rows = _load_full_rows()
+    display_rows = _annotate_editor_rows_with_plot_activity(rows)
     drug_class_options = _get_drug_class_options()
     unique_drugs = sorted({r["drug"] for r in rows})
 
@@ -533,7 +643,7 @@ def editor_view(request: HttpRequest) -> HttpResponse:
 
     context = {
         "current_page": "editor",
-        "rows": rows,
+        "rows": display_rows,
         "total_rows": len(rows),
         "drug_count": len(unique_drugs),
         "dropdown_options": dropdown_options,
